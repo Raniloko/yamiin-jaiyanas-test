@@ -79,14 +79,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Yamiin & Jaiyana's Healthy Fastfood" },
+      { name: "description", content: "Frische Bowls, Sandwiches und Drinks in Hanau." },
+      { name: "author", content: "Yamiin & Jaiyana's Healthy Fastfood" },
+      { property: "og:title", content: "Yamiin & Jaiyana's Healthy Fastfood" },
+      { property: "og:description", content: "Frische Bowls, Sandwiches und Drinks in Hanau." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
