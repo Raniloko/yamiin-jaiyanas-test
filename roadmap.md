@@ -1,0 +1,5 @@
+- [ ] Logo als Markenbild und Favicon integrieren
+- [ ] Gemeinsame Navigation mit animiertem Hamburger-Menü bauen
+- [ ] Startseite im gewählten Galerie-Stil reduzieren
+- [ ] Eigene Speisekarten-, Über-uns- und Kontaktseiten erstellen
+- [ ] Mobil und Desktop im Browser prüfen
