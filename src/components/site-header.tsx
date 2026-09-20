@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import logoAsset from "@/assets/yj-logo.jpeg.asset.json";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ const links = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -22,9 +24,11 @@ export function SiteHeader() {
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
+    closeButtonRef.current?.focus();
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", closeOnEscape);
+      openButtonRef.current?.focus();
     };
   }, [open]);
 
@@ -42,6 +46,7 @@ export function SiteHeader() {
           </Link>
           <Button
             type="button"
+            ref={openButtonRef}
             variant="ghost"
             size="icon"
             aria-label="Menü öffnen"
@@ -62,12 +67,14 @@ export function SiteHeader() {
       <aside
         aria-label="Hauptmenü"
         aria-hidden={!open}
+        inert={!open}
         className={`fixed right-0 top-0 z-50 flex h-dvh w-[min(90vw,30rem)] flex-col bg-background px-6 py-6 shadow-2xl transition-transform duration-500 ease-out sm:px-10 sm:py-8 ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b border-border pb-6">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Navigation</span>
           <Button
             type="button"
+            ref={closeButtonRef}
             variant="ghost"
             size="icon"
             aria-label="Menü schließen"
