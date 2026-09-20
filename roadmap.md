@@ -2,4 +2,4 @@
 - [x] Gemeinsame Navigation mit animiertem Hamburger-Menü bauen
 - [x] Startseite im gewählten Galerie-Stil reduzieren
 - [x] Eigene Speisekarten-, Über-uns- und Kontaktseiten erstellen
-- [ ] Mobil und Desktop im Browser prüfen
+- [x] Mobil und Desktop im Browser prüfen
