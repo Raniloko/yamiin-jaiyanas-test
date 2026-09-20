@@ -79,13 +79,12 @@ export function SiteHeader() {
         </div>
 
         <nav className="flex flex-1 flex-col justify-center gap-1">
-          {links.map((item, index) => (
+          {links.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               onClick={() => setOpen(false)}
               className={`menu-link border-b border-border py-4 font-display text-3xl font-medium sm:text-4xl ${open ? "menu-link-open" : ""}`}
-              style={{ transitionDelay: open ? `${120 + index * 60}ms` : "0ms" }}
               activeProps={{ className: "text-muted-foreground" }}
               activeOptions={{ exact: item.to === "/" }}
             >
