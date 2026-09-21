@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Bike, ShoppingBag } from "lucide-react";
+import { ArrowRight, Bike, ShoppingBag, Sparkles } from "lucide-react";
 import heroBowl from "@/assets/hero-bowl.jpg";
 import acai from "@/assets/acai.jpg";
 import sandwich from "@/assets/sandwich.jpg";
@@ -40,55 +40,74 @@ const highlights = [
 
 function Home() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="mx-auto max-w-7xl px-4 pb-14 pt-5 sm:px-8 sm:pb-20">
-        <div className="grid gap-px overflow-hidden border border-border bg-border lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="relative min-h-[22rem] overflow-hidden bg-card sm:min-h-[32rem] lg:min-h-[39rem]">
-            <img src={heroBowl} alt="Frische Bowl von Yamiin und Jaiyana's" className="absolute inset-0 size-full object-cover" />
-            <div className="absolute bottom-0 left-0 bg-card px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em]">Hanau · seit 2023</div>
+    <main className="min-h-screen overflow-hidden bg-background text-foreground">
+      <section className="relative border-b-2 border-border">
+        <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-[90rem] lg:grid-cols-[0.88fr_1.12fr]">
+          <div className="relative z-10 flex flex-col justify-between px-5 pb-8 pt-9 sm:px-8 sm:pb-12 lg:order-1 lg:px-12 lg:py-14">
+            <div className="flex items-center gap-3 text-xs font-bold uppercase">
+              <span className="inline-flex size-8 items-center justify-center rounded-full bg-secondary"><Sparkles className="size-4" /></span>
+              Healthy Fastfood · Hanau
+            </div>
+            <div className="relative mt-10 lg:mt-0">
+              <h1 className="font-display text-[clamp(3.4rem,8vw,8.4rem)] uppercase leading-[0.82]">
+                Fresh<br />hits<br /><span className="text-secondary [text-shadow:3px_3px_0_var(--foreground)]">different.</span>
+              </h1>
+              <p className="mt-7 max-w-md text-lg leading-7">Bowls, Egg Drop Sandwiches, Açaí und Matcha. Frisch kombiniert, schnell bei dir.</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button asChild size="lg" className="h-14 rounded-md border-2 border-border px-6 font-bold uppercase shadow-[5px_5px_0_var(--secondary)]">
+                  <Link to="/speisekarte">Speisekarte <ArrowRight className="size-5" /></Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="h-14 rounded-md border-2 border-border bg-background px-6 font-bold uppercase">
+                  <a href={LIEFERANDO} target="_blank" rel="noreferrer">Jetzt bestellen</a>
+                </Button>
+              </div>
+            </div>
+            <p className="mt-10 text-sm font-semibold">★ 4,5 · rund 91 Google-Bewertungen</p>
           </div>
-          <div className="flex min-w-0 flex-col items-center justify-center bg-background px-6 py-14 text-center sm:px-12 lg:py-16">
-            <img src={logoAsset.url} alt="YJ Logo" className="size-24 rounded-full object-cover grayscale sm:size-32" />
-            <h1 className="mt-7 font-display text-4xl font-medium leading-tight sm:text-5xl">Yamiin &amp; Jaiyana&rsquo;s</h1>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Healthy Fastfood</p>
-            <div className="my-7 h-px w-12 bg-border" />
-            <p className="max-w-md leading-7 text-muted-foreground">Frische Bowls, Egg Drop Sandwiches, Açaí und Matcha – unkompliziert, ausgewogen und mitten in Hanau.</p>
-            <Button asChild size="lg" className="mt-8 h-12 rounded-sm px-7">
-              <Link to="/speisekarte">Speisekarte ansehen <ArrowRight className="size-4" /></Link>
-            </Button>
-            <p className="mt-5 text-xs text-muted-foreground">★ 4,5 bei rund 91 Google-Bewertungen</p>
+
+          <div className="relative min-h-[26rem] overflow-hidden border-t-2 border-border lg:order-2 lg:min-h-full lg:border-l-2 lg:border-t-0">
+            <img src={heroBowl} alt="Frische Bowl von Yamiin und Jaiyana's" className="absolute inset-0 size-full object-cover transition-transform duration-700 hover:scale-[1.03]" />
+            <div className="absolute right-5 top-5 flex size-28 rotate-6 items-center justify-center rounded-full border-2 border-border bg-secondary p-4 text-center font-display text-sm uppercase shadow-[5px_5px_0_var(--foreground)] sm:size-36 sm:text-base">Freshly made</div>
+            <img src={logoAsset.url} alt="YJ Logo" className="absolute bottom-5 left-5 size-20 rounded-full border-4 border-background object-cover grayscale shadow-xl sm:size-28" />
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-8 sm:py-20">
-        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Kleine Vorschau</p><h2 className="mt-3 font-display text-3xl font-medium sm:text-4xl">Was darf es sein?</h2></div>
-          <Link to="/speisekarte" className="inline-flex items-center gap-2 text-sm font-semibold">Alles ansehen <ArrowRight className="size-4" /></Link>
+      <div className="overflow-hidden border-b-2 border-border bg-secondary py-3">
+        <div className="animate-ticker flex w-max whitespace-nowrap font-display text-lg uppercase sm:text-2xl">
+          <span className="pr-10">Bowls • Egg Drop • Açaí • Matcha • Vegan Friendly • Fresh in Hanau • </span>
+          <span className="pr-10" aria-hidden="true">Bowls • Egg Drop • Açaí • Matcha • Vegan Friendly • Fresh in Hanau • </span>
         </div>
-        <div className="mt-9 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-3">
+      </div>
+
+      <section className="mx-auto max-w-[90rem] px-5 py-16 sm:px-8 sm:py-24">
+        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+          <div><p className="text-xs font-bold uppercase">Pick your mood</p><h2 className="mt-3 max-w-3xl font-display text-4xl uppercase leading-none sm:text-6xl">Drei Favoriten.<br />Null Langeweile.</h2></div>
+          <Link to="/speisekarte" className="inline-flex items-center gap-2 border-b-2 border-border pb-1 font-bold uppercase">Alles ansehen <ArrowRight className="size-4" /></Link>
+        </div>
+        <div className="mt-10 grid border-2 border-border sm:grid-cols-3">
           {highlights.map((item) => (
-            <Link key={item.name} to="/speisekarte" className="group bg-card">
-              <div className="overflow-hidden"><img src={item.image} alt={item.name} className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" /></div>
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-5"><div className="min-w-0"><h3 className="truncate font-display text-lg font-semibold">{item.name}</h3><p className="mt-1 text-sm text-muted-foreground">{item.note}</p></div><ArrowRight className="size-4 shrink-0" /></div>
+            <Link key={item.name} to="/speisekarte" className="group border-b-2 border-border bg-card last:border-b-0 sm:border-b-0 sm:border-r-2 sm:last:border-r-0">
+              <div className="overflow-hidden border-b-2 border-border"><img src={item.image} alt={item.name} className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" /></div>
+              <div className="grid min-h-28 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-5"><div className="min-w-0"><h3 className="font-display text-xl uppercase leading-tight">{item.name}</h3><p className="mt-1 font-semibold">{item.note}</p></div><ArrowRight className="size-6 shrink-0 transition-transform group-hover:translate-x-1" /></div>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="bg-primary py-16 text-primary-foreground sm:py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-center">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-60">Deine Wahl</p><h2 className="mt-4 font-display text-3xl font-medium sm:text-4xl">Abholen oder liefern lassen.</h2><p className="mt-4 max-w-md leading-7 opacity-70">Bestelle direkt über deinen bevorzugten Lieferdienst. Schnell ausgewählt, frisch für dich zubereitet.</p></div>
-          <div className="grid gap-px bg-primary-foreground/20 sm:grid-cols-2">
-            <a href={LIEFERANDO} target="_blank" rel="noreferrer" className="group flex min-h-44 flex-col justify-between bg-primary p-6 transition-colors hover:bg-primary-foreground/10"><ShoppingBag className="size-6" strokeWidth={1.5} /><div><p className="text-xs uppercase tracking-[0.16em] opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-2xl">Lieferando <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /></p></div></a>
-            <a href={WOLT} target="_blank" rel="noreferrer" className="group flex min-h-44 flex-col justify-between bg-primary p-6 transition-colors hover:bg-primary-foreground/10"><Bike className="size-6" strokeWidth={1.5} /><div><p className="text-xs uppercase tracking-[0.16em] opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-2xl">Wolt <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /></p></div></a>
+      <section className="border-y-2 border-border bg-foreground py-16 text-background sm:py-24">
+        <div className="mx-auto grid max-w-[90rem] gap-10 px-5 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
+          <div><p className="text-xs font-bold uppercase text-secondary">Direkt zu deinem Essen</p><h2 className="mt-4 font-display text-4xl uppercase leading-none sm:text-6xl">Click.<br />Pick.<br />Enjoy.</h2><p className="mt-5 max-w-md text-lg leading-7 opacity-70">Lieferung oder Abholung direkt über deinen bevorzugten Dienst.</p></div>
+          <div className="grid border-2 border-background sm:grid-cols-2">
+            <a href={LIEFERANDO} target="_blank" rel="noreferrer" className="group flex min-h-52 flex-col justify-between border-b-2 border-background p-6 transition-colors hover:bg-secondary hover:text-foreground sm:border-b-0 sm:border-r-2"><ShoppingBag className="size-7" /><div><p className="text-xs font-bold uppercase opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-3xl uppercase">Lieferando <ArrowRight className="size-6 transition-transform group-hover:translate-x-1" /></p></div></a>
+            <a href={WOLT} target="_blank" rel="noreferrer" className="group flex min-h-52 flex-col justify-between p-6 transition-colors hover:bg-secondary hover:text-foreground"><Bike className="size-7" /><div><p className="text-xs font-bold uppercase opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-3xl uppercase">Wolt <ArrowRight className="size-6 transition-transform group-hover:translate-x-1" /></p></div></a>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-2">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Unser Anspruch</p><h2 className="mt-4 max-w-md font-display text-3xl font-medium leading-tight sm:text-4xl">Fastfood, das sich nach frisch anfühlt.</h2></div>
-        <div><p className="leading-7 text-muted-foreground">Seit 2023 werden unsere Bowls in Hanau erst bei deiner Bestellung zusammengestellt – mit frischem Gemüse, ausgewählten Zutaten und hausgemachten Saucen.</p><Link to="/ueber-uns" className="mt-7 inline-flex items-center gap-2 border-b border-foreground pb-1 text-sm font-semibold">Mehr über uns <ArrowRight className="size-4" /></Link></div>
+      <section className="mx-auto grid max-w-[90rem] gap-10 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-2">
+        <div><p className="text-xs font-bold uppercase">Unser Anspruch</p><h2 className="mt-4 max-w-xl font-display text-4xl uppercase leading-none sm:text-6xl">Fastfood.<br /><span className="bg-secondary px-2">Aber frisch.</span></h2></div>
+        <div className="self-end"><p className="max-w-xl text-lg leading-8">Seit 2023 werden unsere Bowls in Hanau erst bei deiner Bestellung zusammengestellt – mit frischem Gemüse, ausgewählten Zutaten und hausgemachten Saucen.</p><Link to="/ueber-uns" className="mt-7 inline-flex items-center gap-2 border-b-2 border-foreground pb-1 font-bold uppercase">Mehr über uns <ArrowRight className="size-4" /></Link></div>
       </section>
     </main>
   );
