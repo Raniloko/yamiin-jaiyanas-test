@@ -63,7 +63,7 @@ function MenuPage() {
         </p>
         <nav className="mt-9 flex flex-wrap gap-2" aria-label="Speisekarten-Kategorien">
           {categories.map((category) => (
-            <a key={category.id} href={`#${category.id}`} className="border-2 border-border bg-background px-4 py-2 text-sm font-bold uppercase shadow-[3px_3px_0_var(--foreground)]">
+            <a key={category.id} href={`#${category.id}`} className="touch-manipulation border-2 border-border bg-background px-4 py-2 text-sm font-bold uppercase shadow-[3px_3px_0_var(--foreground)] transition-[transform,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:bg-foreground hover:text-background hover:shadow-[5px_5px_0_var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:translate-x-1 active:translate-y-1 active:scale-[0.98] active:shadow-none">
               {category.title}
             </a>
           ))}

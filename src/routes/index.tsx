@@ -54,10 +54,10 @@ function Home() {
               </h1>
               <p className="mt-7 max-w-md text-lg leading-7">Bowls, Egg Drop Sandwiches, Açaí und Matcha. Frisch kombiniert, schnell bei dir.</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild size="lg" className="h-14 rounded-md border-2 border-border px-6 font-bold uppercase shadow-[5px_5px_0_var(--secondary)]">
+                <Button asChild size="lg" className="group h-14 rounded-md border-2 border-border px-6 font-bold uppercase shadow-[5px_5px_0_var(--secondary)] hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--secondary)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:[&_svg]:translate-x-1">
                   <Link to="/speisekarte">Speisekarte <ArrowRight className="size-5" /></Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 rounded-md border-2 border-border bg-background px-6 font-bold uppercase">
+                <Button asChild size="lg" variant="outline" className="h-14 rounded-md border-2 border-border bg-background px-6 font-bold uppercase shadow-[4px_4px_0_var(--foreground)] hover:-translate-y-1 hover:bg-secondary hover:shadow-[6px_6px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none">
                   <a href={LIEFERANDO} target="_blank" rel="noreferrer">Jetzt bestellen</a>
                 </Button>
               </div>
@@ -83,13 +83,13 @@ function Home() {
       <section className="mx-auto max-w-[90rem] px-5 py-16 sm:px-8 sm:py-24">
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div><p className="text-xs font-bold uppercase">Pick your mood</p><h2 className="mt-3 max-w-3xl font-display text-4xl uppercase leading-none sm:text-6xl">Drei Favoriten.<br />Null Langeweile.</h2></div>
-          <Link to="/speisekarte" className="inline-flex items-center gap-2 border-b-2 border-border pb-1 font-bold uppercase">Alles ansehen <ArrowRight className="size-4" /></Link>
+          <Link to="/speisekarte" className="group inline-flex items-center gap-2 border-b-2 border-border pb-1 font-bold uppercase transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Alles ansehen <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" /></Link>
         </div>
         <div className="mt-10 grid border-2 border-border sm:grid-cols-3">
           {highlights.map((item) => (
-            <Link key={item.name} to="/speisekarte" className="group border-b-2 border-border bg-card last:border-b-0 sm:border-b-0 sm:border-r-2 sm:last:border-r-0">
-              <div className="overflow-hidden border-b-2 border-border"><img src={item.image} alt={item.name} className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" /></div>
-              <div className="grid min-h-28 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-5"><div className="min-w-0"><h3 className="font-display text-xl uppercase leading-tight">{item.name}</h3><p className="mt-1 font-semibold">{item.note}</p></div><ArrowRight className="size-6 shrink-0 transition-transform group-hover:translate-x-1" /></div>
+            <Link key={item.name} to="/speisekarte" className="group border-b-2 border-border bg-card transition-[transform,box-shadow,background-color] duration-300 ease-out hover:z-10 hover:-translate-y-2 hover:bg-secondary hover:shadow-[0_8px_0_var(--foreground)] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-secondary active:translate-y-1 active:scale-[0.98] active:shadow-none last:border-b-0 sm:border-b-0 sm:border-r-2 sm:last:border-r-0">
+              <div className="overflow-hidden border-b-2 border-border"><img src={item.image} alt={item.name} className="aspect-[4/3] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110" /></div>
+              <div className="grid min-h-28 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-5"><div className="min-w-0"><h3 className="font-display text-xl uppercase leading-tight">{item.name}</h3><p className="mt-1 font-semibold">{item.note}</p></div><span className="flex size-11 items-center justify-center rounded-md border-2 border-border bg-secondary transition-[transform,background-color,color] duration-300 group-hover:rotate-12 group-hover:bg-foreground group-hover:text-secondary group-active:rotate-0"><ArrowRight className="size-6 shrink-0 transition-transform group-hover:translate-x-0.5" /></span></div>
             </Link>
           ))}
         </div>
@@ -99,15 +99,15 @@ function Home() {
         <div className="mx-auto grid max-w-[90rem] gap-10 px-5 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
           <div><p className="text-xs font-bold uppercase text-secondary">Direkt zu deinem Essen</p><h2 className="mt-4 font-display text-4xl uppercase leading-none sm:text-6xl">Click.<br />Pick.<br />Enjoy.</h2><p className="mt-5 max-w-md text-lg leading-7 opacity-70">Lieferung oder Abholung direkt über deinen bevorzugten Dienst.</p></div>
           <div className="grid border-2 border-background sm:grid-cols-2">
-            <a href={LIEFERANDO} target="_blank" rel="noreferrer" className="group flex min-h-52 flex-col justify-between border-b-2 border-background p-6 transition-colors hover:bg-secondary hover:text-foreground sm:border-b-0 sm:border-r-2"><ShoppingBag className="size-7" /><div><p className="text-xs font-bold uppercase opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-3xl uppercase">Lieferando <ArrowRight className="size-6 transition-transform group-hover:translate-x-1" /></p></div></a>
-            <a href={WOLT} target="_blank" rel="noreferrer" className="group flex min-h-52 flex-col justify-between p-6 transition-colors hover:bg-secondary hover:text-foreground"><Bike className="size-7" /><div><p className="text-xs font-bold uppercase opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-3xl uppercase">Wolt <ArrowRight className="size-6 transition-transform group-hover:translate-x-1" /></p></div></a>
+            <a href={LIEFERANDO} target="_blank" rel="noreferrer" className="group flex min-h-52 touch-manipulation flex-col justify-between border-b-2 border-background p-6 transition-[transform,background-color,color,box-shadow] duration-300 ease-out hover:z-10 hover:-translate-y-2 hover:bg-secondary hover:text-foreground hover:shadow-[0_8px_0_var(--secondary)] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-secondary active:translate-y-1 active:scale-[0.98] active:shadow-none sm:border-b-0 sm:border-r-2"><ShoppingBag className="size-7 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" /><div><p className="text-xs font-bold uppercase opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-3xl uppercase">Lieferando <ArrowRight className="size-6 transition-transform group-hover:translate-x-2" /></p></div></a>
+            <a href={WOLT} target="_blank" rel="noreferrer" className="group flex min-h-52 touch-manipulation flex-col justify-between p-6 transition-[transform,background-color,color,box-shadow] duration-300 ease-out hover:z-10 hover:-translate-y-2 hover:bg-secondary hover:text-foreground hover:shadow-[0_8px_0_var(--secondary)] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-secondary active:translate-y-1 active:scale-[0.98] active:shadow-none"><Bike className="size-7 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" /><div><p className="text-xs font-bold uppercase opacity-60">Bestellen bei</p><p className="mt-2 flex items-center justify-between font-display text-3xl uppercase">Wolt <ArrowRight className="size-6 transition-transform group-hover:translate-x-2" /></p></div></a>
           </div>
         </div>
       </section>
 
       <section className="mx-auto grid max-w-[90rem] gap-10 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-2">
         <div><p className="text-xs font-bold uppercase">Unser Anspruch</p><h2 className="mt-4 max-w-xl font-display text-4xl uppercase leading-none sm:text-6xl">Fastfood.<br /><span className="bg-secondary px-2">Aber frisch.</span></h2></div>
-        <div className="self-end"><p className="max-w-xl text-lg leading-8">Seit 2023 werden unsere Bowls in Hanau erst bei deiner Bestellung zusammengestellt – mit frischem Gemüse, ausgewählten Zutaten und hausgemachten Saucen.</p><Link to="/ueber-uns" className="mt-7 inline-flex items-center gap-2 border-b-2 border-foreground pb-1 font-bold uppercase">Mehr über uns <ArrowRight className="size-4" /></Link></div>
+        <div className="self-end"><p className="max-w-xl text-lg leading-8">Seit 2023 werden unsere Bowls in Hanau erst bei deiner Bestellung zusammengestellt – mit frischem Gemüse, ausgewählten Zutaten und hausgemachten Saucen.</p><Link to="/ueber-uns" className="group mt-7 inline-flex items-center gap-2 border-b-2 border-foreground pb-1 font-bold uppercase transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Mehr über uns <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" /></Link></div>
       </section>
     </main>
   );
