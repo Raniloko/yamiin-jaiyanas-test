@@ -36,11 +36,11 @@ export function SiteHeader() {
     <>
       <header className="sticky top-0 z-40 border-b-2 border-border bg-background">
         <div className="mx-auto flex h-18 max-w-[90rem] items-center justify-between px-4 sm:h-20 sm:px-8">
-          <Link to="/" aria-label="Yamiin und Jaiyana's Startseite" className="flex items-center gap-3">
+          <Link to="/" aria-label="Yamiin und Jaiyana's Startseite" className="group flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             <img
               src={logoAsset.url}
               alt="YJ Logo"
-              className="size-11 rounded-full border-2 border-border object-cover grayscale sm:size-12"
+              className="size-11 rounded-full border-2 border-border object-cover grayscale transition-transform duration-300 ease-out group-hover:rotate-6 group-hover:scale-105 sm:size-12"
             />
             <span className="hidden font-display text-sm uppercase sm:block">Yamiin &amp; Jaiyana&rsquo;s</span>
           </Link>
@@ -52,7 +52,7 @@ export function SiteHeader() {
             aria-label="Menü öffnen"
             aria-expanded={open}
             onClick={() => setOpen(true)}
-            className="size-11 rounded-md border-2 border-border bg-secondary text-secondary-foreground shadow-[4px_4px_0_var(--foreground)] hover:bg-secondary/90"
+            className="size-11 rounded-md border-2 border-border bg-secondary text-secondary-foreground shadow-[4px_4px_0_var(--foreground)] hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none [&_svg]:group-hover:rotate-6"
           >
             <Menu className="size-5" strokeWidth={1.5} />
           </Button>
@@ -79,7 +79,7 @@ export function SiteHeader() {
             size="icon"
             aria-label="Menü schließen"
             onClick={() => setOpen(false)}
-            className="size-11 rounded-md border-2 border-border bg-background"
+            className="size-11 rounded-md border-2 border-border bg-background shadow-[3px_3px_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:[&_svg]:rotate-90"
           >
             <X className="size-5" strokeWidth={1.5} />
           </Button>
@@ -91,7 +91,7 @@ export function SiteHeader() {
               key={item.to}
               to={item.to}
               onClick={() => setOpen(false)}
-              className={`menu-link border-b-2 border-border py-4 font-display text-3xl uppercase leading-none sm:text-5xl ${open ? "menu-link-open" : ""}`}
+              className={`menu-link group border-b-2 border-border py-4 font-display text-3xl uppercase leading-none outline-none hover:pl-3 focus-visible:bg-background focus-visible:pl-3 sm:text-5xl ${open ? "menu-link-open" : ""}`}
               activeProps={{ className: "opacity-50" }}
               activeOptions={{ exact: item.to === "/" }}
             >
@@ -100,7 +100,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <Button asChild size="lg" className="h-14 w-full rounded-md border-2 border-border bg-foreground font-bold uppercase text-background shadow-[5px_5px_0_var(--background)]">
+        <Button asChild size="lg" className="h-14 w-full rounded-md border-2 border-border bg-foreground font-bold uppercase text-background shadow-[5px_5px_0_var(--background)] hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--background)] active:translate-x-1 active:translate-y-1 active:shadow-none">
           <a
             href="https://www.lieferando.de/speisekarte/yamiin-jaiyanas-healthy-fastfood"
             target="_blank"
