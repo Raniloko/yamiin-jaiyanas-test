@@ -157,7 +157,12 @@
   }
 }
 
-html { scroll-behavior: smooth; }
+html {
+  overflow-x: clip;
+  scroll-behavior: smooth;
+}
+
+body { overflow-x: clip; }
 
 .menu-link {
   opacity: 0;
