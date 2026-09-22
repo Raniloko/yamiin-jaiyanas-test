@@ -42,34 +42,30 @@ function Home() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <section className="relative border-b-2 border-border">
-        <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-[90rem] lg:grid-cols-[0.88fr_1.12fr]">
-          <div className="relative z-10 flex flex-col justify-between px-5 pb-8 pt-9 sm:px-8 sm:pb-12 lg:order-1 lg:px-12 lg:py-14">
-            <div className="flex items-center gap-3 text-xs font-bold uppercase">
-              <span className="inline-flex size-8 items-center justify-center rounded-full bg-secondary"><Sparkles className="size-4" /></span>
-              Healthy Fastfood · Hanau
-            </div>
-            <div className="relative mt-10 lg:mt-0">
-              <h1 className="font-display text-[clamp(3.4rem,8vw,8.4rem)] uppercase leading-[0.82]">
-                Fresh<br />hits<br /><span className="text-secondary [text-shadow:3px_3px_0_var(--foreground)]">different.</span>
-              </h1>
-              <p className="mt-7 max-w-md text-lg leading-7">Bowls, Egg Drop Sandwiches, Açaí und Matcha. Frisch kombiniert, schnell bei dir.</p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild size="lg" className="group h-14 rounded-md border-2 border-border px-6 font-bold uppercase shadow-[5px_5px_0_var(--secondary)] hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--secondary)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:[&_svg]:translate-x-1">
-                  <Link to="/speisekarte">Speisekarte <ArrowRight className="size-5" /></Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 rounded-md border-2 border-border bg-background px-6 font-bold uppercase shadow-[4px_4px_0_var(--foreground)] hover:-translate-y-1 hover:bg-secondary hover:shadow-[6px_6px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none">
-                  <a href={LIEFERANDO} target="_blank" rel="noreferrer">Jetzt bestellen</a>
-                </Button>
-              </div>
+        <img src={heroBowl} alt="Frische Bowl von Yamiin und Jaiyana's" className="absolute inset-0 size-full object-cover" />
+        <div className="absolute inset-0 bg-foreground/60" aria-hidden="true" />
+        <div className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-[90rem] flex-col justify-between px-5 pb-10 pt-9 text-background sm:px-8 sm:pb-14 sm:pt-12 lg:px-12">
+          <div className="flex items-center gap-3 text-xs font-bold uppercase">
+            <span className="inline-flex size-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground"><Sparkles className="size-4" /></span>
+            Healthy Fastfood · Hanau
+          </div>
+          <div className="mt-10 max-w-3xl lg:mt-0">
+            <h1 className="font-display text-[clamp(3.4rem,8vw,8.4rem)] uppercase leading-[0.82] [text-shadow:2px_2px_0_var(--foreground)]">
+              Fresh<br />hits<br /><span className="text-secondary [text-shadow:3px_3px_0_var(--foreground)]">different.</span>
+            </h1>
+            <p className="mt-7 max-w-md text-lg leading-7">Bowls, Egg Drop Sandwiches, Açaí und Matcha. Frisch kombiniert, schnell bei dir.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="group h-14 rounded-md border-2 border-border bg-secondary px-6 font-bold uppercase text-secondary-foreground shadow-[5px_5px_0_var(--foreground)] hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:[&_svg]:translate-x-1">
+                <Link to="/speisekarte">Speisekarte <ArrowRight className="size-5" /></Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="h-14 rounded-md border-2 border-border bg-background px-6 font-bold uppercase text-foreground shadow-[4px_4px_0_var(--secondary)] hover:-translate-y-1 hover:bg-secondary hover:shadow-[6px_6px_0_var(--secondary)] active:translate-x-1 active:translate-y-1 active:shadow-none">
+                <a href={LIEFERANDO} target="_blank" rel="noreferrer">Jetzt bestellen</a>
+              </Button>
             </div>
             <p className="mt-10 text-sm font-semibold">★ 4,5 · rund 91 Google-Bewertungen</p>
           </div>
-
-          <div className="relative min-h-[26rem] overflow-hidden border-t-2 border-border lg:order-2 lg:min-h-full lg:border-l-2 lg:border-t-0">
-            <img src={heroBowl} alt="Frische Bowl von Yamiin und Jaiyana's" className="absolute inset-0 size-full object-cover transition-transform duration-700 hover:scale-[1.03]" />
-            <div className="absolute right-5 top-5 flex size-28 rotate-6 items-center justify-center rounded-full border-2 border-border bg-secondary p-4 text-center font-display text-sm uppercase shadow-[5px_5px_0_var(--foreground)] sm:size-36 sm:text-base">Freshly made</div>
-            <img src={logoAsset.url} alt="YJ Logo" className="absolute bottom-5 left-5 size-20 rounded-full border-4 border-background object-cover grayscale shadow-xl sm:size-28" />
-          </div>
+          <div className="pointer-events-none absolute right-5 top-24 hidden rotate-6 items-center justify-center rounded-full border-2 border-border bg-secondary p-4 text-center font-display text-sm uppercase text-secondary-foreground shadow-[5px_5px_0_var(--foreground)] sm:flex sm:size-28 sm:text-sm lg:size-36 lg:text-base lg:top-32">Freshly made</div>
+          <img src={logoAsset.url} alt="YJ Logo" className="absolute bottom-6 left-5 size-20 rounded-full border-4 border-background object-cover grayscale shadow-xl sm:size-24 lg:bottom-14 lg:left-12" />
         </div>
       </section>
 
