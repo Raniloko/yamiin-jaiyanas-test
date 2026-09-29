@@ -44,7 +44,7 @@ export function SiteHeader() {
               alt="YJ Logo"
               className="size-11 rounded-full border-2 border-border object-cover grayscale transition-transform duration-300 ease-out group-hover:rotate-6 group-hover:scale-105 sm:size-12"
             />
-            <span className="hidden font-display text-sm uppercase sm:block">Yamiin &amp; Jaiyana&rsquo;s</span>
+            <span className="hidden whitespace-nowrap font-display text-sm uppercase lg:block">Yamiin &amp; Jaiyana&rsquo;s</span>
           </Link>
 
           {/* Tablet & Desktop: horizontale Navigation statt Hamburger */}
