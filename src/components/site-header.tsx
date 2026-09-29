@@ -12,6 +12,8 @@ const links = [
   { to: "/kontakt", label: "Besuch & Kontakt" },
 ] as const;
 
+const LIEFERANDO = "https://www.lieferando.de/speisekarte/yamiin-jaiyanas-healthy-fastfood";
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -44,6 +46,33 @@ export function SiteHeader() {
             />
             <span className="hidden font-display text-sm uppercase sm:block">Yamiin &amp; Jaiyana&rsquo;s</span>
           </Link>
+
+          {/* Tablet & Desktop: horizontale Navigation statt Hamburger */}
+          <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
+            {links.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="group relative px-3 py-2 font-display text-sm uppercase tracking-wide outline-none transition-colors duration-200 hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                activeProps={{ className: "underline decoration-secondary decoration-4 underline-offset-8" }}
+                activeOptions={{ exact: item.to === "/" }}
+              >
+                <span className="relative z-10 transition-transform duration-200 group-hover:-translate-y-0.5">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+            <Button
+              asChild
+              className="ml-3 h-11 rounded-md border-2 border-border bg-foreground px-5 font-bold uppercase text-background shadow-[4px_4px_0_var(--foreground)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none touch-manipulation"
+            >
+              <a href={LIEFERANDO} target="_blank" rel="noreferrer">
+                Jetzt bestellen
+              </a>
+            </Button>
+          </nav>
+
+          {/* Smartphone: Hamburger */}
           <Button
             type="button"
             ref={openButtonRef}
@@ -52,15 +81,16 @@ export function SiteHeader() {
             aria-label="Menü öffnen"
             aria-expanded={open}
             onClick={() => setOpen(true)}
-            className="size-11 rounded-md border-2 border-border bg-secondary text-secondary-foreground shadow-[4px_4px_0_var(--foreground)] hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none [&_svg]:group-hover:rotate-6"
+            className="size-11 rounded-md border-2 border-border bg-secondary text-secondary-foreground shadow-[4px_4px_0_var(--foreground)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none md:hidden touch-manipulation"
           >
             <Menu className="size-5" strokeWidth={1.5} />
           </Button>
         </div>
       </header>
 
+      {/* Slide-in-Menü nur auf dem Smartphone */}
       <div
-        className={`fixed inset-0 z-50 bg-foreground/70 transition-opacity duration-300 ${open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed inset-0 z-50 bg-foreground/70 transition-opacity duration-300 md:hidden ${open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
         aria-hidden="true"
         onClick={() => setOpen(false)}
       />
@@ -68,7 +98,7 @@ export function SiteHeader() {
         aria-label="Hauptmenü"
         aria-hidden={!open}
         inert={!open}
-        className={`fixed right-0 top-0 z-50 flex h-dvh w-[min(92vw,34rem)] flex-col border-l-2 border-border bg-secondary px-6 py-6 shadow-2xl transition-transform duration-500 ease-out sm:px-10 sm:py-8 ${open ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed right-0 top-0 z-50 flex h-dvh w-[min(92vw,34rem)] flex-col border-l-2 border-border bg-secondary px-6 py-6 shadow-2xl transition-transform duration-500 ease-out sm:px-10 sm:py-8 md:hidden ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b border-border pb-6">
           <span className="font-display text-sm uppercase">Navigation</span>
@@ -79,7 +109,7 @@ export function SiteHeader() {
             size="icon"
             aria-label="Menü schließen"
             onClick={() => setOpen(false)}
-            className="size-11 rounded-md border-2 border-border bg-background shadow-[3px_3px_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:[&_svg]:rotate-90"
+            className="size-11 rounded-md border-2 border-border bg-background shadow-[3px_3px_0_var(--foreground)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:[&_svg]:rotate-90"
           >
             <X className="size-5" strokeWidth={1.5} />
           </Button>
@@ -100,12 +130,8 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <Button asChild size="lg" className="h-14 w-full rounded-md border-2 border-border bg-foreground font-bold uppercase text-background shadow-[5px_5px_0_var(--background)] hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--background)] active:translate-x-1 active:translate-y-1 active:shadow-none">
-          <a
-            href="https://www.lieferando.de/speisekarte/yamiin-jaiyanas-healthy-fastfood"
-            target="_blank"
-            rel="noreferrer"
-          >
+        <Button asChild size="lg" className="h-14 w-full rounded-md border-2 border-border bg-foreground font-bold uppercase text-background shadow-[5px_5px_0_var(--background)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--background)] active:translate-x-1 active:translate-y-1 active:shadow-none">
+          <a href={LIEFERANDO} target="_blank" rel="noreferrer">
             Jetzt bestellen
           </a>
         </Button>
