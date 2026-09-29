@@ -48,12 +48,12 @@ export function SiteHeader() {
           </Link>
 
           {/* Tablet & Desktop: horizontale Navigation statt Hamburger */}
-          <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
+          <nav aria-label="Hauptnavigation" className="hidden items-center gap-0.5 md:flex lg:gap-1">
             {links.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
-                className="group relative px-3 py-2 font-display text-sm uppercase tracking-wide outline-none transition-colors duration-200 hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="group relative whitespace-nowrap px-2 py-2 font-display text-xs uppercase tracking-wide outline-none transition-colors duration-200 hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:px-3 lg:text-sm"
                 activeProps={{ className: "underline decoration-secondary decoration-4 underline-offset-8" }}
                 activeOptions={{ exact: item.to === "/" }}
               >
