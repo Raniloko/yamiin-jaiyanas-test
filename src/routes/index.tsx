@@ -4,7 +4,7 @@ import heroBowl from "@/assets/hero-bowl.jpg";
 import acai from "@/assets/acai.jpg";
 import sandwich from "@/assets/sandwich.jpg";
 import bowlSalat from "@/assets/bowl-salat.jpg";
-import logoAsset from "@/assets/yj-logo.jpeg.asset.json";
+import { BrandMark } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
