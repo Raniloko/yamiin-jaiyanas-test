@@ -65,7 +65,7 @@ function Home() {
             <p className="mt-10 text-sm font-semibold">★ 4,5 · rund 91 Google-Bewertungen</p>
           </div>
           <div className="pointer-events-none absolute right-5 top-24 hidden rotate-6 items-center justify-center rounded-full border-2 border-border bg-secondary p-4 text-center font-display text-sm uppercase text-secondary-foreground shadow-[5px_5px_0_var(--foreground)] sm:flex sm:size-28 sm:text-sm lg:size-36 lg:text-base lg:top-32">Freshly made</div>
-          <img src={logoAsset.url} alt="YJ Logo" className="absolute right-5 top-28 size-16 rounded-full border-4 border-background object-cover grayscale shadow-xl sm:bottom-6 sm:top-auto sm:size-24 lg:bottom-14 lg:right-12" />
+          <BrandMark className="absolute right-5 top-28 size-16 -rotate-6 sm:bottom-6 sm:top-auto sm:size-24 lg:bottom-14 lg:right-12 lg:size-32" />
         </div>
       </section>
 

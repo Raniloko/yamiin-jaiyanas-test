@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
 
+import { BrandLogo } from "@/components/brand-logo";
+
 export function SiteFooter() {
   return (
     <footer className="border-t-2 border-border bg-foreground text-background">
       <div className="mx-auto grid max-w-[90rem] gap-8 px-5 py-12 text-sm sm:grid-cols-3 sm:px-8">
         <div>
-          <p className="font-display text-base uppercase">Yamiin &amp; Jaiyana&rsquo;s</p>
-          <p className="mt-1 opacity-60">Healthy Fastfood · Hanau</p>
+          <BrandLogo tone="light" markClassName="size-14" />
+          <p className="mt-3 opacity-60">Hanau</p>
         </div>
         <nav className="flex flex-col items-start gap-2 sm:items-center">
            <Link to="/speisekarte" className="border-b border-background">Speisekarte</Link>
