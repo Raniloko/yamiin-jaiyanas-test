@@ -1,3 +1,4 @@
+import logoAsset from "@/assets/yj-logo.jpeg.asset.json";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -9,18 +10,18 @@ type Props = {
   showText?: boolean;
 };
 
-/** Scharfes Vektor-Monogramm "Y&J" mit Wortmarke. */
+/** Originales YJ-Logo (rund). */
 export function BrandMark({ className, tone = "dark" }: { className?: string; tone?: "dark" | "light" }) {
-  const fg = tone === "dark" ? "var(--foreground)" : "var(--background)";
-  const bg = tone === "dark" ? "var(--background)" : "var(--foreground)";
   return (
-    <svg viewBox="0 0 64 64" role="img" aria-label="Y&J Logo" className={cn("shrink-0", className)}>
-      <rect x="2" y="2" width="56" height="56" rx="10" fill="var(--secondary)" transform="translate(4 4)" />
-      <rect x="2" y="2" width="56" height="56" rx="10" fill={bg} stroke={fg} strokeWidth="3" />
-      <text x="9" y="44" fontFamily="'Archivo Black', sans-serif" fontSize="30" fill={fg}>Y</text>
-      <text x="35" y="44" fontFamily="'Archivo Black', sans-serif" fontSize="30" fill={fg}>J</text>
-      <text x="25" y="52" fontFamily="'Archivo Black', sans-serif" fontSize="22" fill="var(--secondary)" stroke={fg} strokeWidth="1.2" paintOrder="stroke">&amp;</text>
-    </svg>
+    <img
+      src={logoAsset.url}
+      alt="YJ Logo"
+      className={cn(
+        "shrink-0 rounded-full border-2 object-cover grayscale",
+        tone === "dark" ? "border-border" : "border-background",
+        className,
+      )}
+    />
   );
 }
 
