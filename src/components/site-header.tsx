@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import logoAsset from "@/assets/yj-logo.jpeg.asset.json";
+import { BrandMark } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 
 const links = [
@@ -39,12 +39,11 @@ export function SiteHeader() {
       <header className="sticky top-0 z-40 border-b-2 border-border bg-background">
         <div className="mx-auto flex h-18 max-w-[90rem] items-center justify-between px-4 sm:h-20 sm:px-8">
           <Link to="/" aria-label="Yamiin und Jaiyana's Startseite" className="group flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <img
-              src={logoAsset.url}
-              alt="YJ Logo"
-              className="size-11 rounded-full border-2 border-border object-cover grayscale transition-transform duration-300 ease-out group-hover:rotate-6 group-hover:scale-105 sm:size-12"
-            />
-            <span className="hidden whitespace-nowrap font-display text-sm uppercase lg:block">Yamiin &amp; Jaiyana&rsquo;s</span>
+            <BrandMark className="size-12 transition-transform duration-300 ease-out group-hover:-rotate-6 group-hover:scale-105 sm:size-14" />
+            <span className="flex flex-col leading-none md:hidden xl:flex">
+              <span className="whitespace-nowrap font-display text-sm uppercase sm:text-base">Yamiin &amp; Jaiyana&rsquo;s</span>
+              <span className="mt-1 text-[0.6rem] font-bold uppercase tracking-[0.2em] opacity-70">Healthy Fastfood</span>
+            </span>
           </Link>
 
           {/* Tablet & Desktop: horizontale Navigation statt Hamburger */}
