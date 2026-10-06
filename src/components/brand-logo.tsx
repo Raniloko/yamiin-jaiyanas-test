@@ -17,7 +17,7 @@ export function BrandMark({ className, tone = "dark" }: { className?: string; to
       src={logoAsset.url}
       alt="YJ Logo"
       className={cn(
-        "shrink-0 rounded-full border-2 object-cover grayscale",
+        "shrink-0 rounded-full border object-cover",
         tone === "dark" ? "border-border" : "border-background",
         className,
       )}
@@ -31,8 +31,8 @@ export function BrandLogo({ className, markClassName, textClassName, tone = "dar
       <BrandMark tone={tone} className={cn("size-12", markClassName)} />
       {showText && (
         <span className={cn("flex flex-col leading-none", textClassName)}>
-          <span className="whitespace-nowrap font-display text-base uppercase tracking-tight">
-            Yamiin <span className="text-secondary [-webkit-text-stroke:1px_currentColor] [paint-order:stroke]">&amp;</span> Jaiyana&rsquo;s
+          <span className="whitespace-nowrap text-sm font-bold uppercase sm:text-base">
+            Yamiin &amp; Jaiyana&rsquo;s
           </span>
           <span className="mt-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] opacity-70">Healthy Fastfood</span>
         </span>
