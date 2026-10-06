@@ -72,8 +72,8 @@ function Home() {
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {[
             { label: "Signature Bowls", note: "Klein oder groß", image: ysHeroAsset.url, hash: "bowls" },
-            { label: "Taste the Matcha", note: "Cremig & fruchtig", image: matchas[0].image, hash: "matcha" },
-            { label: "Açaí Specials", note: "Jedes Special 11,90 €", image: acais[0].image, hash: "acai" },
+            { label: "Taste the Matcha", note: "Cremig & fruchtig", image: matchas.at(0)?.image ?? ysHeroAsset.url, hash: "matcha" },
+            { label: "Açaí Specials", note: "Jedes Special 11,90 €", image: acais.at(0)?.image ?? ysHeroAsset.url, hash: "acai" },
           ].map((item) => (
             <Link key={item.label} to="/speisekarte" hash={item.hash} className="group overflow-hidden rounded-lg border border-border bg-card outline-none transition duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-ring">
               <div className="overflow-hidden bg-muted"><img src={item.image} alt={item.label} className="aspect-[4/3] w-full object-contain p-4 transition duration-500 group-hover:scale-105" /></div>
