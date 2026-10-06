@@ -6,3 +6,6 @@
 - [x] Wasabi-Pop-Redesign mit Editorial-Typografie umsetzen
 - [x] Neues Design auf Mobilgerät und Desktop prüfen
 - [x] Taktile Hover-, Fokus- und Touch-Effekte ergänzen und prüfen
+- [x] Gesamte Website an die warme Speisekarten-Gestaltung angleichen
+- [x] Vollständige Speisekarte mit Bildern, Filtern und Details umsetzen
+- [x] Smartphone, Tablet und Desktop abschließend prüfen
