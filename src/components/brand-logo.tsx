@@ -1,4 +1,3 @@
-import logoAsset from "@/assets/yj-logo.jpeg.asset.json";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -13,15 +12,16 @@ type Props = {
 /** Originales YJ-Logo (rund). */
 export function BrandMark({ className, tone = "dark" }: { className?: string; tone?: "dark" | "light" }) {
   return (
-    <img
-      src={logoAsset.url}
-      alt="YJ Logo"
+    <span
+      aria-label="YJ Logo"
       className={cn(
-        "shrink-0 rounded-full border object-cover",
+        "inline-flex shrink-0 items-center justify-center rounded-full border bg-secondary font-serif text-sm font-bold tracking-[-0.08em] text-secondary-foreground",
         tone === "dark" ? "border-border" : "border-background",
         className,
       )}
-    />
+    >
+      YJ
+    </span>
   );
 }
 

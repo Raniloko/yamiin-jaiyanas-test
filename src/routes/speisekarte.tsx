@@ -1,118 +1,62 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDown, Leaf, Milk } from "lucide-react";
-import { useState } from "react";
-
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Check, ChevronLeft, Minus, Plus, ShoppingBag, UserRound, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { acais, bowlSteps, bowls, coffees, iceBurgerImage, matchas, wrapImage, type Bowl, type BowlFilter } from "@/lib/menu-data";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import { acais, bowls, iceBurgerImage, matchas, wrapImage, type Bowl } from "@/lib/menu-data";
 
-export const Route = createFileRoute("/speisekarte")({
-  head: () => ({
-    meta: [
-      { title: "Speisekarte | Yamiin & Jaiyana's Healthy Fastfood" },
-      { name: "description", content: "Alle Signature Bowls, Create your Bowl, Matcha, Kaffee, Açaí Specials, Ice Burger und Wraps von Yamiin & Jaiyana's." },
-      { property: "og:title", content: "Speisekarte | Yamiin & Jaiyana's" },
-      { property: "og:description", content: "Alle Zutaten, Größen, Preise und Nährwerte auf einen Blick." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: MenuPage,
-});
+export const Route = createFileRoute("/speisekarte")({ component: OrderPage });
+type CartItem = { id: string; name: string; detail: string; price: number; image: string; qty: number };
+const euro = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
+const parsePrice = (value: string) => Number(value.replace(",", ".").replace(" €", ""));
+const categories = ["Bowls", "Açaí", "Iced Matcha", "Ice Burger", "Wraps"];
 
-const navItems = [["bowls", "Bowls"], ["create", "Create your Bowl"], ["matcha", "Matcha"], ["coffee", "Coffee"], ["acai", "Açaí"], ["ice-burger", "Ice Burger"], ["wrap", "Wrap"]];
-const filters: BowlFilter[] = ["Alle", "High Protein", "Chicken", "Fisch & Garnelen", "Vegan"];
+  function OrderPage() {
+  const navigate = useNavigate();
+  const [cart, setCart] = useState<CartItem[]>(() => { try { return JSON.parse(localStorage.getItem("yj-cart") || "[]"); } catch { return []; } });
+  const [category, setCategory] = useState("Bowls");
+  const [drawer, setDrawer] = useState(false);
+  const [selected, setSelected] = useState<Bowl | null>(null);
+  const [checkout, setCheckout] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
+  const [demoRoute, setDemoRoute] = useState<"menu" | "home">("menu");
+  const categoryNavRef = useRef<HTMLElement>(null);
+  const count = cart.reduce((sum, item) => sum + item.qty, 0);
+  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const add = (item: CartItem) => setCart((current) => { const next = current.find((entry) => entry.id === item.id) ? current.map((entry) => entry.id === item.id ? { ...entry, qty: entry.qty + item.qty } : entry) : [...current, item]; localStorage.setItem("yj-cart", JSON.stringify(next)); return next; });
+  const change = (id: string, amount: number) => setCart((current) => current.map((item) => item.id === id ? { ...item, qty: item.qty + amount } : item).filter((item) => item.qty > 0));
+  const products = useMemo(() => category === "Bowls" ? bowls : [], [category]);
+  if (confirmed) return <Confirmation orderNumber={orderNumber} onBack={() => { setConfirmed(false); setCart([]); }} />;
 
-function MenuPage() {
-  const [filter, setFilter] = useState<BowlFilter>("Alle");
-  const visibleBowls = bowls.filter((bowl) => bowl.filters.includes(filter));
-  return (
-    <main className="bg-background">
-      <div className="sticky top-18 z-30 overflow-x-auto border-b border-border bg-background/95 px-5 py-3 backdrop-blur sm:top-20 sm:px-8">
-        <nav aria-label="Speisekarten-Kategorien" className="mx-auto flex w-max min-w-full max-w-[90rem] gap-2">
-          {navItems.map(([id, label], index) => <a key={id} href={`#${id}`} className={`rounded-full border px-4 py-2 text-xs font-semibold transition hover:border-secondary hover:text-secondary ${index === 0 ? "border-foreground bg-foreground text-background" : "border-border bg-card"}`}>{label}</a>)}
-        </nav>
-      </div>
-
-      <section className="mx-auto max-w-[90rem] px-5 pb-14 pt-16 sm:px-8 sm:pt-20">
-        <p className="text-xs font-bold uppercase text-secondary">Bowls · Açaí · Matcha · Coffee</p>
-        <h1 className="mt-5 max-w-5xl text-6xl leading-[0.9] sm:text-8xl">Alles, was gut tut.<br /><em className="text-secondary">An einem Ort.</em></h1>
-        <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">Frisch zubereitet, liebevoll angerichtet – mit allen Zutaten, Preisen und Nährwerten im Blick.</p>
-      </section>
-
-      <section id="bowls" className="scroll-mt-36 border-t border-border px-5 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto max-w-[90rem]">
-          <SectionTitle eyebrow="Signature Bowls" title={<>Wähle deine <em className="text-secondary">Bowl</em></>} description="Tippe auf eine Bowl für Zutaten und Proteingehalt – in Klein oder Groß." />
-          <div className="mt-8 flex items-center gap-3 rounded-lg border border-dashed border-border bg-card px-4 py-3 text-sm"><span>🍚</span><span>Jede Bowl mit Base nach Wahl: <strong>Bulgur, Somalireis oder Salat</strong></span></div>
-          <div className="mt-5 flex flex-wrap gap-2" aria-label="Bowls filtern">
-            {filters.map((item) => <Button key={item} type="button" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)} className="rounded-full border-border px-4 shadow-none">{item}</Button>)}
-          </div>
-          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {visibleBowls.map((bowl) => <BowlCard key={bowl.name} bowl={bowl} />)}
-          </div>
-        </div>
-      </section>
-
-      <section id="create" className="scroll-mt-36 border-y border-border bg-muted px-5 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto max-w-[90rem]">
-          <SectionTitle eyebrow="Taste the Bowl-volution" title={<>Create your <em className="text-secondary">Bowl</em></>} description="In 6 Schritten zu deiner Lieblings-Bowl. Einfach an der Theke Schritt für Schritt auswählen." />
-          <div className="mt-12 grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-2 xl:grid-cols-3">
-            {bowlSteps.map((step) => <article key={step.number} className="bg-card p-6 sm:p-8"><span className="flex size-10 items-center justify-center rounded-full bg-secondary font-display text-xl text-secondary-foreground">{step.number}</span><h3 className="mt-5 text-3xl">{step.title}</h3><p className="mt-1 text-xs font-semibold text-secondary">{step.note}</p><div className="mt-5 flex flex-wrap gap-2">{step.items.map((item) => <span key={item} className="rounded-full bg-muted px-3 py-1.5 text-sm">{item}</span>)}</div></article>)}
-          </div>
-        </div>
-      </section>
-
-      <section id="matcha" className="scroll-mt-36 px-5 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto max-w-[90rem]">
-          <SectionTitle eyebrow="Iced Matcha · 0,3 l" title={<>Taste the <em className="text-secondary">Matcha</em></>} description="Cremiger Matcha, fruchtig geschichtet – oder als Signature mit Lotus & Pistazie." />
-          <div className="mt-7 flex items-center gap-2 text-sm text-muted-foreground"><Milk className="size-4 text-secondary" /> Milch, Oat Milk oder Coconut Milk</div>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{matchas.map((item) => <ProductCard key={item.name} {...item} />)}</div>
-          <div className="mt-5 rounded-lg border border-border bg-card p-6 sm:flex sm:items-center sm:justify-between"><div><h3 className="text-2xl">Hot Matcha</h3><p className="mt-1 text-sm text-muted-foreground">Create your own – dein Matcha, jetzt auch heiß</p></div><p className="mt-4 font-semibold sm:mt-0">5,50 € · heiß</p></div>
-        </div>
-      </section>
-
-      <section id="coffee" className="scroll-mt-36 border-y border-border bg-foreground px-5 py-16 text-background sm:px-8 sm:py-20">
-        <div className="mx-auto grid max-w-[90rem] gap-10 lg:grid-cols-[0.65fr_1.35fr]">
-          <SectionTitle eyebrow="Hot Drinks" title={<>Coffee</>} description="Klassiker für deinen Moment – auf Wunsch mit Extra Flavor." />
-          <div className="grid content-start sm:grid-cols-2">{coffees.map(([name, price]) => <div key={name} className="flex justify-between gap-6 border-b border-background/20 py-4 sm:odd:mr-5 sm:even:ml-5"><span>{name}</span><strong>{price}</strong></div>)}</div>
-        </div>
-      </section>
-
-      <section id="acai" className="scroll-mt-36 px-5 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto max-w-[90rem]">
-          <SectionTitle eyebrow="Healthy & Fresh" title={<>Our Açaí <em className="text-secondary">Specials</em></>} description="Stell dir deine Açaí Bowl selbst zusammen oder lass dich von unseren Empfehlungen inspirieren." />
-          <div className="mt-7 inline-flex rounded-full bg-muted px-4 py-2 text-sm"><Leaf className="mr-2 size-4 text-secondary" /> Jedes Special 11,90 € · Wahlweise mit Chia oder Granola</div>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{acais.map((item) => <ProductCard key={item.name} {...item} price="11,90 €" size="Special" />)}</div>
-        </div>
-      </section>
-
-      <section id="ice-burger" className="scroll-mt-36 border-y border-border bg-muted px-5 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto grid max-w-[90rem] gap-10 lg:grid-cols-2 lg:items-center">
-          <img src={iceBurgerImage} alt="Peeka Ice Burger" className="mx-auto max-h-[38rem] w-full max-w-lg object-contain" />
-          <div><SectionTitle eyebrow="Sweet Treats" title={<>Peeka <em className="text-secondary">Ice Burger</em></>} description="Gefüllt mit Ice Cream – der perfekte Abschluss." /><div className="mt-8 divide-y divide-border border-y border-border">{["Peeka Pistachio", "Peeka Lotus", "Peeka Bueno"].map((name) => <div key={name} className="flex items-center justify-between gap-4 py-4"><div><h3 className="text-xl">{name}</h3><p className="text-sm text-muted-foreground">Gefüllt mit Ice Cream</p></div><strong>4,00 €</strong></div>)}</div></div>
-        </div>
-      </section>
-
-      <section id="wrap" className="scroll-mt-36 px-5 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto grid max-w-[90rem] gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div><SectionTitle eyebrow="Jetzt neu" title={<>Wrap it <em className="text-secondary">up!</em></>} description="Zartes Chicken, frisches Gemüse, knackige Salate und leckere Saucen – du entscheidest, was reinkommt." /><p className="mt-8 text-3xl font-semibold">8,90 € <span className="ml-2 text-sm font-normal text-muted-foreground">Chicken Wrap</span></p></div>
-          <img src={wrapImage} alt="Chicken Wrap" className="aspect-[8/7] w-full rounded-lg bg-muted object-contain p-6" />
-        </div>
-      </section>
-
-      <p className="border-t border-border px-5 py-8 text-center text-xs leading-5 text-muted-foreground">Alle Preise in Euro inkl. MwSt. · Nährwertangaben sind Richtwerte. Fragen zu Zutaten oder Allergenen? Sprich uns gerne an.</p>
-    </main>
-  );
+  return <main className="min-h-screen bg-[#f5f0e8] text-[#292725]">
+    <div className="mx-auto max-w-7xl px-5 pb-28 pt-8 sm:px-8">
+      <header className="relative overflow-hidden rounded-[2rem] bg-[#292725] px-6 py-8 text-[#f5f0e8] shadow-xl sm:px-10 sm:py-10"><div className="absolute -right-20 -top-24 size-72 rounded-full bg-[#a85b39]/30 blur-3xl" /><div className="relative flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#d9946d]">Click & Collect · Hanau</p><h1 className="mt-3 max-w-2xl font-display text-5xl leading-[.9] sm:text-7xl">Frisch. Schnell.<br /><em className="text-[#d9946d]">Deins.</em></h1><p className="mt-5 max-w-lg text-base leading-7 text-[#eadfd2]">Bestelle deine Lieblingsgerichte online und hole sie frisch zubereitet bei Yamiin & Jaiyana&apos;s ab.</p></div><Button onClick={() => setDrawer(true)} className="relative hidden rounded-full bg-[#f5f0e8] text-[#292725] hover:bg-[#d9946d] sm:inline-flex"><ShoppingBag data-icon="inline-start" />Warenkorb{count > 0 && <Badge className="absolute -right-2 -top-2 bg-[#c87850] text-white">{count}</Badge>}</Button></div></header>
+      <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-[#d9cec0] bg-white/55 p-2 text-xs text-[#6f675f] sm:w-fit" aria-label="Interaktive Dock-Demo"><span className="px-2 font-semibold">Dock testen</span><Button type="button" size="sm" variant={demoRoute === "menu" ? "default" : "outline"} onClick={() => setDemoRoute("menu")} className="h-8 rounded-full px-3">/speisekarte</Button><Button type="button" size="sm" variant={demoRoute === "home" ? "default" : "outline"} onClick={() => setDemoRoute("home")} className="h-8 rounded-full px-3">/</Button><Button type="button" size="sm" variant="outline" onClick={() => { if (cart.length === 0) { const bowl = bowls[0]; add({ id: `demo-${bowl.name}`, name: bowl.name, detail: "Klein · Bulgur", price: parsePrice(bowl.small), image: bowl.image, qty: 1 }); } }} className="h-8 rounded-full px-3">Bowl hinzufügen</Button><Button type="button" size="sm" variant="ghost" onClick={() => setCart([])} disabled={!count} className="h-8 rounded-full px-3">Leeren</Button></div>
+      <nav ref={categoryNavRef} id="menu-categories" className="sticky top-[4.5rem] z-30 -mx-5 mt-6 flex gap-2 overflow-x-auto border-y border-[#d9cec0] bg-[#f5f0e8]/95 px-5 py-3 backdrop-blur-md sm:-mx-8 sm:px-8" aria-label="Kategorien">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm font-semibold transition ${category === item ? "border-[#292725] bg-[#292725] text-white" : "border-[#d9cec0] bg-white/60 hover:border-[#a85b39]"}`}>{item}</button>)}</nav>
+      {category === "Bowls" && <section className="mt-10"><div className="mb-6 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#a85b39]">Signature Bowls</p><h2 className="mt-2 font-display text-4xl">Deine <em>Bowl</em></h2></div><span className="hidden text-sm text-[#6f675f] sm:block">Base nach Wahl · frisch zubereitet</span></div><div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{products.map((bowl) => <BowlCard key={bowl.name} bowl={bowl} onSelect={() => setSelected(bowl)} />)}</div></section>}
+      {category === "Açaí" && <ProductGrid title="Açaí Specials" items={acais.map((item) => ({ ...item, price: 11.9 }))} onAdd={add} />}
+      {category === "Iced Matcha" && <ProductGrid title="Iced Matcha" items={matchas.map((item) => ({ ...item, price: parsePrice(item.price) }))} onAdd={add} />}
+      {category === "Ice Burger" && <ProductGrid title="Peeka Ice Burger" items={["Peeka Pistachio", "Peeka Lotus", "Peeka Bueno"].map((name) => ({ name, description: "Gefüllt mit Ice Cream", price: 4, image: iceBurgerImage }))} onAdd={add} />}
+      {category === "Wraps" && <ProductGrid title="Wrap it up!" items={[{ name: "Chicken Wrap", description: "Chicken, Salat, Gemüse & Sauce", price: 8.9, image: wrapImage }]} onAdd={add} />}
+    </div>
+    {count > 0 && <div className="pointer-events-none fixed inset-x-3 bottom-3 z-40 md:hidden" role="toolbar" aria-label="Bestellaktionen"><div className={`pointer-events-auto relative ml-auto flex h-[4.5rem] items-center overflow-hidden border border-white/15 bg-[#1f2022]/95 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/30 backdrop-blur-md transition-[border-radius] duration-500 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${demoRoute === "menu" ? "w-full rounded-2xl" : "w-14 rounded-full"}`}><Button type="button" variant="ghost" size="icon" aria-label="Profil öffnen" onClick={() => setDemoRoute("home")} className={`relative z-10 size-12 shrink-0 rounded-xl text-[#f8f6f0] transition-[opacity,transform] duration-300 ease-out hover:bg-white/10 hover:text-[#f8f6f0] ${demoRoute === "menu" ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-3 opacity-0"}`}><UserRound /></Button><button type="button" onClick={() => setDrawer(true)} className={`relative z-10 flex min-w-0 items-center gap-3 rounded-xl text-left outline-none transition-[transform,gap] duration-500 ease-[cubic-bezier(.22,1,.36,1)] active:scale-[.97] hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#d9946d] ${demoRoute === "menu" ? "flex-1 px-2" : "size-14 justify-center gap-0 overflow-hidden"}`}><span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-[#c46b38] text-white transition-none"><ShoppingBag /><span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-[#f8f6f0] text-[10px] font-bold text-[#1f2022] transition-transform duration-300">{count}</span></span><span className={`min-w-0 ${demoRoute === "menu" ? "opacity-100 translate-x-0" : "pointer-events-none w-0 -translate-x-2 opacity-0"}`}><span className="block truncate text-sm font-semibold">{count} Artikel</span><span className="block text-xs text-[#cfc2b5]">{euro(total)}</span></span></button><Button type="button" onClick={() => setDrawer(true)} className={`h-12 shrink-0 rounded-xl bg-[#f8f6f0] px-4 font-bold text-[#1f2022] hover:bg-[#d9946d] ${demoRoute === "menu" ? "opacity-100 translate-x-0" : "pointer-events-none w-0 -translate-x-2 opacity-0"}`}>Zur Kasse <ChevronLeft className="ml-1 rotate-180" /></Button></div></div>}
+    <Sheet open={drawer} onOpenChange={setDrawer}><SheetContent className="w-full border-l-[#d9cec0] bg-[#fffaf4] sm:max-w-md"><SheetHeader className="relative pr-12"><SheetTitle className="font-display text-3xl">Dein Warenkorb</SheetTitle><SheetDescription>{count ? `${count} Artikel · Abholung in Hanau` : "Noch ist dein Warenkorb leer."}</SheetDescription><Button type="button" variant="outline" size="icon" aria-label="Warenkorb schließen" onClick={() => setDrawer(false)} className="absolute right-0 top-0 rounded-full"><ChevronLeft /></Button></SheetHeader><div className="flex h-full flex-col px-6 pb-6">{cart.length === 0 ? <div className="flex flex-1 items-center justify-center text-center text-[#6f675f]">Füge deine Favoriten hinzu und hole sie frisch bei uns ab.</div> : <><div className="flex-1 overflow-y-auto py-6">{cart.map((item) => <div key={item.id} className="flex gap-3 border-b border-[#eadfd2] py-4"><img src={item.image} alt="" className="size-16 rounded-xl bg-[#f1e8dc] object-contain" /><div className="min-w-0 flex-1"><div className="flex justify-between gap-2"><p className="font-semibold">{item.name}</p><button onClick={() => change(item.id, -item.qty)} aria-label={`${item.name} löschen`}><Trash2 className="size-4 text-[#a85b39]" /></button></div><p className="text-xs text-[#6f675f]">{item.detail}</p><div className="mt-2 flex items-center justify-between"><div className="flex items-center gap-2 rounded-full border border-[#d9cec0] px-2"><button onClick={() => change(item.id, -1)} aria-label="Weniger"><Minus className="size-3" /></button><span className="text-sm">{item.qty}</span><button onClick={() => change(item.id, 1)} aria-label="Mehr"><Plus className="size-3" /></button></div><strong>{euro(item.price * item.qty)}</strong></div></div></div>)}</div><div className="border-t border-[#d9cec0] pt-5"><div className="flex justify-between text-lg font-bold"><span>Zwischensumme</span><span>{euro(total)}</span></div><Button onClick={() => { localStorage.setItem("yj-cart", JSON.stringify(cart)); setDrawer(false); navigate({ to: "/checkout" }); }} className="mt-4 w-full rounded-full bg-[#292725] py-6 text-white hover:bg-[#a85b39]">Zur Kasse</Button></div></>}</div><Button type="button" variant="outline" onClick={() => setDrawer(false)} className="mx-6 mb-4 h-12 rounded-full border-[#d9cec0]">Weiter einkaufen</Button></SheetContent></Sheet>
+    <BowlDialog bowl={selected} onClose={() => setSelected(null)} onAdd={add} />
+    <Checkout open={checkout} onOpenChange={setCheckout} total={total} onComplete={() => { setCheckout(false); setOrderNumber(`#YJ-${Math.floor(1000 + Math.random() * 8999)}`); setConfirmed(true); }} />
+  </main>;
 }
 
-function BowlCard({ bowl }: { bowl: Bowl }) {
-  const [open, setOpen] = useState(false);
-  return <article className="overflow-hidden rounded-lg border border-border bg-card transition duration-300 hover:-translate-y-1 hover:shadow-xl"><div className="relative bg-muted"><span className="absolute left-4 top-4 z-10 rounded-full bg-card px-3 py-1 text-xs font-semibold">{bowl.tag}</span><img src={bowl.image} alt={bowl.name} className="aspect-square w-full object-contain p-5" /></div><div className="p-6"><h3 className="text-2xl">{bowl.name}</h3><p className="mt-3 min-h-16 text-sm leading-6 text-muted-foreground">{bowl.description}</p><div className="mt-5 flex items-center justify-between border-y border-border py-3 text-xs"><span>Protein klein / groß</span><strong>{bowl.protein}</strong></div><div className="mt-5 grid grid-cols-[1fr_1fr_auto] items-end gap-3"><div><span className="text-xs text-muted-foreground">Klein</span><p className="font-display text-xl">{bowl.small}</p></div><div><span className="text-xs text-muted-foreground">Groß</span><p className="font-display text-xl">{bowl.large}</p></div><Button type="button" variant="outline" size="sm" aria-expanded={open} onClick={() => setOpen((value) => !value)} className="rounded-full border-border shadow-none">Details <ChevronDown className={open ? "rotate-180" : ""} /></Button></div>{open && <div className="mt-5 rounded-md bg-muted p-4 text-sm leading-6"><p><strong>Base:</strong> Bulgur, Somalireis oder Salat</p><p className="mt-1"><strong>Protein:</strong> {bowl.protein} (klein / groß)</p><p className="mt-1 text-muted-foreground">Bei Allergien oder Unverträglichkeiten bitte unser Team ansprechen.</p></div>}</div></article>;
-}
+function BowlCard({ bowl, onSelect }: { bowl: Bowl; onSelect: () => void }) { return <article className="overflow-hidden rounded-2xl border border-[#dfd3c5] bg-[#fffaf4] shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><div className="relative bg-[#eee5d9]"><span className="absolute left-4 top-4 z-10 rounded-full bg-white px-3 py-1 text-xs font-bold">{bowl.tag}</span><img src={bowl.image} alt={bowl.name} className="aspect-square w-full object-contain p-5" /></div><div className="p-5"><h3 className="font-display text-2xl">{bowl.name}</h3><p className="mt-2 min-h-12 text-sm leading-6 text-[#6f675f]">{bowl.description}</p><div className="mt-5 flex items-center justify-between border-t border-[#eadfd2] pt-4"><div><span className="text-xs text-[#6f675f]">ab</span><p className="text-xl font-bold">{bowl.small}</p></div><Button onClick={onSelect} className="rounded-full bg-[#292725] text-white hover:bg-[#a85b39]">Auswählen</Button></div></div></article>; }
+function ProductGrid({ title, items, onAdd }: { title: string; items: { name: string; description: string; price: number; image: string }[]; onAdd: (item: CartItem) => void }) { return <section className="mt-10"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#a85b39]">Frisch für dich</p><h2 className="mt-2 font-display text-4xl">{title}</h2><div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{items.map((item) => <article key={item.name} className="overflow-hidden rounded-2xl border border-[#dfd3c5] bg-[#fffaf4]"><img src={item.image} alt={item.name} className="aspect-square w-full bg-[#eee5d9] object-contain p-4" /><div className="p-5"><h3 className="font-display text-xl">{item.name}</h3><p className="mt-2 min-h-10 text-sm text-[#6f675f]">{item.description}</p><div className="mt-4 flex items-center justify-between"><strong>{euro(item.price)}</strong><Button size="sm" onClick={() => onAdd({ id: item.name, name: item.name, detail: "Standard", price: item.price, image: item.image, qty: 1 })} className="rounded-full bg-[#292725] text-white"><Plus data-icon="inline-start" />Hinzufügen</Button></div></div></article>)}</div></section>; }
+function BowlDialog({ bowl, onClose, onAdd }: { bowl: Bowl | null; onClose: () => void; onAdd: (item: CartItem) => void }) { const [size, setSize] = useState<"klein" | "gross">("klein"); const [base, setBase] = useState("Bulgur"); const [note, setNote] = useState(""); const [qty, setQty] = useState(1); if (!bowl) return null; const price = size === "klein" ? parsePrice(bowl.small) : parsePrice(bowl.large); return <Dialog open={Boolean(bowl)} onOpenChange={onClose}><DialogContent className="max-h-[90vh] overflow-y-auto bg-[#fffaf4]"><DialogHeader><DialogTitle className="font-display text-3xl">{bowl.name}</DialogTitle><DialogDescription>{bowl.description}</DialogDescription></DialogHeader><div className="grid gap-5"><img src={bowl.image} alt={bowl.name} className="mx-auto aspect-square max-h-52 w-full rounded-2xl bg-[#f1e8dc] object-contain" /><div><Label>Größe</Label><div className="mt-2 grid grid-cols-2 gap-2">{([["klein", bowl.small], ["gross", bowl.large]] as const).map(([value, label]) => <Button key={value} variant={size === value ? "default" : "outline"} onClick={() => setSize(value)} className={size === value ? "bg-[#292725]" : ""}>{value === "klein" ? "Klein" : "Groß"} · {label}</Button>)}</div></div><div><Label htmlFor="base">Basis</Label><select id="base" value={base} onChange={(event) => setBase(event.target.value)} className="mt-2 w-full rounded-md border border-[#d9cec0] bg-white p-3"><option>Bulgur</option><option>Somalireis</option><option>Salat</option></select></div><div><Label htmlFor="note">Notiz an die Küche</Label><Textarea id="note" value={note} onChange={(event) => setNote(event.target.value)} placeholder="z. B. keine Zwiebeln" className="mt-2 bg-white" /></div><div className="flex items-center justify-between"><div className="flex items-center gap-3 rounded-full border border-[#d9cec0] px-3 py-2"><button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Weniger"><Minus className="size-4" /></button><span>{qty}</span><button onClick={() => setQty(qty + 1)} aria-label="Mehr"><Plus className="size-4" /></button></div><Button onClick={() => { onAdd({ id: `${bowl.name}-${size}-${base}-${note}`, name: bowl.name, detail: `${size === "klein" ? "Klein" : "Groß"} · ${base}${note ? ` · ${note}` : ""}`, price, image: bowl.image, qty }); setQty(1); setNote(""); onClose(); }} className="rounded-full bg-[#a85b39] px-6 text-white">In den Warenkorb · {euro(price * qty)}</Button></div></div></DialogContent></Dialog>; }
+function Checkout({ open, onOpenChange, total, onComplete }: { open: boolean; onOpenChange: (open: boolean) => void; total: number; onComplete: () => void }) { const [step, setStep] = useState(1); const [payment, setPayment] = useState(""); const [contact, setContact] = useState({ name: "", phone: "", email: "" }); const [pickup, setPickup] = useState("Schnellstmöglich"); const canContinue = step === 1 ? Object.values(contact).every(Boolean) : step === 2 ? Boolean(pickup) : Boolean(payment); return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="bg-[#fffaf4]"><DialogHeader><DialogTitle className="font-display text-3xl">Bestellung abschließen</DialogTitle><DialogDescription>Schritt {step} von 3 · Abholung bei Yamiin & Jaiyana&apos;s, Hanau</DialogDescription></DialogHeader>{step === 1 && <div className="grid gap-4">{([["name", "Vor- und Nachname", "Dein Name"], ["phone", "Telefonnummer", "Für Rückfragen"], ["email", "E-Mail", "Für die Bestätigung"]] as const).map(([key, label, placeholder]) => <div key={key} className="grid gap-2"><Label htmlFor={key}>{label}</Label><Input id={key} value={contact[key]} onChange={(event) => setContact({ ...contact, [key]: event.target.value })} placeholder={placeholder} type={key === "email" ? "email" : "text"} className="bg-white" /></div>)}</div>}{step === 2 && <div className="grid gap-3"><Button variant={pickup === "Schnellstmöglich" ? "default" : "outline"} className="h-auto justify-start p-4 text-left" onClick={() => setPickup("Schnellstmöglich")}> <span><strong>So schnell wie möglich</strong><br /><small className="text-[#6f675f]">ca. 20–30 Minuten</small></span></Button><Button variant={pickup !== "Schnellstmöglich" ? "default" : "outline"} className="h-auto justify-start p-4 text-left" onClick={() => setPickup("Heute 13:00")}> <span><strong>Wunsch-Uhrzeit heute</strong><br /><small className="text-[#6f675f]">Heute, 13:00 Uhr</small></span></Button></div>}{step === 3 && <div className="grid gap-3"><Button variant={payment === "Vor Ort" ? "default" : "outline"} className="h-auto justify-start p-4 text-left" onClick={() => setPayment("Vor Ort")}><span><strong>Vor Ort bei Abholung</strong><br /><small>Barzahlung oder EC/Kreditkarte · {euro(total)}</small></span></Button><Button variant={payment === "Online" ? "default" : "outline"} className="h-auto justify-start p-4 text-left" onClick={() => setPayment("Online")}><span><strong>Online sofort zahlen</strong><br /><small>PayPal, Apple Pay, Google Pay oder Karte · Vorbereitung für Stripe</small></span></Button></div>}<DialogFooter><Button variant="ghost" onClick={() => step > 1 ? setStep(step - 1) : onOpenChange(false)}>{step > 1 && <ChevronLeft data-icon="inline-start" />}Zurück</Button><Button disabled={!canContinue} onClick={() => step < 3 ? setStep(step + 1) : onComplete()} className="rounded-full bg-[#292725] text-white">{step === 3 ? "Bestellung absenden" : "Weiter"}</Button></DialogFooter></DialogContent></Dialog>; }
+function Confirmation({ orderNumber, onBack }: { orderNumber: string; onBack: () => void }) { return <main className="flex min-h-screen items-center justify-center bg-[#f5f0e8] px-5"><div className="w-full max-w-lg rounded-3xl bg-[#fffaf4] p-8 text-center shadow-xl sm:p-12"><div className="mx-auto flex size-16 items-center justify-center rounded-full bg-[#dbe7d1] text-[#4f7041]"><Check /></div><p className="mt-6 text-xs font-bold uppercase tracking-[.18em] text-[#a85b39]">Bestellung bestätigt</p><h1 className="mt-3 font-display text-5xl">Danke, wir freuen uns!</h1><p className="mt-5 text-[#6f675f]">Deine Bestellung <strong>{orderNumber}</strong> ist bei uns eingegangen. Wir bereiten alles frisch für dich zu.</p><Button onClick={onBack} className="mt-8 rounded-full bg-[#292725] text-white">Weitere Bestellung</Button></div></main>; }
 
-function ProductCard({ name, description, price, size, image, signature }: { name: string; description: string; price: string; size: string; image: string; signature?: boolean }) {
-  return <article className="overflow-hidden rounded-lg border border-border bg-card transition duration-300 hover:-translate-y-1 hover:shadow-xl"><div className="relative bg-muted">{signature && <span className="absolute left-3 top-3 z-10 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">Signature</span>}<img src={image} alt={name} className="aspect-square w-full object-contain p-3" /></div><div className="p-5"><h3 className="text-xl leading-tight">{name}</h3><p className="mt-2 min-h-10 text-sm leading-5 text-muted-foreground">{description}</p><div className="mt-4 flex items-end justify-between"><strong>{price}</strong><span className="text-xs text-muted-foreground">{size}</span></div></div></article>;
-}
-
-function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: React.ReactNode; description: string }) {
-  return <div><p className="text-xs font-bold uppercase text-secondary">{eyebrow}</p><h2 className="mt-3 text-5xl leading-none sm:text-7xl">{title}</h2><p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">{description}</p></div>;
-}
+export default OrderPage;
+    
