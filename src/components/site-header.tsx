@@ -79,7 +79,7 @@ export function SiteHeader() {
             size="icon"
             aria-label="Menü öffnen"
             aria-expanded={open}
-            onClick={() => setOpen(true)}
+            onClick={() => setOpen((current) => !current)}
             className="size-11 rounded-full border border-border bg-card text-foreground shadow-none hover:bg-muted md:hidden"
           >
             <Menu className="size-5" strokeWidth={1.5} />
@@ -88,17 +88,17 @@ export function SiteHeader() {
       </header>
 
       {/* Slide-in-Menü nur auf dem Smartphone */}
-      <div
-        className={`fixed inset-0 z-50 bg-foreground/60 transition-opacity duration-300 md:hidden ${open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
-        aria-hidden="true"
-        onClick={() => setOpen(false)}
-      />
-      <aside
-        aria-label="Hauptmenü"
-        aria-hidden={!open}
-        inert={!open}
-        className={`fixed right-0 top-0 z-50 flex h-dvh w-[min(92vw,34rem)] flex-col border-l border-border bg-background px-6 py-6 shadow-2xl transition-transform duration-500 ease-out sm:px-10 sm:py-8 md:hidden ${open ? "translate-x-0" : "translate-x-full"}`}
-      >
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-[2px] md:hidden"
+            aria-hidden="true"
+            onClick={() => setOpen(false)}
+          />
+          <aside
+            aria-label="Hauptmenü"
+            className="fixed right-0 top-0 z-50 flex h-dvh w-[min(92vw,34rem)] flex-col border-l border-border bg-background px-6 py-6 shadow-2xl animate-in slide-in-from-right duration-300 sm:px-10 sm:py-8 md:hidden"
+          >
         <div className="flex items-center justify-between border-b border-border pb-6">
           <span className="font-display text-sm uppercase">Navigation</span>
           <Button
@@ -135,6 +135,8 @@ export function SiteHeader() {
           </a>
         </Button>
       </aside>
+        </>
+      )}
     </>
   );
 }

@@ -1,24 +1,9 @@
-import ysBowlAsset from "@/assets/menu/bowl-ys.webp.asset.json";
-import jsBowlAsset from "@/assets/menu/bowl-js.webp.asset.json";
-import bulgurBowlAsset from "@/assets/menu/bowl-bulgur-blizz.webp.asset.json";
-import midoriBowlAsset from "@/assets/menu/bowl-midori-ebi.webp.asset.json";
-import falafelBowlAsset from "@/assets/menu/bowl-falafel-exotica.webp.asset.json";
-import alohaBowlAsset from "@/assets/menu/bowl-aloha.webp.asset.json";
-import strawberryMatchaAsset from "@/assets/menu/matcha-strawberry.webp.asset.json";
-import coconutMatchaAsset from "@/assets/menu/matcha-coconut.webp.asset.json";
-import mangoMatchaAsset from "@/assets/menu/matcha-mango.webp.asset.json";
-import lotusMatchaAsset from "@/assets/menu/matcha-lotus.webp.asset.json";
-import pistachioMatchaAsset from "@/assets/menu/matcha-pistachio.webp.asset.json";
-import lotusAcaiAsset from "@/assets/menu/acai-lotus.webp.asset.json";
-import pistachioAcaiAsset from "@/assets/menu/acai-pistachio.webp.asset.json";
-import buenoAcaiAsset from "@/assets/menu/acai-bueno.webp.asset.json";
-import cookieAcaiAsset from "@/assets/menu/acai-cookie.webp.asset.json";
-import snickersAcaiAsset from "@/assets/menu/acai-snickers.webp.asset.json";
-import brownieAcaiAsset from "@/assets/menu/acai-brownie.webp.asset.json";
-import tropicalAcaiAsset from "@/assets/menu/acai-tropical.webp.asset.json";
-import whiteChocolateAcaiAsset from "@/assets/menu/acai-white-chocolate.webp.asset.json";
-import iceBurgerAsset from "@/assets/menu/peeka-ice-burger.webp.asset.json";
-import wrapAsset from "@/assets/menu/chicken-wrap.webp.asset.json";
+import bowlPokeImage from "@/assets/bowl-poke.jpg";
+import bowlSaladImage from "@/assets/bowl-salat.jpg";
+import bowlVeggieImage from "@/assets/bowl-veggie.jpg";
+import acaiImage from "@/assets/acai.jpg";
+import matchaImage from "@/assets/matcha.jpg";
+import sandwichImage from "@/assets/sandwich.jpg";
 
 export type BowlFilter = "Alle" | "High Protein" | "Chicken" | "Fisch & Garnelen" | "Vegan";
 
@@ -42,7 +27,7 @@ export const bowls: Bowl[] = [
     protein: "19,3 g / 36,9 g",
     small: "10,90 €",
     large: "13,90 €",
-    image: ysBowlAsset.url,
+    image: bowlPokeImage,
   },
   {
     name: "J's Bowl",
@@ -52,7 +37,7 @@ export const bowls: Bowl[] = [
     protein: "19,8 g / 38 g",
     small: "10,90 €",
     large: "13,90 €",
-    image: jsBowlAsset.url,
+    image: bowlPokeImage,
   },
   {
     name: "Bulgur Blizz Bowl",
@@ -62,7 +47,7 @@ export const bowls: Bowl[] = [
     protein: "25,1 g / 48,5 g",
     small: "10,90 €",
     large: "13,90 €",
-    image: bulgurBowlAsset.url,
+    image: bowlSaladImage,
   },
   {
     name: "Midori Ebi Bowl",
@@ -72,7 +57,7 @@ export const bowls: Bowl[] = [
     protein: "17,4 g / 33,2 g",
     small: "11,50 €",
     large: "14,30 €",
-    image: midoriBowlAsset.url,
+    image: bowlPokeImage,
   },
   {
     name: "Falafel Exotica Bowl",
@@ -82,7 +67,7 @@ export const bowls: Bowl[] = [
     protein: "12,5 g / 19,6 g",
     small: "10,90 €",
     large: "12,90 €",
-    image: falafelBowlAsset.url,
+    image: bowlVeggieImage,
   },
   {
     name: "Aloha Bowl",
@@ -92,7 +77,7 @@ export const bowls: Bowl[] = [
     protein: "12,5 g / 19,6 g",
     small: "10,90 €",
     large: "13,90 €",
-    image: alohaBowlAsset.url,
+    image: bowlPokeImage,
   },
 ];
 
@@ -106,11 +91,11 @@ export const bowlSteps = [
 ];
 
 export const matchas = [
-  { name: "Iced Strawberry", description: "Fruchtige Erdbeere trifft cremigen Matcha", price: "6,90 €", size: "0,3 l", image: strawberryMatchaAsset.url },
-  { name: "Iced Coconut", description: "Matcha trifft Kokos – cremig & erfrischend", price: "6,90 €", size: "0,3 l", image: coconutMatchaAsset.url },
-  { name: "Iced Mango", description: "Süße Mango trifft kräftigen Matcha", price: "6,90 €", size: "0,3 l", image: mangoMatchaAsset.url },
-  { name: "Iced Lotus", description: "Karamellige Lotus-Note mit Matcha", price: "7,50 €", size: "0,3 l", image: lotusMatchaAsset.url, signature: true },
-  { name: "Iced Pistachio", description: "Cremige Pistazie trifft Matcha", price: "7,50 €", size: "0,3 l", image: pistachioMatchaAsset.url, signature: true },
+  { name: "Iced Strawberry", description: "Fruchtige Erdbeere trifft cremigen Matcha", price: "6,90 €", size: "0,3 l", image: matchaImage },
+  { name: "Iced Coconut", description: "Matcha trifft Kokos – cremig & erfrischend", price: "6,90 €", size: "0,3 l", image: matchaImage },
+  { name: "Iced Mango", description: "Süße Mango trifft kräftigen Matcha", price: "6,90 €", size: "0,3 l", image: matchaImage },
+  { name: "Iced Lotus", description: "Karamellige Lotus-Note mit Matcha", price: "7,50 €", size: "0,3 l", image: matchaImage, signature: true },
+  { name: "Iced Pistachio", description: "Cremige Pistazie trifft Matcha", price: "7,50 €", size: "0,3 l", image: matchaImage, signature: true },
 ];
 
 export const coffees = [
@@ -120,15 +105,15 @@ export const coffees = [
 ];
 
 export const acais = [
-  { name: "Lotus Açaí", description: "Lotus Creme · Lotus Crumbles", image: lotusAcaiAsset.url },
-  { name: "Pistachio Açaí", description: "Pistaziencreme · Pistazienflocken", image: pistachioAcaiAsset.url },
-  { name: "Bueno Açaí", description: "Bueno Creme · Haselnüsse", image: buenoAcaiAsset.url },
-  { name: "Cookie Açaí", description: "Oreo Creme · Cookie Crumbles", image: cookieAcaiAsset.url },
-  { name: "Snickers Açaí", description: "Erdnussbutter · Snickers", image: snickersAcaiAsset.url },
-  { name: "Brownie Açaí", description: "Chocolate Sauce · Brownie-Stücke", image: brownieAcaiAsset.url },
-  { name: "Tropical Açaí", description: "Mangopüree · Kokosflocken", image: tropicalAcaiAsset.url },
-  { name: "White Chocolate Açaí", description: "White Chocolate Creme · Flakes", image: whiteChocolateAcaiAsset.url },
+  { name: "Lotus Açaí", description: "Lotus Creme · Lotus Crumbles", image: acaiImage },
+  { name: "Pistachio Açaí", description: "Pistaziencreme · Pistazienflocken", image: acaiImage },
+  { name: "Bueno Açaí", description: "Bueno Creme · Haselnüsse", image: acaiImage },
+  { name: "Cookie Açaí", description: "Oreo Creme · Cookie Crumbles", image: acaiImage },
+  { name: "Snickers Açaí", description: "Erdnussbutter · Snickers", image: acaiImage },
+  { name: "Brownie Açaí", description: "Chocolate Sauce · Brownie-Stücke", image: acaiImage },
+  { name: "Tropical Açaí", description: "Mangopüree · Kokosflocken", image: acaiImage },
+  { name: "White Chocolate Açaí", description: "White Chocolate Creme · Flakes", image: acaiImage },
 ];
 
-export const iceBurgerImage = iceBurgerAsset.url;
-export const wrapImage = wrapAsset.url;
+export const iceBurgerImage = sandwichImage;
+export const wrapImage = sandwichImage;

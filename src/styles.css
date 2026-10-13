@@ -187,6 +187,29 @@ body { overflow-x: clip; }
 
 .animate-ticker { animation: ticker 28s linear infinite; }
 
+@keyframes hero-glow {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+.hero-glow-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(90deg, transparent, oklch(0.82 0.12 48), transparent);
+}
+
+.hero-glow-button::before {
+  content: "";
+  position: absolute;
+  inset: -140%;
+  z-index: -1;
+  background: conic-gradient(from 0deg, transparent 0deg, oklch(0.9 0.15 55) 35deg, transparent 80deg, transparent 360deg);
+  animation: hero-glow 3.8s linear infinite;
+}
+
+.hero-glow-button:hover::before { animation-duration: 1.8s; }
+
 ::selection { background: var(--secondary); color: var(--secondary-foreground); }
 
 @media (prefers-reduced-motion: reduce) {

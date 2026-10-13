@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Bike, MapPin, ShoppingBag } from "lucide-react";
 
-import falafelHeroAsset from "@/assets/menu/hero-falafel.webp.asset.json";
-import midoriHeroAsset from "@/assets/menu/hero-midori.webp.asset.json";
-import ysHeroAsset from "@/assets/menu/hero-ys.webp.asset.json";
+import heroBowlImage from "@/assets/hero-bowl.jpg";
 import { Button } from "@/components/ui/button";
 import { acais, matchas } from "@/lib/menu-data";
 
@@ -27,37 +25,22 @@ const WOLT = "https://wolt.com/de/deu/hanau/restaurant/yamiin-jaiyanas-healthy-f
 function Home() {
   return (
     <main className="overflow-hidden bg-background text-foreground">
-      <section className="border-b border-border">
-        <div className="mx-auto grid min-h-[42rem] max-w-[90rem] items-center gap-8 px-5 py-16 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:py-20">
-          <div className="relative z-10 max-w-2xl">
-            <p className="inline-flex rounded-full bg-muted px-4 py-2 text-xs font-semibold text-secondary">Bowls · Açaí · Matcha · Coffee</p>
-            <h1 className="mt-7 text-6xl leading-[0.88] sm:text-8xl lg:text-[7.6rem]">
-              Where good<br />people <em className="text-secondary">eat well.</em>
-            </h1>
-            <p className="mt-7 max-w-md text-base leading-7 text-muted-foreground sm:text-lg">Frisch zubereitet, liebevoll angerichtet – und alle Nährwerte immer im Blick.</p>
+      <section className="relative isolate min-h-[42rem] overflow-hidden border-b border-border bg-[#292725] text-[#f5f0e8] sm:min-h-[48rem]">
+        <img src={heroBowlImage} alt="Frische Signature Bowl von Yamiin & Jaiyana's" className="absolute inset-0 -z-20 size-full object-cover object-center opacity-80 transition duration-1000 hover:scale-[1.03]" />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(30,28,25,.94)_0%,rgba(30,28,25,.68)_46%,rgba(30,28,25,.18)_100%)]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(217,148,109,.26),transparent_32%)]" />
+        <div className="mx-auto flex min-h-[42rem] max-w-[90rem] items-center px-5 py-20 sm:min-h-[48rem] sm:px-8 lg:py-24">
+          <div className="relative z-10 max-w-3xl">
+            <p className="mb-7 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold text-[#f5c3a6] backdrop-blur-md">Bowls · Açaí · Matcha · Coffee</p>
+            <h1 className="text-6xl leading-[0.88] sm:text-8xl lg:text-[7.6rem]">Where good<br />people <em className="text-[#f5c3a6]">eat well.</em></h1>
+            <p className="mt-7 max-w-md text-base leading-7 text-white/75 sm:text-lg">Frisch zubereitet, liebevoll angerichtet – und alle Nährwerte immer im Blick.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-12 rounded-full bg-foreground px-6 text-background shadow-none hover:-translate-y-0.5 hover:bg-secondary">
-                <Link to="/speisekarte">Zu den Bowls <ArrowRight /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 rounded-full border-border bg-card px-6 shadow-none hover:-translate-y-0.5 hover:bg-muted">
-                <Link to="/speisekarte" hash="create">Bowl selbst bauen</Link>
-              </Button>
+              <div className="hero-glow-button rounded-full p-px">
+                <Button asChild size="lg" className="h-12 rounded-full bg-[#f5f0e8] px-6 text-[#292725] shadow-none hover:bg-[#f5c3a6]"><Link to="/speisekarte">Zu den Bowls <ArrowRight /></Link></Button>
+              </div>
+              <Button asChild size="lg" variant="outline" className="h-12 rounded-full border-white/35 bg-white/10 px-6 text-[#f5f0e8] shadow-none backdrop-blur-sm hover:bg-white/20"><Link to="/speisekarte" hash="create">Bowl selbst bauen</Link></Button>
             </div>
           </div>
-
-          <div className="relative mx-auto min-h-[24rem] w-full max-w-3xl sm:min-h-[31rem]">
-            <img src={falafelHeroAsset.url} alt="Falafel Exotica Bowl" className="absolute bottom-3 left-[2%] w-[43%] drop-shadow-2xl transition-transform duration-500 hover:-translate-y-2" />
-            <img src={ysHeroAsset.url} alt="Y's Signature Bowl" className="absolute left-1/2 top-0 z-10 w-[56%] -translate-x-1/2 drop-shadow-2xl transition-transform duration-500 hover:-translate-y-2" />
-            <img src={midoriHeroAsset.url} alt="Midori Ebi Bowl" className="absolute bottom-3 right-[1%] w-[43%] drop-shadow-2xl transition-transform duration-500 hover:-translate-y-2" />
-          </div>
-        </div>
-
-        <div className="mx-auto grid max-w-[90rem] gap-3 px-5 pb-14 sm:grid-cols-3 sm:px-8">
-          {[["6", "Signature Bowls"], ["bis 48,5 g", "Protein"], ["Vegan", "Optionen"]].map(([value, label]) => (
-            <div key={label} className="rounded-lg border border-border bg-card px-6 py-5 text-center">
-              <p className="font-display text-2xl">{value}</p><p className="mt-1 text-xs text-muted-foreground">{label}</p>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -71,9 +54,9 @@ function Home() {
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {[
-            { label: "Signature Bowls", note: "Klein oder groß", image: ysHeroAsset.url, hash: "bowls" },
-            { label: "Taste the Matcha", note: "Cremig & fruchtig", image: matchas.at(0)?.image ?? ysHeroAsset.url, hash: "matcha" },
-            { label: "Açaí Specials", note: "Jedes Special 11,90 €", image: acais.at(0)?.image ?? ysHeroAsset.url, hash: "acai" },
+            { label: "Signature Bowls", note: "Klein oder groß", image: heroBowlImage, hash: "bowls" },
+            { label: "Taste the Matcha", note: "Cremig & fruchtig", image: matchas.at(0)?.image ?? heroBowlImage, hash: "matcha" },
+            { label: "Açaí Specials", note: "Jedes Special 11,90 €", image: acais.at(0)?.image ?? heroBowlImage, hash: "acai" },
           ].map((item) => (
             <Link key={item.label} to="/speisekarte" hash={item.hash} className="group overflow-hidden rounded-lg border border-border bg-card outline-none transition duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-ring">
               <div className="overflow-hidden bg-muted"><img src={item.image} alt={item.label} className="aspect-[4/3] w-full object-contain p-4 transition duration-500 group-hover:scale-105" /></div>
