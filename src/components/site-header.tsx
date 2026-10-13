@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { BrandMark } from "@/components/brand-logo";
@@ -17,7 +16,6 @@ const LIEFERANDO = "https://www.lieferando.de/speisekarte/yamiin-jaiyanas-health
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -26,17 +24,15 @@ export function SiteHeader() {
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
-    closeButtonRef.current?.focus();
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", closeOnEscape);
-      openButtonRef.current?.focus();
     };
   }, [open]);
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-md">
+      <header className={`sticky top-0 border-b border-border bg-background/95 backdrop-blur-md ${open ? "z-[60]" : "z-40"}`}>
         <div className="mx-auto flex h-18 max-w-[90rem] items-center justify-between px-4 sm:h-20 sm:px-8">
           <Link to="/" aria-label="Yamiin und Jaiyana's Startseite" className="group flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             <BrandMark className="size-11 transition-transform duration-300 ease-out group-hover:-rotate-6 group-hover:scale-105 sm:size-12" />
@@ -71,72 +67,60 @@ export function SiteHeader() {
             </Button>
           </nav>
 
-          {/* Smartphone: Hamburger */}
-          <Button
+          {/* Smartphone: Hamburger mit animiertem Icon */}
+          <button
             type="button"
             ref={openButtonRef}
-            variant="ghost"
-            size="icon"
-            aria-label="Menü öffnen"
+            aria-label={open ? "Menü schließen" : "Menü öffnen"}
             aria-expanded={open}
+            aria-controls="mobile-menu"
             onClick={() => setOpen((current) => !current)}
-            className="size-11 rounded-full border border-border bg-card text-foreground shadow-none hover:bg-muted md:hidden"
+            className="relative flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground outline-none transition-[background-color,transform] duration-200 hover:bg-muted active:scale-95 focus-visible:ring-2 focus-visible:ring-ring md:hidden"
           >
-            <Menu className="size-5" strokeWidth={1.5} />
-          </Button>
+            <span className="relative block h-3 w-5" aria-hidden="true">
+              <span className={`absolute left-0 h-[2px] w-5 rounded-full bg-current transition-[top,transform] duration-300 ease-[cubic-bezier(.32,.72,0,1)] ${open ? "top-[5px] rotate-45" : "top-0"}`} />
+              <span className={`absolute left-0 h-[2px] rounded-full bg-current transition-[top,transform,width] duration-300 ease-[cubic-bezier(.32,.72,0,1)] ${open ? "top-[5px] w-5 -rotate-45" : "top-[10px] w-3.5"}`} />
+            </span>
+          </button>
         </div>
       </header>
 
       {/* Slide-in-Menü nur auf dem Smartphone */}
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-[2px] md:hidden"
-            aria-hidden="true"
-            onClick={() => setOpen(false)}
-          />
-          <aside
-            aria-label="Hauptmenü"
-            className="fixed right-0 top-0 z-50 flex h-dvh w-[min(92vw,34rem)] flex-col border-l border-border bg-background px-6 py-6 shadow-2xl animate-in slide-in-from-right duration-300 sm:px-10 sm:py-8 md:hidden"
-          >
-        <div className="flex items-center justify-between border-b border-border pb-6">
-          <span className="font-display text-sm uppercase">Navigation</span>
-          <Button
-            type="button"
-            ref={closeButtonRef}
-            variant="ghost"
-            size="icon"
-            aria-label="Menü schließen"
-            onClick={() => setOpen(false)}
-            className="size-11 rounded-md border-2 border-border bg-background shadow-[3px_3px_0_var(--foreground)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--foreground)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:[&_svg]:rotate-90"
-          >
-            <X className="size-5" strokeWidth={1.5} />
-          </Button>
-        </div>
-
-        <nav className="flex flex-1 flex-col justify-center gap-1">
+      <div
+        className={`fixed inset-0 z-50 bg-foreground/50 backdrop-blur-[2px] transition-opacity duration-500 ease-[cubic-bezier(.32,.72,0,1)] md:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        aria-hidden="true"
+        onClick={() => setOpen(false)}
+      />
+      <aside
+        id="mobile-menu"
+        aria-label="Hauptmenü"
+        aria-hidden={!open}
+        inert={!open}
+        className={`fixed right-0 top-0 z-50 flex h-dvh w-[min(88vw,26rem)] flex-col rounded-l-3xl bg-background px-6 pb-6 pt-24 shadow-2xl transition-[transform,visibility] duration-500 ease-[cubic-bezier(.32,.72,0,1)] motion-reduce:transition-none md:hidden ${open ? "visible translate-x-0" : "invisible translate-x-full"}`}
+      >
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Navigation</span>
+        <nav className="mt-4 flex flex-1 flex-col gap-1">
           {links.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               onClick={() => setOpen(false)}
-              className={`menu-link group border-b border-border py-4 font-display text-3xl leading-none outline-none hover:pl-3 hover:text-secondary focus-visible:pl-3 sm:text-5xl ${open ? "menu-link-open" : ""}`}
-              activeProps={{ className: "opacity-50" }}
+              className={`menu-link group flex items-center justify-between border-b border-border py-4 font-display text-3xl leading-none outline-none hover:text-secondary focus-visible:text-secondary ${open ? "menu-link-open" : ""}`}
+              activeProps={{ className: "text-secondary" }}
               activeOptions={{ exact: item.to === "/" }}
             >
               {item.label}
+              <span className="text-lg opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-x-1 group-hover:opacity-100">→</span>
             </Link>
           ))}
         </nav>
 
-        <Button asChild size="lg" className="h-14 w-full rounded-full bg-foreground font-semibold text-background shadow-none hover:bg-secondary">
+        <Button asChild size="lg" className={`menu-link h-14 w-full rounded-full bg-foreground font-semibold text-background shadow-none hover:bg-secondary ${open ? "menu-link-open" : ""}`}>
           <a href={LIEFERANDO} target="_blank" rel="noreferrer">
             Jetzt bestellen
           </a>
         </Button>
       </aside>
-        </>
-      )}
     </>
   );
 }
