@@ -9,4 +9,4 @@
 - [x] Gesamte Website an die warme Speisekarten-Gestaltung angleichen
 - [x] Vollständige Speisekarte mit Bildern, Filtern und Details umsetzen
 - [x] Smartphone, Tablet und Desktop abschließend prüfen
-- [ ] Vollständige Original-Speisekarte mit Bildern, Nährwerten und allen Kategorien importieren und Bestellweg prüfen
+- [x] Vollständige Original-Speisekarte mit Bildern, Nährwerten und allen Kategorien importieren und Bestellweg prüfen

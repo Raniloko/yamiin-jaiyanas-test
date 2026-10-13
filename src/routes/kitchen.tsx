@@ -6,17 +6,7 @@ import { Button } from "@/components/ui/button";
 import { euro } from "@/lib/cart-store";
 import { ORDER_STEPS, orderStore, useOrders } from "@/lib/order-store";
 
-export const Route = createFileRoute("/kitchen")({
-  head: () => ({ meta: [
-    { title: "Thekenübersicht – Yamiin & Jaiyana's" },
-    { name: "description", content: "Bestellungen und Abholstatus von Yamiin & Jaiyana's im Überblick." },
-    { property: "og:title", content: "Thekenübersicht | Yamiin & Jaiyana's" },
-    { property: "og:description", content: "Übersicht der Bestellungen und ihrer Zubereitung." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-    { name: "robots", content: "noindex" },
-  ] }), component: KitchenPage,
-});
+export const Route = createFileRoute("/kitchen")({ component: KitchenPage });
 type Status = "Eingegangen" | "Wird zubereitet" | "Abholbereit" | "Abgeschlossen";
 type Order = { id: string; name: string; phone: string; time: string; payment: string; items: string[]; status: Status };
 const statuses: Status[] = ["Eingegangen", "Wird zubereitet", "Abholbereit", "Abgeschlossen"];
