@@ -6,7 +6,7 @@ import { euro } from "@/lib/cart-store";
 import { ORDER_STEPS, useOrder } from "@/lib/order-store";
 
 export const Route = createFileRoute("/order-success")({
-  validateSearch: (search: Record<string, unknown>) => ({ id: typeof search.id === "string" ? search.id : undefined }),
+  validateSearch: (search: Record<string, unknown>) => ({ id: typeof search["id"] === "string" ? search["id"] : undefined }),
   head: () => ({
     meta: [
       { title: "Bestellstatus live – Yamiin & Jaiyana's" },
