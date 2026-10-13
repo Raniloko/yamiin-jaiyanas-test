@@ -1,17 +1,136 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Check, Clock3, Download, Home, Mail, Sparkles } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, Check, ChefHat, Clock3, MapPin, Phone, ShoppingBag, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
-export const Route = createFileRoute("/order-success")({ component: SuccessPage });
-function SuccessPage() {
-  const navigate = useNavigate();
-  const [order, setOrder] = useState<any>(null);
-  useEffect(() => { try { setOrder(JSON.parse(localStorage.getItem("yj-last-order") || "null")); } catch { setOrder(null); } }, []);
-  const status = ["Eingegangen", "Wird frisch zubereitet", "Abholbereit an der Theke", "Abgeschlossen"];
-  return <main className="min-h-screen bg-[#f8f6f0] px-4 py-8 text-[#1f2022] sm:px-8"><div className="mx-auto max-w-2xl"><div className="text-center"><div className="mx-auto flex size-20 items-center justify-center rounded-full bg-[#dcead5] text-[#4f7041] shadow-sm"><Check /></div><p className="mt-6 text-xs font-bold uppercase tracking-[.2em] text-[#c46b38]">Bestellung bestätigt</p><h1 className="mt-2 font-display text-5xl">{order?.order || "#YJ-2481"}</h1><p className="mt-3 text-lg text-[#6f675f]">Abholbereit um ca. 14:35 Uhr</p></div><Card className="mt-8 border-[#e2d8ca] bg-white/80 shadow-sm"><CardHeader><CardTitle>Live-Status</CardTitle><CardDescription>Wir halten dich auf dem Laufenden.</CardDescription></CardHeader><CardContent><div className="grid gap-3">{status.map((label, index) => <div key={label} className={`flex items-center gap-3 rounded-2xl border p-4 ${index === 0 ? "border-[#c46b38] bg-[#fff7f1]" : "border-[#eee5dc]"}`}><span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${index === 0 ? "bg-[#c46b38] text-white" : "bg-[#eee5dc] text-[#9a9085]"}`}>{index + 1}</span><span className={index === 0 ? "font-semibold" : "text-[#9a9085]"}>{label}</span>{index === 0 && <Badge className="ml-auto bg-[#dcead5] text-[#4f7041]">Aktiv</Badge>}</div>)}</div></CardContent></Card><Card className="mt-6 border-[#e2d8ca] bg-[#1f2022] text-[#f8f6f0] shadow-xl"><CardContent className="flex items-start gap-4 p-6"><Mail className="mt-1 text-[#d9946d]" /><p className="text-sm leading-6 text-[#ded3c9]">Eine Bestätigung und dein digitaler Kassenbeleg wurden an <strong className="text-white">{order?.contact?.email || "deine E-Mail-Adresse"}</strong> gesendet.</p></CardContent></Card><Card className="mt-6 border-[#e2d8ca] bg-white/80"><CardHeader><CardTitle className="flex items-center gap-2"><Sparkles className="text-[#c46b38]" />Noch schneller beim nächsten Mal</CardTitle><CardDescription>Möchtest du deine Daten sichern und Punkte sammeln?</CardDescription></CardHeader><CardContent><Button variant="outline" className="w-full rounded-full border-[#c46b38] text-[#a6532d]">Konto ohne Passwort aktivieren <ArrowRight data-icon="inline-end" /></Button><p className="mt-3 text-center text-xs text-[#9a9085]">Wir schicken dir einen Magic-Link an deine E-Mail.</p></CardContent></Card><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button onClick={() => navigate({ to: "/" })} className="h-12 flex-1 rounded-full bg-[#1f2022] text-white"><Home data-icon="inline-start" />Zur Startseite</Button><Button variant="outline" onClick={() => window.print()} className="h-12 flex-1 rounded-full"><Download data-icon="inline-start" />Bon herunterladen</Button></div><div className="mt-8 flex items-center justify-center gap-2 text-xs text-[#9a9085]"><Clock3 />Abholung in Hanau · Willy-Brandt-Straße 23</div><Separator className="mt-6 bg-[#e2d8ca]" /></div></main>;
+import { euro } from "@/lib/cart-store";
+import { ORDER_STEPS, useOrder } from "@/lib/order-store";
+
+export const Route = createFileRoute("/order-success")({
+  validateSearch: (search: Record<string, unknown>) => ({ id: typeof search.id === "string" ? search.id : undefined }),
+  head: () => ({
+    meta: [
+      { title: "Bestellstatus live – Yamiin & Jaiyana's" },
+      { name: "description", content: "Verfolge live, ob deine Bestellung bestätigt, in Zubereitung oder abholbereit ist." },
+      { property: "og:title", content: "Bestellstatus live – Yamiin & Jaiyana's" },
+      { property: "og:description", content: "Live-Status deiner Abholbestellung in Hanau." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: StatusPage,
+});
+
+const ICONS = [Check, ChefHat, ShoppingBag, Sparkles];
+const PAYMENT_LABEL = { online: "Online bezahlt", paypal: "Mit PayPal bezahlt", onsite: "Zahlung vor Ort" } as const;
+
+function StatusPage() {
+  const { id } = Route.useSearch();
+  const order = useOrder(id);
+  const [hydrated, setHydrated] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    setHydrated(true);
+    const timer = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (!hydrated) return <main className="min-h-[70vh] bg-[#f8f6f0]" />;
+  if (!order) {
+    return (
+      <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 bg-[#f8f6f0] px-6 text-center text-[#1f2022]">
+        <h1 className="font-display text-4xl">Bestellung nicht gefunden</h1>
+        <p className="max-w-sm text-[#6f675f]">Der Status ist nur auf dem Gerät sichtbar, mit dem bestellt wurde.</p>
+        <Link to="/speisekarte" className="inline-flex h-12 items-center gap-2 rounded-full bg-[#1f2022] px-6 font-semibold text-[#f8f6f0] hover:bg-[#c46b38]">Zur Speisekarte <ArrowRight className="size-4" /></Link>
+      </main>
+    );
+  }
+
+  const current = ORDER_STEPS.findIndex((step) => step.key === order.status);
+  const step = ORDER_STEPS[current] ?? ORDER_STEPS[0]!;
+  const minutes = Math.max(0, Math.round((order.pickupAt - now) / 60000));
+  const pickupTime = new Date(order.pickupAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  const progress = (current / (ORDER_STEPS.length - 1)) * 100;
+
+  return (
+    <main className="min-h-screen bg-[#f8f6f0] px-4 pb-16 pt-8 text-[#1f2022] sm:px-8">
+      <div className="mx-auto max-w-2xl">
+        <section className="relative overflow-hidden rounded-[2rem] bg-[#1f2022] px-6 pb-7 pt-6 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/20 sm:px-8">
+          <div className="absolute -right-16 -top-20 size-56 rounded-full bg-[#c46b38]/30 blur-3xl" />
+          <div className="relative flex items-center justify-between">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
+              <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-[#d9946d] opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-[#d9946d]" /></span>
+              Live
+            </span>
+            <span className="font-mono text-sm text-[#cfc2b5]">#{order.id}</span>
+          </div>
+          <div key={order.status} className="relative mt-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <p className="text-xs font-bold uppercase tracking-[.2em] text-[#d9946d]">Status</p>
+            <h1 className="mt-2 font-display text-5xl leading-none sm:text-6xl">{step.label}</h1>
+            <p className="mt-3 text-[#cfc2b5]">{step.hint}</p>
+          </div>
+
+          <div className="relative mt-8">
+            <div className="h-1.5 rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-[#c46b38] transition-[width] duration-700 ease-[cubic-bezier(.32,.72,0,1)]" style={{ width: `${progress}%` }} />
+            </div>
+            <ol className="mt-4 grid grid-cols-4 gap-2">
+              {ORDER_STEPS.map((item, index) => {
+                const Icon = ICONS[index] ?? Check;
+                const done = index <= current;
+                return (
+                  <li key={item.key} className="flex flex-col items-center gap-2 text-center">
+                    <span className={`flex size-10 items-center justify-center rounded-full transition-all duration-500 ${index === current ? "scale-110 bg-[#c46b38] text-white shadow-lg shadow-[#c46b38]/40" : done ? "bg-[#f8f6f0] text-[#1f2022]" : "bg-white/10 text-[#8f877f]"}`}>
+                      <Icon className="size-4" />
+                    </span>
+                    <span className={`text-[11px] font-semibold leading-tight ${done ? "text-[#f8f6f0]" : "text-[#8f877f]"}`}>{item.label}</span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </section>
+
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-[#e2d8ca] bg-white p-5">
+            <Clock3 className="size-5 text-[#c46b38]" />
+            <p className="mt-3 text-xs text-[#6f675f]">Abholung</p>
+            <p className="font-display text-3xl tabular-nums">{pickupTime}</p>
+            <p className="text-xs text-[#6f675f]">{order.status === "abholbereit" ? "Jetzt abholbereit" : minutes > 0 ? `in ca. ${minutes} Min.` : "gleich fertig"}</p>
+          </div>
+          <a href="https://maps.google.com/?q=Willy-Brandt-Stra%C3%9Fe+23,+63450+Hanau" target="_blank" rel="noreferrer" className="group rounded-2xl border border-[#e2d8ca] bg-white p-5 transition-colors hover:border-[#c46b38]">
+            <MapPin className="size-5 text-[#c46b38]" />
+            <p className="mt-3 text-xs text-[#6f675f]">Abholort</p>
+            <p className="font-semibold leading-tight">Willy-Brandt-Str. 23</p>
+            <p className="text-xs text-[#6f675f] group-hover:text-[#c46b38]">Route öffnen →</p>
+          </a>
+        </div>
+
+        <section className="mt-4 rounded-2xl border border-[#e2d8ca] bg-white p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-2xl">Deine Bestellung</h2>
+            <span className="text-xs font-semibold text-[#6f675f]">{PAYMENT_LABEL[order.payment]}</span>
+          </div>
+          <ul className="mt-3 divide-y divide-[#eee5dc]">
+            {order.items.map((item) => (
+              <li key={item.id} className="flex items-center gap-3 py-3">
+                <img src={item.image} alt="" className="size-12 rounded-lg bg-[#f1e8dc] object-contain p-1" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{item.qty}× {item.name}</p>
+                  <p className="truncate text-xs text-[#6f675f]">{item.detail}</p>
+                </div>
+                <span className="text-sm font-semibold tabular-nums">{euro(item.price * item.qty)}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-2 flex justify-between border-t border-[#eee5dc] pt-3 font-bold"><span>Gesamt</span><span className="tabular-nums">{euro(order.total)}</span></div>
+        </section>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <a href="tel:061814187419" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-[#e2d8ca] bg-white font-semibold transition-colors hover:border-[#c46b38]"><Phone className="size-4" /> Anrufen</a>
+          <Link to="/speisekarte" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#1f2022] font-semibold text-[#f8f6f0] transition-colors hover:bg-[#c46b38]">Neue Bestellung <ArrowRight className="size-4" /></Link>
+        </div>
+      </div>
+    </main>
+  );
 }
-export default SuccessPage;
