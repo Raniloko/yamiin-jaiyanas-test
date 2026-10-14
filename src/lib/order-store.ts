@@ -1,4 +1,6 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+
+import { supabase } from "@/integrations/supabase/client";
 
 import type { CartItem } from "@/lib/cart-store";
 
@@ -61,8 +63,9 @@ function read() {
 }
 
 function write(next: Order[]) {
-  localStorage.setItem(KEY, JSON.stringify(next));
-  read();
+  orders = next;
+  raw = JSON.stringify(next);
+  if (typeof window !== "undefined") localStorage.setItem(KEY, raw);
   listeners.forEach((listener) => listener());
 }
 
@@ -77,22 +80,121 @@ function subscribe(listener: () => void) {
   };
 }
 
+// ============= Cloud-Sync (Lovable Cloud) =============
+
+type OrderRow = {
+  id: string;
+  created_at: string;
+  pickup_at: string;
+  pickup_label: string;
+  fulfillment: string | null;
+  address: Order["address"] | null;
+  delivery_fee: number | string | null;
+  payment: Order["payment"];
+  contact: Order["contact"];
+  note: string | null;
+  items: CartItem[] | null;
+  total: number | string;
+  status: OrderStatus;
+};
+
+function toRow(order: Order) {
+  return {
+    id: order.id,
+    created_at: new Date(order.createdAt).toISOString(),
+    pickup_at: new Date(order.pickupAt).toISOString(),
+    pickup_label: order.pickupLabel,
+    fulfillment: order.fulfillment ?? "pickup",
+    address: order.address ?? null,
+    delivery_fee: order.deliveryFee ?? 0,
+    payment: order.payment,
+    contact: order.contact,
+    note: order.note,
+    items: order.items,
+    total: order.total,
+    status: order.status,
+  };
+}
+
+function fromRow(row: OrderRow): Order {
+  return {
+    id: row.id,
+    createdAt: Date.parse(row.created_at),
+    pickupAt: Date.parse(row.pickup_at),
+    pickupLabel: row.pickup_label,
+    payment: row.payment,
+    contact: row.contact,
+    note: row.note ?? "",
+    items: row.items ?? [],
+    total: Number(row.total),
+    fulfillment: (row.fulfillment as Fulfillment | null) ?? "pickup",
+    address: row.address ?? undefined,
+    deliveryFee: row.delivery_fee == null ? 0 : Number(row.delivery_fee),
+    status: row.status,
+  };
+}
+
+export async function refreshOrdersFromCloud() {
+  const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+  if (error) {
+    console.error("Bestellungen konnten nicht geladen werden:", error.message);
+    return;
+  }
+  const cloud = (data as OrderRow[]).map(fromRow);
+  // Cloud gewinnt bei Konflikten – lokal bleiben Bestellungen, die noch nicht gespeichert sind.
+  const merged = new Map(read().map((order) => [order.id, order]));
+  for (const order of cloud) merged.set(order.id, order);
+  write([...merged.values()].sort((a, b) => b.createdAt - a.createdAt));
+}
+
+/** Live-Updates: jede Änderung an der Theke erreicht Gast und Küche sofort. */
+export function subscribeToOrderChanges(onChange?: () => void): () => void {
+  const channel = supabase
+    .channel("yj-orders-live")
+    .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+      void refreshOrdersFromCloud().then(() => onChange?.());
+    })
+    .subscribe();
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}
+
 export const orderStore = {
   create(order: Omit<Order, "id" | "createdAt" | "status">) {
     const id = `YJ-${Math.floor(1000 + Math.random() * 9000)}`;
     const full: Order = { ...order, id, createdAt: Date.now(), status: "bestaetigt" };
     write([full, ...read()].slice(0, 30));
+    void supabase
+      .from("orders")
+      .insert(toRow(full))
+      .then(({ error }) => error && console.error("Bestellung konnte nicht gespeichert werden:", error.message));
     return full;
   },
   setStatus(id: string, status: OrderStatus) {
     write(read().map((order) => (order.id === id ? { ...order, status } : order)));
+    void supabase
+      .from("orders")
+      .update({ status })
+      .eq("id", id)
+      .then(({ error }) => error && console.error("Status konnte nicht gespeichert werden:", error.message));
   },
 };
+
+export function useOrdersLive() {
+  const local = useSyncExternalStore(subscribe, read, () => EMPTY);
+  useEffect(() => {
+    void refreshOrdersFromCloud();
+    return subscribeToOrderChanges();
+  }, []);
+  return local;
+}
 
 export function useOrders() {
   return useSyncExternalStore(subscribe, read, () => EMPTY);
 }
 
 export function useOrder(id: string | undefined) {
-  return useOrders().find((order) => order.id === id);
+  const orders = useOrdersLive();
+  return orders.find((order) => order.id === id);
 }

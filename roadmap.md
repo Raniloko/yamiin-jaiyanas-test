@@ -10,3 +10,5 @@
 - [x] Vollständige Speisekarte mit Bildern, Filtern und Details umsetzen
 - [x] Smartphone, Tablet und Desktop abschließend prüfen
 - [x] Vollständige Original-Speisekarte mit Bildern, Nährwerten und allen Kategorien importieren und Bestellweg prüfen
+- [x] Lovable Cloud aktivieren und Bestellungen in der Datenbank speichern (Live-Status Küchen-Tablet ↔ Gast-Gerät)
+- [ ] Stripe & PayPal Zahlung anbinden (letzter Schritt, vom Nutzer auf später verschoben)

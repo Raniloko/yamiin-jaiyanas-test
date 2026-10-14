@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Bike, Phone, Store } from "lucide-react";
 
 import { euro } from "@/lib/cart-store";
-import { ORDER_STEPS, orderStore, useOrders } from "@/lib/order-store";
+import { ORDER_STEPS, orderStore, useOrdersLive } from "@/lib/order-store";
 
 export const Route = createFileRoute("/kitchen")({
   head: () => ({ meta: [{ title: "Bestellungen – Intern" }, { name: "robots", content: "noindex" }] }),
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/kitchen")({
 const PAYMENT_LABEL = { online: "Online bezahlt", paypal: "PayPal", onsite: "Zahlt vor Ort" } as const;
 
 function KitchenPage() {
-  const orders = useOrders();
+  const orders = useOrdersLive();
   const open = orders.filter((order) => order.status !== "abgeholt");
 
   return (
