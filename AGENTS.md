@@ -11,3 +11,4 @@
 
 - Keep restaurant menu content centralized in `src/lib/menu-data.ts` so filters, cards, and details never drift.
 - Keep menu category IDs compatible with homepage hash links and use the shared cart store for menu selections so navigation never loses the order.
+- Orders are stored in the `public.orders` table (Lovable Cloud) with realtime updates; `src/lib/order-store.ts` keeps localStorage only as instant cache/fallback — never reintroduce localStorage as the source of truth for order status.
