@@ -22,7 +22,7 @@ function ContactPage() {
         <div className="max-w-2xl">
            <p className="text-xs font-bold uppercase">Mitten in Hanau</p>
            <h1 className="mt-5 text-6xl leading-none sm:text-8xl">Komm <em className="text-secondary">vorbei.</em></h1>
-           <p className="mt-5 text-lg leading-7">Frisch vor Ort genießen, abholen oder bequem liefern lassen.</p>
+           <p className="mt-5 text-lg leading-7">Frisch vor Ort genießen, abholen oder in Hanau liefern lassen.</p>
         </div>
          <div className="mt-12 grid overflow-hidden rounded-lg border border-border bg-card lg:grid-cols-2">
            <div className="bg-muted p-6 sm:p-10">

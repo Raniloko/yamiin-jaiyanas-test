@@ -19,8 +19,24 @@ export type Order = {
   contact: { name: string; phone: string; email: string };
   note: string;
   items: CartItem[];
+  /** Gesamtbetrag inkl. Liefergebühr */
   total: number;
+  /** Fehlt bei älteren Bestellungen – dann Abholung. */
+  fulfillment?: Fulfillment;
+  address?: { street: string; zip: string; city: string } | undefined;
+  deliveryFee?: number;
   status: OrderStatus;
+};
+
+export type Fulfillment = "pickup" | "delivery";
+
+// Liefer-Einstellungen – hier zentral anpassen.
+export const DELIVERY = {
+  fee: 2.5,
+  minOrder: 15,
+  /** Liefergebiet: Hanau (PLZ 63450–63457) */
+  zipPrefix: "6345",
+  city: "Hanau",
 };
 
 const KEY = "yj-orders";
