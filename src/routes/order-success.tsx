@@ -40,7 +40,7 @@ function StatusPage() {
     return (
       <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 bg-[#f8f6f0] px-6 text-center text-[#1f2022]">
         <h1 className="font-display text-4xl">Bestellung nicht gefunden</h1>
-        <p className="max-w-sm text-[#6f675f]">Der Status ist nur auf dem Gerät sichtbar, mit dem bestellt wurde.</p>
+        <p className="max-w-sm text-[#6f675f]">Wir konnten keine Bestellung mit dieser Nummer finden.</p>
         <Link to="/speisekarte" className="inline-flex h-12 items-center gap-2 rounded-full bg-[#1f2022] px-6 font-semibold text-[#f8f6f0] hover:bg-[#c46b38]">Zur Speisekarte <ArrowRight className="size-4" /></Link>
       </main>
     );
