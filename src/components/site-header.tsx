@@ -17,22 +17,32 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Menü automatisch schließen, sobald das Fenster auf Tablet/Desktop-Breite wächst.
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+    const onChange = () => query.matches && setOpen(false);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
-    document.body.style.overflow = "hidden";
+    // Scrollsperre auf <html>: ein overflow auf <body> würde (wegen overflow-x: clip auf html)
+    // einen eigenen Scrollcontainer erzeugen und den sticky Header aus dem Bild scrollen.
+    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [open]);
 
   return (
     <>
-      <header className={`sticky top-0 border-b border-border bg-background/95 backdrop-blur-md ${open ? "z-[60]" : "z-40"}`}>
+      <header className={`sticky top-0 isolate border-b border-border bg-background/95 backdrop-blur-md ${open ? "z-[60]" : "z-40"}`}>
         <div className="mx-auto flex h-18 max-w-[90rem] items-center justify-between px-4 sm:h-20 sm:px-8">
           <Link to="/" aria-label="Yamiin und Jaiyana's Startseite" className="group flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             <BrandMark className="size-11 transition-transform duration-300 ease-out group-hover:-rotate-6 group-hover:scale-105 sm:size-12" />
@@ -96,7 +106,7 @@ export function SiteHeader() {
         aria-label="Hauptmenü"
         aria-hidden={!open}
         inert={!open}
-        className={`fixed right-0 top-0 z-50 flex h-dvh w-[min(88vw,26rem)] flex-col rounded-l-3xl bg-background px-6 pb-6 pt-24 shadow-2xl transition-[transform,visibility] duration-500 ease-[cubic-bezier(.32,.72,0,1)] motion-reduce:transition-none md:hidden ${open ? "visible translate-x-0" : "invisible translate-x-full"}`}
+        className={`fixed right-0 top-0 z-50 flex h-dvh overflow-y-auto w-[min(88vw,26rem)] flex-col rounded-l-3xl bg-background px-6 pb-6 pt-24 shadow-2xl transition-[transform,visibility] duration-500 ease-[cubic-bezier(.32,.72,0,1)] motion-reduce:transition-none md:hidden ${open ? "visible translate-x-0" : "invisible translate-x-full"}`}
       >
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Navigation</span>
         <nav className="mt-4 flex flex-1 flex-col gap-1">
@@ -120,6 +130,16 @@ export function SiteHeader() {
             Jetzt bestellen
           </a>
         </Button>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            openButtonRef.current?.focus();
+          }}
+          className="mt-3 h-12 w-full rounded-full border border-border font-semibold text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Menü schließen
+        </button>
       </aside>
     </>
   );
