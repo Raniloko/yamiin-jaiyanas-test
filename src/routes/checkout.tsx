@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, Clock3, CreditCard, MapPin, Minus, Plus, ShieldCheck, Store, Wallet, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bike, Check, Clock3, CreditCard, MapPin, Minus, Plus, ShieldCheck, Store, Wallet, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cart as cartStore, euro, useCart } from "@/lib/cart-store";
-import { orderStore, type Order } from "@/lib/order-store";
+import { DELIVERY, orderStore, type Fulfillment, type Order } from "@/lib/order-store";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/checkout")({
       { title: "Kasse – Yamiin & Jaiyana's Healthy Fastfood" },
       { name: "description", content: "Bestellung abschließen und frisch in Hanau abholen." },
       { property: "og:title", content: "Kasse – Yamiin & Jaiyana's" },
-      { property: "og:description", content: "Click & Collect in Hanau – in wenigen Sekunden bestellt." },
+      { property: "og:description", content: "Abholen oder liefern lassen in Hanau – in wenigen Sekunden bestellt." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/checkout")({
 const PAYMENTS: { key: Order["payment"]; title: string; text: string; icon: typeof CreditCard }[] = [
   { key: "online", title: "Karte · Apple Pay · Google Pay", text: "Sofort sicher online bezahlen", icon: CreditCard },
   { key: "paypal", title: "PayPal", text: "Mit deinem PayPal-Konto", icon: Wallet },
-  { key: "onsite", title: "Vor Ort zahlen", text: "Bar oder Karte an der Theke", icon: Store },
+  { key: "onsite", title: "Vor Ort zahlen", text: "Bar oder Karte bei Abholung/Lieferung", icon: Store },
 ];
 
 function timeSlots() {
@@ -43,6 +43,8 @@ function CheckoutPage() {
   const [pickup, setPickup] = useState<"asap" | number>("asap");
   const [payment, setPayment] = useState<Order["payment"]>("onsite");
   const [contact, setContact] = useState({ name: "", phone: "", email: "" });
+  const [fulfillment, setFulfillment] = useState<Fulfillment>("pickup");
+  const [address, setAddress] = useState({ street: "", zip: "", city: DELIVERY.city });
   const [note, setNote] = useState("");
   const [remember, setRemember] = useState(true);
   const [touched, setTouched] = useState(false);
@@ -52,6 +54,8 @@ function CheckoutPage() {
     try {
       const saved = JSON.parse(localStorage.getItem("yj-contact") || "null");
       if (saved) setContact(saved);
+      const savedAddress = JSON.parse(localStorage.getItem("yj-address") || "null");
+      if (savedAddress) setAddress(savedAddress);
     } catch {
       /* ignorieren */
     }
@@ -65,22 +69,38 @@ function CheckoutPage() {
     }),
     [contact],
   );
-  const valid = !errors.name && !errors.phone && !errors.email;
+  const delivery = fulfillment === "delivery";
+  const addressErrors = {
+    street: delivery && address.street.trim().length < 4 ? "Bitte gib Straße und Hausnummer ein." : "",
+    zip: delivery && !address.zip.startsWith(DELIVERY.zipPrefix) ? `Wir liefern nur innerhalb von ${DELIVERY.city} (PLZ 63450–63457).` : "",
+  };
+  const deliveryFee = delivery ? DELIVERY.fee : 0;
+  const belowMin = delivery && total < DELIVERY.minOrder;
+  const grandTotal = total + deliveryFee;
+  const valid = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip && !belowMin;
 
   const submit = () => {
     setTouched(true);
     if (!valid || count === 0) return;
     const pickupAt = pickup === "asap" ? Date.now() + 25 * 60000 : pickup;
-    if (remember) localStorage.setItem("yj-contact", JSON.stringify(contact));
-    else localStorage.removeItem("yj-contact");
+    if (remember) {
+      localStorage.setItem("yj-contact", JSON.stringify(contact));
+      if (delivery) localStorage.setItem("yj-address", JSON.stringify(address));
+    } else {
+      localStorage.removeItem("yj-contact");
+      localStorage.removeItem("yj-address");
+    }
     const order = orderStore.create({
       pickupAt,
       pickupLabel: pickup === "asap" ? "Schnellstmöglich" : `Heute ${hhmm(new Date(pickup))} Uhr`,
+      fulfillment,
+      address: delivery ? address : undefined,
+      deliveryFee,
       payment,
       contact,
       note,
       items,
-      total,
+      total: grandTotal,
     });
     cartStore.clear();
     navigate({ to: "/order-success", search: { id: order.id } });
@@ -121,7 +141,7 @@ function CheckoutPage() {
 
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[.2em] text-[#c46b38]">Click & Collect · Hanau</p>
+            <p className="text-xs font-bold uppercase tracking-[.2em] text-[#c46b38]">Abholung & Lieferung · Hanau</p>
             <h1 className="mt-2 font-display text-5xl leading-[.95] sm:text-6xl">Fast geschafft<span className="text-[#c46b38]">.</span></h1>
           </div>
           <span className="inline-flex items-center gap-2 rounded-full border border-[#e2d8ca] bg-white/70 px-4 py-2 text-xs font-semibold text-[#6f675f]">
@@ -131,7 +151,30 @@ function CheckoutPage() {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_24rem]">
           <div className="flex flex-col gap-10">
-            <Step n={1} title="Wann holst du ab?">
+            <Step n={1} title="Abholen oder liefern?">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {([
+                  { key: "pickup", title: "Selbst abholen", text: "Kostenlos · Willy-Brandt-Str. 23", icon: Store },
+                  { key: "delivery", title: "Liefern lassen", text: `${euro(DELIVERY.fee)} · ab ${euro(DELIVERY.minOrder)} Bestellwert · nur ${DELIVERY.city}`, icon: Bike },
+                ] as const).map(({ key, title, text, icon: Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setFulfillment(key)}
+                    className={`flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[.98] ${fulfillment === key ? "border-[#c46b38] bg-[#fff7f1] shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]/50"}`}
+                  >
+                    <span className={`flex size-11 shrink-0 items-center justify-center rounded-full ${fulfillment === key ? "bg-[#c46b38] text-white" : "bg-[#f1e8dc] text-[#1f2022]"}`}><Icon className="size-5" /></span>
+                    <span>
+                      <strong className="block">{title}</strong>
+                      <span className="text-sm text-[#6f675f]">{text}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {belowMin && <p className="mt-3 text-sm text-[#b4432f]">Für die Lieferung brauchen wir einen Mindestbestellwert von {euro(DELIVERY.minOrder)}.</p>}
+            </Step>
+
+            <Step n={2} title={delivery ? "Wann soll geliefert werden?" : "Wann holst du ab?"}>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button
                   type="button"
@@ -145,7 +188,7 @@ function CheckoutPage() {
                   </span>
                 </button>
                 <div className="flex items-center gap-2 rounded-2xl border border-dashed border-[#d9cec0] px-4 py-3 text-sm text-[#6f675f]">
-                  <MapPin className="size-4 shrink-0 text-[#c46b38]" /> Willy-Brandt-Str. 23, Hanau
+                  <MapPin className="size-4 shrink-0 text-[#c46b38]" /> {delivery ? "Lieferung nach Hanau" : "Willy-Brandt-Str. 23, Hanau"}
                 </div>
               </div>
               <p className="mb-2 mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]"><Clock3 className="size-3.5" /> Oder Wunschzeit heute</p>
@@ -166,9 +209,27 @@ function CheckoutPage() {
               </div>
             </Step>
 
-            <Step n={2} title="Wer holt ab?">
+            <Step n={3} title={delivery ? "Wohin und an wen?" : "Wer holt ab?"}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">{field("name", "Name", "text", "name")}</div>
+                {delivery && (
+                  <>
+                    <label className="block sm:col-span-2">
+                      <span className="mb-1.5 block text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">Straße & Hausnummer</span>
+                      <Input autoComplete="street-address" value={address.street} onChange={(event) => setAddress({ ...address, street: event.target.value })} className={`h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base ${touched && addressErrors.street ? "border-[#b4432f]" : ""}`} />
+                      {touched && addressErrors.street && <span className="mt-1 block text-xs text-[#b4432f]">{addressErrors.street}</span>}
+                    </label>
+                    <label className="block">
+                      <span className="mb-1.5 block text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">PLZ</span>
+                      <Input inputMode="numeric" maxLength={5} autoComplete="postal-code" value={address.zip} onChange={(event) => setAddress({ ...address, zip: event.target.value.replace(/\D/g, "") })} className={`h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base ${touched && addressErrors.zip ? "border-[#b4432f]" : ""}`} />
+                      {touched && addressErrors.zip && <span className="mt-1 block text-xs text-[#b4432f]">{addressErrors.zip}</span>}
+                    </label>
+                    <label className="block">
+                      <span className="mb-1.5 block text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">Ort</span>
+                      <Input autoComplete="address-level2" value={address.city} onChange={(event) => setAddress({ ...address, city: event.target.value })} className="h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base" />
+                    </label>
+                  </>
+                )}
                 {field("phone", "Telefon", "tel", "tel")}
                 {field("email", "E-Mail für den Beleg", "email", "email")}
               </div>
@@ -182,7 +243,7 @@ function CheckoutPage() {
               </button>
             </Step>
 
-            <Step n={3} title="Wie möchtest du zahlen?">
+            <Step n={4} title="Wie möchtest du zahlen?">
               <div className="grid gap-3 sm:grid-cols-3">
                 {PAYMENTS.map(({ key, title, text, icon: Icon }) => {
                   const active = payment === key;
@@ -233,15 +294,15 @@ function CheckoutPage() {
                 ))}
               </ul>
               <div className="border-t border-white/10 bg-white/5 px-6 py-5">
-                <div className="flex justify-between text-sm text-[#cfc2b5]"><span>Abholung</span><span>kostenlos</span></div>
+                <div className="flex justify-between text-sm text-[#cfc2b5]"><span>{delivery ? "Lieferung" : "Abholung"}</span><span>{delivery ? euro(deliveryFee) : "kostenlos"}</span></div>
                 <div className="mt-2 flex items-end justify-between">
                   <span className="text-sm text-[#cfc2b5]">Gesamt <span className="text-xs">inkl. MwSt.</span></span>
-                  <span className="font-display text-3xl tabular-nums">{euro(total)}</span>
+                  <span className="font-display text-3xl tabular-nums">{euro(grandTotal)}</span>
                 </div>
                 <button type="button" onClick={submit} className="group mt-5 hidden h-14 w-full items-center justify-center gap-2 rounded-full bg-[#c46b38] font-bold text-white transition-all duration-200 hover:bg-[#d9946d] active:scale-[.98] lg:flex">
-                  Zahlungspflichtig bestellen <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                  {payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </button>
-                {touched && !valid && <p className="mt-3 hidden text-center text-xs text-[#f0a48f] lg:block">Bitte prüfe deine Kontaktdaten.</p>}
+                {touched && !valid && <p className="mt-3 hidden text-center text-xs text-[#f0a48f] lg:block">Bitte prüfe deine Angaben.</p>}
               </div>
             </div>
           </aside>
@@ -252,8 +313,8 @@ function CheckoutPage() {
       <div className="fixed inset-x-3 bottom-3 z-40 lg:hidden">
         <button type="button" onClick={submit} className="flex h-16 w-full items-center justify-between rounded-2xl bg-[#1f2022] pl-5 pr-2 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/30 active:scale-[.98]">
           <span className="text-left">
-            <span className="block text-xs text-[#cfc2b5]">{touched && !valid ? "Bitte Kontaktdaten prüfen" : `${count} Artikel · inkl. MwSt.`}</span>
-            <span className="block font-display text-xl tabular-nums">{euro(total)}</span>
+            <span className="block text-xs text-[#cfc2b5]">{touched && !valid ? "Bitte Angaben prüfen" : `${count} Artikel · inkl. MwSt.`}</span>
+            <span className="block font-display text-xl tabular-nums">{euro(grandTotal)}</span>
           </span>
           <span className="flex h-12 items-center gap-2 rounded-xl bg-[#c46b38] px-5 font-bold text-white">Bestellen <ArrowRight className="size-4" /></span>
         </button>

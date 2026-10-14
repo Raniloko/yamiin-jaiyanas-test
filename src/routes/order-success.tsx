@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, ChefHat, Clock3, MapPin, Phone, ShoppingBag, Sparkles } from "lucide-react";
+import { ArrowRight, Bike, Check, ChefHat, Clock3, MapPin, Phone, ShoppingBag, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { euro } from "@/lib/cart-store";
@@ -46,6 +46,7 @@ function StatusPage() {
     );
   }
 
+  const delivery = order.fulfillment === "delivery";
   const current = ORDER_STEPS.findIndex((step) => step.key === order.status);
   const step = ORDER_STEPS[current] ?? ORDER_STEPS[0]!;
   const minutes = Math.max(0, Math.round((order.pickupAt - now) / 60000));
@@ -67,7 +68,7 @@ function StatusPage() {
           <div key={order.status} className="relative mt-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <p className="text-xs font-bold uppercase tracking-[.2em] text-[#d9946d]">Status</p>
             <h1 className="mt-2 font-display text-5xl leading-none sm:text-6xl">{step.label}</h1>
-            <p className="mt-3 text-[#cfc2b5]">{step.hint}</p>
+            <p className="mt-3 text-[#cfc2b5]">{delivery && order.status === "abholbereit" ? "Dein Essen ist auf dem Weg zu dir." : step.hint}</p>
           </div>
 
           <div className="relative mt-8">
@@ -94,16 +95,25 @@ function StatusPage() {
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="rounded-2xl border border-[#e2d8ca] bg-white p-5">
             <Clock3 className="size-5 text-[#c46b38]" />
-            <p className="mt-3 text-xs text-[#6f675f]">Abholung</p>
+            <p className="mt-3 text-xs text-[#6f675f]">{delivery ? "Lieferung" : "Abholung"}</p>
             <p className="font-display text-3xl tabular-nums">{pickupTime}</p>
-            <p className="text-xs text-[#6f675f]">{order.status === "abholbereit" ? "Jetzt abholbereit" : minutes > 0 ? `in ca. ${minutes} Min.` : "gleich fertig"}</p>
+            <p className="text-xs text-[#6f675f]">{order.status === "abholbereit" ? (delivery ? "Fahrer ist unterwegs" : "Jetzt abholbereit") : minutes > 0 ? `in ca. ${minutes} Min.` : "gleich fertig"}</p>
           </div>
-          <a href="https://maps.google.com/?q=Willy-Brandt-Stra%C3%9Fe+23,+63450+Hanau" target="_blank" rel="noreferrer" className="group rounded-2xl border border-[#e2d8ca] bg-white p-5 transition-colors hover:border-[#c46b38]">
-            <MapPin className="size-5 text-[#c46b38]" />
-            <p className="mt-3 text-xs text-[#6f675f]">Abholort</p>
-            <p className="font-semibold leading-tight">Willy-Brandt-Str. 23</p>
-            <p className="text-xs text-[#6f675f] group-hover:text-[#c46b38]">Route öffnen →</p>
-          </a>
+          {delivery && order.address ? (
+            <div className="rounded-2xl border border-[#e2d8ca] bg-white p-5">
+              <Bike className="size-5 text-[#c46b38]" />
+              <p className="mt-3 text-xs text-[#6f675f]">Lieferadresse</p>
+              <p className="font-semibold leading-tight">{order.address.street}</p>
+              <p className="text-xs text-[#6f675f]">{order.address.zip} {order.address.city}</p>
+            </div>
+          ) : (
+  <a href="https://maps.google.com/?q=Willy-Brandt-Stra%C3%9Fe+23,+63450+Hanau" target="_blank" rel="noreferrer" className="group rounded-2xl border border-[#e2d8ca] bg-white p-5 transition-colors hover:border-[#c46b38]">
+              <MapPin className="size-5 text-[#c46b38]" />
+              <p className="mt-3 text-xs text-[#6f675f]">Abholort</p>
+              <p className="font-semibold leading-tight">Willy-Brandt-Str. 23</p>
+              <p className="text-xs text-[#6f675f] group-hover:text-[#c46b38]">Route öffnen →</p>
+            </a>
+          )}
         </div>
 
         <section className="mt-4 rounded-2xl border border-[#e2d8ca] bg-white p-5">
@@ -123,7 +133,7 @@ function StatusPage() {
               </li>
             ))}
           </ul>
-          <div className="mt-2 flex justify-between border-t border-[#eee5dc] pt-3 font-bold"><span>Gesamt</span><span className="tabular-nums">{euro(order.total)}</span></div>
+          <div className="mt-2 flex justify-between border-t border-[#eee5dc] pt-3 font-bold"><span>Gesamt{order.deliveryFee ? ` (inkl. ${euro(order.deliveryFee)} Lieferung)` : ""}</span><span className="tabular-nums">{euro(order.total)}</span></div>
         </section>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
