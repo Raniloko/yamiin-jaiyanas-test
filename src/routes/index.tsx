@@ -4,6 +4,7 @@ import { ArrowRight, Bike, MapPin, ShoppingBag } from "lucide-react";
 import heroBowlImage from "@/assets/hero-bowl.jpg";
 import { Button } from "@/components/ui/button";
 import { acais, matchas } from "@/lib/menu-data";
+import { SITE } from "@/lib/site-info";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,8 +20,6 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const LIEFERANDO = "https://www.lieferando.de/speisekarte/yamiin-jaiyanas-healthy-fastfood";
-const WOLT = "https://wolt.com/de/deu/hanau/restaurant/yamiin-jaiyanas-healthy-fastfood";
 
 function Home() {
   return (
@@ -70,8 +69,8 @@ function Home() {
         <div className="mx-auto grid max-w-[90rem] gap-10 px-5 sm:px-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
           <div><p className="text-xs font-bold uppercase text-secondary">Direkt zu deinem Essen</p><h2 className="mt-4 text-5xl leading-none sm:text-7xl">Pick it.<br /><em className="text-secondary">Enjoy it.</em></h2><p className="mt-5 max-w-md leading-7 text-muted-foreground">Lieferung oder Abholung über deinen bevorzugten Dienst.</p></div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <OrderLink href={LIEFERANDO} icon={<ShoppingBag />} label="Lieferando" />
-            <OrderLink href={WOLT} icon={<Bike />} label="Wolt" />
+            <OrderLink href={SITE.lieferando} icon={<ShoppingBag />} label="Lieferando" />
+            <OrderLink href={SITE.wolt} icon={<Bike />} label="Wolt" />
           </div>
         </div>
       </section>

@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Mail, MapPin, Phone } from "lucide-react";
 
+import { SITE } from "@/lib/site-info";
+
 export const Route = createFileRoute("/kontakt")({
   head: () => ({
     meta: [
@@ -28,19 +30,19 @@ function ContactPage() {
            <div className="bg-muted p-6 sm:p-10">
              <h2 className="text-4xl">Kontakt</h2>
             <address className="mt-7 space-y-5 not-italic">
-              <a href="https://www.google.com/maps/search/?api=1&query=Willy-Brandt-Stra%C3%9Fe+23+63450+Hanau" target="_blank" rel="noreferrer" className="flex items-start gap-3 hover:text-muted-foreground"><MapPin className="mt-0.5 size-5 shrink-0" />Willy-Brandt-Straße 23<br />63450 Hanau</a>
-              <a href="tel:+4961814187419" className="flex items-center gap-3 hover:text-muted-foreground"><Phone className="size-5 shrink-0" />06181 4187419</a>
-              <a href="mailto:info@jaiyanas.de" className="flex items-center gap-3 hover:text-muted-foreground"><Mail className="size-5 shrink-0" />info@jaiyanas.de</a>
+              <a href={SITE.mapsUrl} target="_blank" rel="noreferrer" className="flex items-start gap-3 hover:text-muted-foreground"><MapPin className="mt-0.5 size-5 shrink-0" />{SITE.street}<br />{SITE.zipCity}</a>
+              <a href={SITE.phoneHref} className="flex items-center gap-3 hover:text-muted-foreground"><Phone className="size-5 shrink-0" />{SITE.phone}</a>
+              <a href={`mailto:${SITE.email}`} className="flex items-center gap-3 hover:text-muted-foreground"><Mail className="size-5 shrink-0" />{SITE.email}</a>
             </address>
           </div>
            <div className="border-t border-border bg-card p-6 lg:border-l lg:border-t-0 sm:p-10">
              <h2 className="text-4xl">Öffnungszeiten</h2>
             <dl className="mt-7 divide-y divide-border">
-              <div className="flex justify-between gap-6 py-3"><dt>Montag – Freitag</dt><dd>10:00 – 20:00</dd></div>
-              <div className="flex justify-between gap-6 py-3"><dt>Samstag</dt><dd>12:00 – 20:00</dd></div>
-              <div className="flex justify-between gap-6 py-3"><dt>Sonntag</dt><dd>Ruhetag</dd></div>
+              {SITE.hours.map((row) => (
+                <div key={row.days} className="flex justify-between gap-6 py-3"><dt>{row.days}</dt><dd>{row.time}</dd></div>
+              ))}
             </dl>
-             <a href="https://www.google.com/maps/search/?api=1&query=Willy-Brandt-Stra%C3%9Fe+23+63450+Hanau" target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 font-semibold text-background transition hover:bg-secondary">Route öffnen <ExternalLink className="size-4" /></a>
+             <a href={SITE.mapsUrl} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 font-semibold text-background transition hover:bg-secondary">Route öffnen <ExternalLink className="size-4" /></a>
           </div>
         </div>
       </section>

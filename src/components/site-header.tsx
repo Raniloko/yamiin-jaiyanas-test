@@ -11,8 +11,6 @@ const links = [
   { to: "/kontakt", label: "Besuch & Kontakt" },
 ] as const;
 
-const LIEFERANDO = "https://www.lieferando.de/speisekarte/yamiin-jaiyanas-healthy-fastfood";
-
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -71,9 +69,7 @@ export function SiteHeader() {
               asChild
               className="ml-3 h-11 rounded-full bg-foreground px-5 font-semibold text-background shadow-none hover:-translate-y-0.5 hover:bg-secondary active:translate-y-0"
             >
-              <a href={LIEFERANDO} target="_blank" rel="noreferrer">
-                Jetzt bestellen
-              </a>
+              <Link to="/speisekarte">Jetzt bestellen</Link>
             </Button>
           </nav>
 
@@ -126,9 +122,9 @@ export function SiteHeader() {
         </nav>
 
         <Button asChild size="lg" className={`menu-link h-14 w-full rounded-full bg-foreground font-semibold text-background shadow-none hover:bg-secondary ${open ? "menu-link-open" : ""}`}>
-          <a href={LIEFERANDO} target="_blank" rel="noreferrer">
+          <Link to="/speisekarte" onClick={() => setOpen(false)}>
             Jetzt bestellen
-          </a>
+          </Link>
         </Button>
         <button
           type="button"
