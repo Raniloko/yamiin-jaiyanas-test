@@ -117,6 +117,60 @@ function CheckoutPage() {
     }
   };
 
+  if (checkoutOrder) {
+    const fetchClientSecret = async (): Promise<string> => {
+      const result = await createOrderCheckout({
+        data: {
+          orderId: checkoutOrder.id,
+          items: checkoutOrder.items.map((item) => ({
+            name: item.detail ? `${item.name} (${item.detail})` : item.name,
+            unitAmount: Math.round(item.price * 100),
+            qty: item.qty,
+          })),
+          deliveryFeeCents: Math.round((checkoutOrder.deliveryFee ?? 0) * 100),
+          customerEmail: checkoutOrder.contact.email,
+          returnUrl: `${window.location.origin}/order-success?id=${checkoutOrder.id}&session_id={CHECKOUT_SESSION_ID}`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      if ("error" in result) throw new Error(result.error);
+      if (!result.clientSecret) throw new Error("Keine Zahlungs-Session erhalten");
+      return result.clientSecret;
+    };
+
+    return (
+      <main className="min-h-screen bg-[#f8f6f0] text-[#1f2022]">
+        <PaymentTestModeBanner />
+        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
+          <button
+            type="button"
+            onClick={() => setCheckoutOrder(null)}
+            className="inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-semibold text-[#6f675f] transition-colors hover:text-[#c46b38]"
+          >
+            <ArrowLeft className="size-4" /> Zurück zur Kasse
+          </button>
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.2em] text-[#c46b38]">Bestellung #{checkoutOrder.id}</p>
+              <h1 className="mt-2 font-display text-4xl leading-none sm:text-5xl">Sicher bezahlen<span className="text-[#c46b38]">.</span></h1>
+            </div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#e2d8ca] bg-white/70 px-4 py-2 text-xs font-semibold text-[#6f675f]">
+              <ShieldCheck className="size-4 text-[#c46b38]" /> {euro(checkoutOrder.total)} · verschlüsselt
+            </span>
+          </div>
+          <p className="mt-3 text-sm text-[#6f675f]">
+            Deine Bestellung ist reserviert – sobald die Zahlung durch ist, geht sie direkt in die Küche.
+          </p>
+          <div className="mt-6 overflow-hidden rounded-3xl border border-[#e2d8ca] bg-white shadow-xl shadow-[#1f2022]/5">
+            <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (count === 0) {
     return (
       <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 bg-[#f8f6f0] px-6 text-center text-[#1f2022]">
@@ -145,6 +199,7 @@ function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-[#f8f6f0] pb-32 text-[#1f2022] lg:pb-16">
+      <PaymentTestModeBanner />
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-8 sm:pt-10">
         <Link to="/speisekarte" className="inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-semibold text-[#6f675f] transition-colors hover:text-[#c46b38]">
           <ArrowLeft className="size-4" /> Weiter einkaufen
@@ -275,7 +330,7 @@ function CheckoutPage() {
                   );
                 })}
               </div>
-              {payment !== "onsite" && <p className="mt-3 text-xs text-[#6f675f]">Die Online-Zahlung wird im nächsten Schritt angebunden – aktuell wird die Bestellung ohne Abbuchung angelegt.</p>}
+              {payment !== "onsite" && <p className="mt-3 text-xs text-[#6f675f]">Du wirst im nächsten Schritt sicher zur Zahlung weitergeleitet – erst dann geht die Bestellung in die Küche.</p>}
             </Step>
           </div>
 
