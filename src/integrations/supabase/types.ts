@@ -24,10 +24,12 @@ export type Database = {
           id: string
           items: Json
           note: string
+          paid: boolean
           payment: string
           pickup_at: string
           pickup_label: string
           status: string
+          stripe_session_id: string | null
           total: number
         }
         Insert: {
@@ -39,10 +41,12 @@ export type Database = {
           id: string
           items: Json
           note?: string
+          paid?: boolean
           payment: string
           pickup_at: string
           pickup_label: string
           status?: string
+          stripe_session_id?: string | null
           total: number
         }
         Update: {
@@ -54,10 +58,12 @@ export type Database = {
           id?: string
           items?: Json
           note?: string
+          paid?: boolean
           payment?: string
           pickup_at?: string
           pickup_label?: string
           status?: string
+          stripe_session_id?: string | null
           total?: number
         }
         Relationships: []
