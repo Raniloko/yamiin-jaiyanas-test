@@ -6,7 +6,7 @@ import type { AdminData } from "@/lib/admin-data";
 import { formatEuro, formatNumber, formatPercent, productStats, variantStats, type ProductStat } from "@/lib/admin-metrics";
 import { menuCategories } from "@/lib/menu-data";
 import { scopeOrders } from "./scope";
-import { Chip, EmptyState, MeterRow, Panel, SERIES } from "./ui";
+import { Chip, EmptyState, INK, MeterRow, MiniStat, Panel } from "./ui";
 
 type SortKey = "revenue" | "sold" | "views" | "addRate" | "name";
 const SORTS: { key: SortKey; label: string }[] = [
@@ -41,10 +41,10 @@ export function ProductsSection({ data }: { data: AdminData }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Gerichte auf der Karte" value={formatNumber(stats.filter((stat) => stat.category !== "other").length)} />
-        <Kpi label="Verkauft (Stück)" value={formatNumber(stats.reduce((sum, stat) => sum + stat.sold, 0))} />
-        <Kpi label="Ohne Verkauf im Zeitraum" value={formatNumber(neverSold)} />
-        <Kpi label="Ø Warenkorb-Quote" value={averageRate(stats)} />
+        <MiniStat label="Gerichte auf der Karte" value={formatNumber(stats.filter((stat) => stat.category !== "other").length)} />
+        <MiniStat label="Verkauft (Stück)" value={formatNumber(stats.reduce((sum, stat) => sum + stat.sold, 0))} />
+        <MiniStat label="Ohne Verkauf im Zeitraum" value={formatNumber(neverSold)} />
+        <MiniStat label="Ø Warenkorb-Quote" value={averageRate(stats)} />
       </div>
 
       <Panel title="Alle Produkte" subtitle="Aufrufe & Warenkorb aus der Speisekarte, Verkäufe aus bezahlten Bestellungen">
@@ -93,7 +93,7 @@ export function ProductsSection({ data }: { data: AdminData }) {
                       <td className="px-3 text-right font-semibold">{formatEuro(stat.revenue)}</td>
                       <td className="py-2.5 pl-3">
                         <span className="block h-1.5 overflow-hidden rounded-full bg-muted" title={`${totals.revenue ? Math.round((stat.revenue / totals.revenue) * 100) : 0} % vom Umsatz`}>
-                          <span className="block h-full rounded-full" style={{ width: `${totals.revenue ? (stat.revenue / totals.revenue) * 100 : 0}%`, backgroundColor: SERIES[0] }} />
+                          <span className="block h-full rounded-full" style={{ width: `${totals.revenue ? (stat.revenue / totals.revenue) * 100 : 0}%`, backgroundColor: INK }} />
                         </span>
                       </td>
                     </tr>
@@ -111,17 +111,17 @@ export function ProductsSection({ data }: { data: AdminData }) {
               </table>
             </div>
             {/* Handy: Karten */}
-            <ul className="space-y-2 md:hidden">
+            <ul className="-mx-1 divide-y divide-border md:hidden">
               {(allMobile ? rows : rows.slice(0, 10)).map((stat) => (
-                <li key={stat.name} className="rounded-xl border border-border bg-background p-3">
+                <li key={stat.name} className="px-1 py-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0"><p className="truncate font-medium">{stat.name}</p><p className="text-xs text-muted-foreground">{stat.categoryLabel}</p></div>
                     <p className="text-right"><strong className="block tabular-nums">{formatEuro(stat.revenue)}</strong><span className="text-xs text-muted-foreground">{formatNumber(stat.sold)} verkauft</span></p>
                   </div>
-                  <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                    <div><dt className="text-muted-foreground">Aufrufe</dt><dd className="font-semibold tabular-nums">{formatNumber(stat.views)}</dd></div>
-                    <div><dt className="text-muted-foreground">Warenkorb</dt><dd className="font-semibold tabular-nums">{formatNumber(stat.added)}</dd></div>
-                    <div><dt className="text-muted-foreground">Quote</dt><dd className="font-semibold tabular-nums">{stat.addRate === null ? "–" : formatPercent(stat.addRate)}</dd></div>
+                  <dl className="mt-1.5 flex gap-4 text-[11px] text-muted-foreground">
+                    <div className="flex gap-1"><dt>Aufrufe</dt><dd className="font-semibold tabular-nums text-foreground">{formatNumber(stat.views)}</dd></div>
+                    <div className="flex gap-1"><dt>Warenkorb</dt><dd className="font-semibold tabular-nums text-foreground">{formatNumber(stat.added)}</dd></div>
+                    <div className="flex gap-1"><dt>Quote</dt><dd className="font-semibold tabular-nums text-foreground">{stat.addRate === null ? "–" : formatPercent(stat.addRate)}</dd></div>
                   </dl>
                 </li>
               ))}
@@ -148,7 +148,7 @@ export function ProductsSection({ data }: { data: AdminData }) {
         </Panel>
         <Panel title="Oft angesehen, selten gewählt" subtitle="Ab 5 Aufrufen, weniger als 20 % in den Warenkorb">
           {hesitant.length === 0 ? <EmptyState>Keine Auffälligkeiten – oder noch zu wenige Aufrufe.</EmptyState> : (
-            <ol className="space-y-3">{hesitant.map((stat) => <MeterRow key={stat.name} label={stat.name} sub={`${formatNumber(stat.views)} Aufrufe`} value={stat.addRate ?? 0} max={1} display={formatPercent(stat.addRate ?? 0)} color={SERIES[1]} />)}</ol>
+            <ol className="space-y-3">{hesitant.map((stat) => <MeterRow key={stat.name} label={stat.name} sub={`${formatNumber(stat.views)} Aufrufe`} value={stat.addRate ?? 0} max={1} display={formatPercent(stat.addRate ?? 0)} />)}</ol>
           )}
         </Panel>
       </div>
@@ -160,15 +160,6 @@ function averageRate(stats: ProductStat[]) {
   const rated = stats.filter((stat) => stat.addRate !== null);
   if (rated.length === 0) return "–";
   return formatPercent(rated.reduce((sum, stat) => sum + (stat.addRate ?? 0), 0) / rated.length);
-}
-
-function Kpi({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <p className="truncate text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1.5 text-2xl font-semibold sm:text-3xl">{value}</p>
-    </div>
-  );
 }
 
 function Th({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
