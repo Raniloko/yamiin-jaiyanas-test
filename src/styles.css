@@ -166,6 +166,22 @@
   letter-spacing: -0.02em;
 }
 
+/* Küche: sanftes Pulsieren für bald fällige (gelb) und überfällige (rot) Bestellungen. */
+@keyframes kitchen-pulse-soon {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(250 178 25 / 0.55); }
+  50% { box-shadow: 0 0 0 7px rgb(250 178 25 / 0); }
+}
+@keyframes kitchen-pulse-late {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(208 59 59 / 0.55); }
+  50% { box-shadow: 0 0 0 8px rgb(208 59 59 / 0); }
+}
+.kitchen-pulse-soon { animation: kitchen-pulse-soon 2s ease-in-out infinite; }
+.kitchen-pulse-late { animation: kitchen-pulse-late 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .kitchen-pulse-soon { animation: none; box-shadow: 0 0 0 3px rgb(250 178 25 / 0.7); }
+  .kitchen-pulse-late { animation: none; box-shadow: 0 0 0 3px rgb(208 59 59 / 0.7); }
+}
+
 /* Küchen-Bon: beim Drucken nur die geöffnete Bestellung zeigen. */
 @media print {
   body * { visibility: hidden !important; }
