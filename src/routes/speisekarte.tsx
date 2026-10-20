@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { acais, bowlFilters, bowls, bowlSteps, coffeeExtra, coffees, iceBurgers, matchas, menuCategories, menuNotes, parseMenuPrice, wraps, type Bowl, type BowlFilter, type MenuProduct } from "@/lib/menu-data";
+import { acais, bowlFilters, bowls, bowlSteps, coffeeExtra, coffees, iceBurgers, matchas, menuCategories, menuNotes, wraps, type Bowl, type BowlFilter, type MenuProduct } from "@/lib/menu-data";
+import { COFFEE_OPTIONS, priceOf, type CoffeeOption, type MenuRef } from "@/lib/menu-pricing";
 import { cart, euro, useCart } from "@/lib/cart-store";
 
 export const Route = createFileRoute("/speisekarte")({
@@ -20,56 +21,151 @@ export const Route = createFileRoute("/speisekarte")({
   ] }), component: OrderPage,
 });
 
-type Selection = { kind: "bowl"; item: Bowl } | { kind: "product"; item: MenuProduct };
+type Selection = { kind: "bowl"; item: Bowl } | { kind: "product"; item: MenuProduct; coffee?: boolean };
+type CategoryId = (typeof menuCategories)[number]["id"];
+
+const productSections: { id: CategoryId; eyebrow: string; title: string; text: string; items: MenuProduct[] }[] = [
+  { id: "matcha", eyebrow: "Iced Matcha · 0,3 l & Hot Matcha", title: "Taste the Matcha", text: "Milch nach Wahl: Milk, Oat Milk oder Coconut Milk.", items: matchas },
+  { id: "acai", eyebrow: "Healthy & Fresh · Jedes Special 11,90 €", title: "Our Açaí Specials", text: "Stell dir deine Açaí Bowl selbst zusammen oder lass dich von unseren Empfehlungen inspirieren. Wahlweise mit Chia oder Granola.", items: acais },
+  { id: "ice", eyebrow: "Sweet Treats", title: "Peeka Ice Burger", text: "Gefüllt mit Ice Cream – der perfekte Abschluss.", items: iceBurgers },
+  { id: "wrap", eyebrow: "Frisch für dich", title: "Wrap it up!", text: "Dein Chicken Wrap – ganz nach deinem Geschmack.", items: wraps },
+];
+
+const EASE = "duration-500 ease-[cubic-bezier(.32,.72,0,1)]";
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/** Abstand von oben, unter dem eine Kategorie als "aktiv" gilt: Header + Kategorieleiste. */
+function stickyOffset() {
+  const nav = document.querySelector<HTMLElement>("nav[aria-label='Kategorien']");
+  return nav ? parseFloat(getComputedStyle(nav).top) + nav.offsetHeight : 0;
+}
+
 function OrderPage() {
   const { count } = useCart();
-  const [category, setCategory] = useState("bowls");
+  const [active, setActive] = useState<CategoryId>("bowls");
   const [filter, setFilter] = useState<BowlFilter>("Alle");
   const [query, setQuery] = useState("");
   const [selection, setSelection] = useState<Selection | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const chooseCategory = (id: string) => {
-    setCategory(id); setQuery(""); window.history.replaceState(null, "", `#${id}`);
-    // Wer weiter unten war, landet sonst mitten in einer kürzeren Kategorie (oder im Footer).
-    // Erst nach dem Rendern scrollen, sonst bricht die kürzere Seite das Scrollen ab.
-    requestAnimationFrame(() => {
-      const content = contentRef.current;
-      const nav = document.querySelector<HTMLElement>("nav[aria-label='Kategorien']");
-      if (!content) return;
-      // Feste Werte statt aktueller Position: Sticky-Abstand (Header-Höhe) + Höhe der Leiste.
-      const offset = nav ? parseFloat(getComputedStyle(nav).top) + nav.offsetHeight + 8 : 0;
-      const top = content.getBoundingClientRect().top + window.scrollY - offset;
-      if (window.scrollY > top) window.scrollTo({ top, behavior: "smooth" });
-    });
+  const railRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null);
+  // Während des Scrollens nach einem Klick bleibt die Markierung beim Ziel (kein Flackern über Zwischenbereiche).
+  const lockUntil = useRef(0);
+
+  const q = query.trim().toLocaleLowerCase("de");
+  const matches = (item: { name: string; description: string }) => !q || `${item.name} ${item.description}`.toLocaleLowerCase("de").includes(q);
+  const visibleBowls = bowls.filter(item => item.filters.includes(filter) && matches(item));
+  const visibleCoffees = coffees.filter(([name]) => matches({ name: name ?? "", description: "Coffee Kaffee Hot Drink" }));
+  const visibleProducts = Object.fromEntries(productSections.map(section => [section.id, section.items.filter(matches)])) as Record<string, MenuProduct[]>;
+  const hasItems: Record<CategoryId, boolean> = {
+    bowls: visibleBowls.length > 0 || (!q && filter !== "Alle"),
+    create: !q,
+    coffee: visibleCoffees.length > 0,
+    matcha: (visibleProducts["matcha"]?.length ?? 0) > 0,
+    acai: (visibleProducts["acai"]?.length ?? 0) > 0,
+    ice: (visibleProducts["ice"]?.length ?? 0) > 0,
+    wrap: (visibleProducts["wrap"]?.length ?? 0) > 0,
   };
+  const categories = menuCategories.filter(item => hasItems[item.id]);
+  const categoryKey = categories.map(item => item.id).join();
+
+  const scrollToCategory = (id: CategoryId, smooth = true) => {
+    const section = document.getElementById(id);
+    if (!section) return;
+    setActive(id);
+    lockUntil.current = Date.now() + 900;
+    const top = section.getBoundingClientRect().top + window.scrollY - stickyOffset() - 12;
+    window.scrollTo({ top: Math.max(0, top), behavior: smooth && !prefersReducedMotion() ? "smooth" : "auto" });
+    window.history.replaceState(null, "", `#${id}`);
+  };
+
+  // Sprunglinks (#matcha …) von der Startseite und aus der Adresszeile.
   useEffect(() => {
     const readHash = () => {
       const hash = window.location.hash.slice(1);
-      if (menuCategories.some(item => item.id === hash)) setCategory(hash);
+      if (menuCategories.some(item => item.id === hash)) requestAnimationFrame(() => scrollToCategory(hash as CategoryId, false));
     };
-    readHash(); window.addEventListener("hashchange", readHash);
+    readHash();
+    window.addEventListener("hashchange", readHash);
     return () => window.removeEventListener("hashchange", readHash);
   }, []);
-  const matches = (item: { name: string; description: string }) => `${item.name} ${item.description}`.toLocaleLowerCase("de").includes(query.toLocaleLowerCase("de"));
-  const visibleBowls = bowls.filter(item => item.filters.includes(filter) && matches(item));
-  const products = category === "matcha" ? matchas : category === "acai" ? acais : category === "ice" ? iceBurgers : category === "wrap" ? wraps : [];
-  const title = category === "matcha" ? "Taste the Matcha" : category === "acai" ? "Our Açaí Specials" : category === "ice" ? "Peeka Ice Burger" : "Wrap it up!";
+
+  // Scroll-Spy: welche Kategorie liegt gerade oben unter der Leiste?
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (Date.now() < lockUntil.current) return;
+      const line = stickyOffset() + 48;
+      let current: CategoryId | null = null;
+      for (const item of menuCategories) {
+        const section = document.getElementById(item.id);
+        if (section && section.getBoundingClientRect().top <= line) current = item.id;
+      }
+      // Ganz unten angekommen: letzte Kategorie markieren, auch wenn sie kurz ist.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+        const last = [...menuCategories].reverse().find(item => document.getElementById(item.id));
+        if (last) current = last.id;
+      }
+      const first = menuCategories.find(item => document.getElementById(item.id));
+      setActive(current ?? first?.id ?? "bowls");
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(frame); };
+  }, [categoryKey]);
+
+  // Markierung unter den aktiven Button schieben und Leiste mitscrollen (Handy).
+  useEffect(() => {
+    const rail = railRef.current;
+    const button = rail?.querySelector<HTMLElement>(`[data-category="${active}"]`);
+    if (!rail || !button) { setIndicator(null); return; }
+    setIndicator({ left: button.offsetLeft, width: button.offsetWidth });
+    const target = button.offsetLeft - (rail.clientWidth - button.offsetWidth) / 2;
+    rail.scrollTo({ left: Math.max(0, target), behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  }, [active, categoryKey]);
+  useEffect(() => {
+    const onResize = () => {
+      const button = railRef.current?.querySelector<HTMLElement>(`[data-category="${active}"]`);
+      if (button) setIndicator({ left: button.offsetLeft, width: button.offsetWidth });
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [active]);
+
+  const productCard = (item: MenuProduct, id: CategoryId) => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><ProductImage item={item} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "product", item })}>{item.options || item.ingredients || id === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button></div></div></article>;
+
+  const sections: Record<CategoryId, () => React.ReactNode> = {
+    bowls: () => <><SectionTitle eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 px-1.5 text-[10px] sm:left-4 sm:top-4 sm:px-2.5 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 text-xs font-semibold text-secondary sm:mt-4">Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "bowl", item })}>Auswählen <ArrowRight className="size-4" /></Button></div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
+    create: () => <><SectionTitle eyebrow="Taste the Bowl-volution" title="Create your Bowl" /><p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{menuNotes.create}</p><div className="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">{bowlSteps.map(step => <div key={step.number} className="border-t border-border pt-5"><div className="flex items-baseline gap-3"><span className="font-display text-4xl text-secondary">{step.number.padStart(2, "0")}</span><h3 className="text-2xl">{step.title}</h3></div><p className="mt-2 text-sm text-muted-foreground">{step.note}</p><ul className="mt-4 space-y-2 text-sm">{step.items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div></>,
+    coffee: () => <><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="mt-6 max-w-3xl divide-y divide-border">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><Coffee className="size-5 shrink-0 text-secondary" /><h3 className="min-w-0 flex-1 text-xl">{name}</h3><strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" aria-label={`${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></>,
+    matcha: () => null, acai: () => null, ice: () => null, wrap: () => null,
+  };
+  for (const section of productSections) {
+    sections[section.id] = () => <><SectionTitle eyebrow={section.eyebrow} title={section.title} /><p className="mt-3 text-muted-foreground">{section.text}</p><div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">{(visibleProducts[section.id] ?? []).map(item => productCard(item, section.id))}</div></>;
+  }
+
   return <main className="min-h-screen bg-background text-foreground">
     <header className="mx-auto max-w-7xl px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
       <div className="flex flex-wrap items-end justify-between gap-5">
         <div><p className="text-xs font-bold uppercase tracking-widest text-secondary">Yamiin & Jaiyana&apos;s · Hanau</p><h1 className="mt-3 text-5xl sm:text-6xl">Unsere <em className="text-secondary">Speisekarte.</em></h1><p className="mt-4 text-muted-foreground">Bowls · Matcha · Coffee · Açaí · Sweet Treats</p></div>
         <Button variant="outline" onClick={() => cart.openDrawer()} className="gap-2"><ShoppingBag className="size-4" />Warenkorb <Badge>{count}</Badge></Button>
       </div>
+      <div className="relative mt-8 max-w-md"><Search aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" /><Input type="search" aria-label="Gerichte suchen" placeholder="Ganze Speisekarte durchsuchen" value={query} onChange={event => setQuery(event.target.value)} className="bg-card pl-10" /></div>
     </header>
-    <nav aria-label="Kategorien" className="sticky top-[4.5rem] z-30 sm:top-20 border-y border-border bg-background/95 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 py-3 sm:px-8">{menuCategories.map(item => <Button key={item.id} variant={category === item.id ? "default" : "outline"} aria-pressed={category === item.id} onClick={() => chooseCategory(item.id)} className="shrink-0">{item.label}</Button>)}</div>
+    <nav aria-label="Kategorien" className="sticky top-[4.5rem] z-30 border-y border-border bg-background/95 backdrop-blur-md sm:top-20">
+      <div ref={railRef} className="relative mx-auto flex max-w-7xl gap-1 overflow-x-auto px-5 py-3 [scrollbar-width:none] sm:px-8 [&::-webkit-scrollbar]:hidden">
+        {/* Gleitende Markierung der aktiven Kategorie */}
+        <span aria-hidden="true" className={`pointer-events-none absolute bottom-3 left-0 top-3 rounded-full bg-foreground shadow-sm transition-[transform,width,opacity] ${EASE} ${indicator ? "opacity-100" : "opacity-0"}`} style={indicator ? { width: indicator.width, transform: `translateX(${indicator.left}px)` } : undefined} />
+        {categories.map(item => {
+          const isActive = active === item.id;
+          return <button key={item.id} type="button" data-category={item.id} aria-current={isActive ? "true" : undefined} onClick={() => scrollToCategory(item.id)} className={`relative z-10 h-9 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? "text-background" : "text-foreground/70 hover:bg-muted hover:text-foreground"}`}>{item.label}</button>;
+        })}
+      </div>
     </nav>
-    <div ref={contentRef} className="mx-auto max-w-7xl px-5 pb-36 pt-8 sm:px-8">
-      {category !== "create" && <div className="relative mb-8 max-w-md"><Search aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label="Gerichte suchen" placeholder="Gerichte oder Zutaten suchen" value={query} onChange={event => setQuery(event.target.value)} className="bg-card pl-10" /></div>}
-      {category === "bowls" && <section id="bowls" aria-labelledby="bowls-title"><SectionTitle id="bowls-title" eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 px-1.5 text-[10px] sm:left-4 sm:top-4 sm:px-2.5 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 text-xs font-semibold text-secondary sm:mt-4">Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "bowl", item })}>Auswählen <ArrowRight className="size-4" /></Button></div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</section>}
-      {category === "create" && <section id="create"><SectionTitle eyebrow="Taste the Bowl-volution" title="Create your Bowl" /><p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{menuNotes.create}</p><div className="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">{bowlSteps.map(step => <div key={step.number} className="border-t border-border pt-5"><div className="flex items-baseline gap-3"><span className="font-display text-4xl text-secondary">{step.number.padStart(2, "0")}</span><h3 className="text-2xl">{step.title}</h3></div><p className="mt-2 text-sm text-muted-foreground">{step.note}</p><ul className="mt-4 space-y-2 text-sm">{step.items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div></section>}
-      {category === "coffee" && <section id="coffee"><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="mt-8 max-w-3xl divide-y divide-border">{coffees.filter(([name]) => name?.toLowerCase().includes(query.toLowerCase())).map(([name, price]) => <div key={name} className="flex items-center gap-3 py-5"><Coffee className="size-5 shrink-0 text-secondary" /><h3 className="min-w-0 flex-1 text-xl">{name}</h3><strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" aria-label={`${name} hinzufügen`} onClick={() => setSelection({ kind: "product", item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: ["Ohne Extra", "Extra Flavor"], optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></section>}
-      {products.length > 0 && <section id={category}><SectionTitle eyebrow={category === "matcha" ? "Iced Matcha · 0,3 l & Hot Matcha" : category === "acai" ? "Healthy & Fresh · Jedes Special 11,90 €" : "Frisch für dich"} title={title} /><p className="mt-3 text-muted-foreground">{category === "matcha" ? "Milch nach Wahl: Milk, Oat Milk oder Coconut Milk." : category === "acai" ? "Stell dir deine Açaí Bowl selbst zusammen oder lass dich von unseren Empfehlungen inspirieren. Wahlweise mit Chia oder Granola." : category === "wrap" ? "Dein Chicken Wrap – ganz nach deinem Geschmack." : "Gefüllt mit Ice Cream – der perfekte Abschluss."}</p><div className="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">{products.filter(matches).map(item => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><ProductImage item={item} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "product", item })}>{item.options || item.ingredients || category === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button></div></div></article>)}</div>{products.filter(matches).length === 0 && <EmptySearch />}</section>}
+    <div className="mx-auto max-w-7xl px-5 pb-36 sm:px-8">
+      {categories.map((item, index) => <section key={item.id} id={item.id} aria-label={item.label} className={`scroll-mt-40 ${index === 0 ? "pt-8" : "mt-14 border-t border-border pt-10 sm:mt-20 sm:pt-14"}`}>{sections[item.id]()}</section>)}
+      {categories.length === 0 && <div className="pt-10"><EmptySearch /><Button variant="outline" onClick={() => setQuery("")}>Suche zurücksetzen</Button></div>}
       <div className="mt-12 border-t border-border pt-6 text-xs leading-6 text-muted-foreground"><p>{menuNotes.pricing} · {menuNotes.nutrition}</p><p>{menuNotes.allergens}</p></div>
     </div>
     {selection && <ItemDialog key={selection.item.name} selection={selection} onClose={() => setSelection(null)} />}
@@ -94,11 +190,18 @@ function ItemDialog({ selection, onClose }: { selection: Selection; onClose: () 
   const [note, setNote] = useState("");
   const [qty, setQty] = useState(1);
   const item = selection.item;
-  const price = selection.kind === "bowl" ? parseMenuPrice(selection.item[size]) : parseMenuPrice(selection.item.price) + (option === "Extra Flavor" ? parseMenuPrice(coffeeExtra.price) : 0);
+  const ref: MenuRef = selection.kind === "bowl"
+    ? { kind: "bowl", name: item.name, size, base }
+    : selection.coffee
+      ? { kind: "coffee", name: item.name, option: option as CoffeeOption }
+      : { kind: "product", name: item.name, ...(option ? { option } : {}) };
+  // Derselbe Rechenweg wie auf dem Server (menu-pricing.ts) – Anzeige und Abbuchung stimmen überein.
+  const price = (priceOf(ref) ?? 0) / 100;
   const nutrition = selection.kind === "bowl" ? selection.item.nutrition[size] : null;
   const detail = selection.kind === "bowl" ? `${size === "small" ? "Klein" : "Groß"} · ${base}` : option || "Standard";
   const add = () => {
-    cart.add({ id: `${item.name}-${detail}-${note}`, name: item.name, detail: `${detail}${note ? ` · ${note}` : ""}`, price, qty, image: item.image });
+    const trimmed = note.trim();
+    cart.add({ id: `${item.name}-${detail}-${trimmed}`, name: item.name, detail: `${detail}${trimmed ? ` · ${trimmed}` : ""}`, price, qty, image: item.image, ref, ...(trimmed ? { note: trimmed } : {}) });
     onClose();
   };
   const chip = (active: boolean) => `rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${active ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-secondary"}`;
