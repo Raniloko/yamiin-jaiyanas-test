@@ -22,7 +22,6 @@ export const Route = createFileRoute("/order-success")({
 });
 
 const ICONS = [Check, ChefHat, ShoppingBag, Sparkles];
-const PAYMENT_LABEL = { online: "Online bezahlt", paypal: "Mit PayPal bezahlt", onsite: "Zahlung vor Ort" } as const;
 
 function StatusPage() {
   const { id } = Route.useSearch();
@@ -119,7 +118,9 @@ function StatusPage() {
         <section className="mt-4 rounded-2xl border border-[#e2d8ca] bg-white p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-2xl">Deine Bestellung</h2>
-            <span className="text-xs font-semibold text-[#6f675f]">{PAYMENT_LABEL[order.payment]}</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${order.payment === "onsite" ? "bg-[#f1e8dc] text-[#6f675f]" : order.paid ? "bg-[#6f9b62]/15 text-[#4c7442]" : "bg-[#c46b38]/10 text-[#a85b39]"}`}>
+              {order.payment === "onsite" ? "Zahlung vor Ort" : order.paid ? "✓ Bezahlt" : "Zahlung wird geprüft …"}
+            </span>
           </div>
           <ul className="mt-3 divide-y divide-[#eee5dc]">
             {order.items.map((item) => (
