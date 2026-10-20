@@ -1,11 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { ArrowLeft, ArrowRight, Bike, Check, Clock3, CreditCard, MapPin, Minus, Plus, ShieldCheck, Store, Wallet, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cart as cartStore, euro, useCart } from "@/lib/cart-store";
 import { DELIVERY, orderStore, type Fulfillment, type Order } from "@/lib/order-store";
+import { getStripe, getStripeEnvironment } from "@/lib/stripe";
+import { createOrderCheckout } from "@/utils/payments.functions";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -48,6 +52,7 @@ function CheckoutPage() {
   const [note, setNote] = useState("");
   const [remember, setRemember] = useState(true);
   const [touched, setTouched] = useState(false);
+  const [checkoutOrder, setCheckoutOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     setSlots(timeSlots());
@@ -103,7 +108,13 @@ function CheckoutPage() {
       total: grandTotal,
     });
     cartStore.clear();
-    navigate({ to: "/order-success", search: { id: order.id } });
+    if (payment === "onsite") {
+      navigate({ to: "/order-success", search: { id: order.id } });
+    } else {
+      // Online-Zahlung: Bestellung ist angelegt, aber erst nach erfolgreicher
+      // Zahlung für die Küche sichtbar (Webhook markiert sie als bezahlt).
+      setCheckoutOrder(order);
+    }
   };
 
   if (count === 0) {
