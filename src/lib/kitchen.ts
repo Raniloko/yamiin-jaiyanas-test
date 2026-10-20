@@ -38,6 +38,9 @@ export function previousStatus(status: OrderStatus): OrderStatus | null {
 
 export type Due = { time: string; minutes: number; overdue: boolean; soon: boolean; text: string };
 
+/** Ab so vielen Minuten vor der Uhrzeit gilt eine Bestellung als "bald fällig" (gelb, Hinweiston). */
+export const SOON_MINUTES = 5;
+
 /** Fälligkeit: Uhrzeit + "in 12 Min" / "seit 5 Min überfällig". */
 export function dueInfo(order: Order, now: number): Due {
   const minutes = Math.round((order.pickupAt - now) / 60000);
@@ -45,8 +48,25 @@ export function dueInfo(order: Order, now: number): Due {
   const time = new Date(order.pickupAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
   const overdue = !done && minutes < 0;
   const text = done ? `${time} Uhr` : minutes < 0 ? `${-minutes} Min überfällig` : minutes === 0 ? "jetzt fällig" : minutes < 60 ? `in ${minutes} Min` : `${time} Uhr`;
-  return { time, minutes, overdue, soon: !done && minutes >= 0 && minutes <= 10, text };
+  return { time, minutes, overdue, soon: !done && minutes >= 0 && minutes <= SOON_MINUTES, text };
 }
+
+export type Urgency = "late" | "soon" | null;
+
+/** Dringlichkeit für die Küche: nur solange sie noch zubereitet werden muss (Neu / In Zubereitung). */
+export function urgencyOf(order: Order, now: number): Urgency {
+  if (order.status !== "bestaetigt" && order.status !== "zubereitung") return null;
+  const due = dueInfo(order, now);
+  return due.overdue ? "late" : due.soon ? "soon" : null;
+}
+
+/** Farben je Status – Blau = neu, Orange = in Arbeit, Grün = fertig. Immer zusammen mit Text/Icon. */
+export const STAGE_TONE: Record<OrderStatus, "new" | "cooking" | "ready" | "done"> = {
+  bestaetigt: "new",
+  zubereitung: "cooking",
+  abholbereit: "ready",
+  abgeholt: "done",
+};
 
 /** Variante und persönliche Notiz einer Position trennen (Notiz hängt im Detailtext hinten an). */
 export function splitItem(item: CartItem): { variant: string; note: string } {
