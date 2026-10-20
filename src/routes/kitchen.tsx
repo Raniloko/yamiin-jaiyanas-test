@@ -1,12 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Bike, Phone, Store } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { BarChart3, Bike, LogOut, Phone, Store } from "lucide-react";
+
+import { AdminGate } from "@/components/admin/admin-gate";
+import { adminAuth } from "@/lib/admin-auth";
 
 import { euro } from "@/lib/cart-store";
 import { ORDER_STEPS, orderStore, useOrdersLive } from "@/lib/order-store";
 
 export const Route = createFileRoute("/kitchen")({
   head: () => ({ meta: [{ title: "Bestellungen – Intern" }, { name: "robots", content: "noindex" }] }),
-  component: KitchenPage,
+  component: () => <AdminGate title="Küche">{() => <KitchenPage />}</AdminGate>,
 });
 
 const PAYMENT_LABEL = { online: "Online bezahlt", paypal: "PayPal bezahlt", onsite: "Zahlt vor Ort" } as const;
@@ -26,9 +29,13 @@ function KitchenPage() {
             <h1 className="mt-2 font-display text-5xl">Bestellungen</h1>
             <p className="mt-3 text-[#6f675f]">{open.length} offene Bestellung{open.length === 1 ? "" : "en"}</p>
           </div>
-          <div className="flex items-center gap-3 rounded-full border border-[#e0d5c7] bg-[#fffaf4] px-4 py-2 text-sm">
-            <span className="size-2 animate-pulse rounded-full bg-[#6f9b62]" />
-            Live-Eingang aktiv
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-3 rounded-full border border-[#e0d5c7] bg-[#fffaf4] px-4 py-2 text-sm">
+              <span className="size-2 animate-pulse rounded-full bg-[#6f9b62]" />
+              Live-Eingang aktiv
+            </div>
+            <Link to="/admin" search={{ tab: "orders", range: "today" }} className="flex items-center gap-2 rounded-full border border-[#e0d5c7] bg-[#fffaf4] px-4 py-2 text-sm hover:border-[#a85b39]"><BarChart3 className="size-4" />Dashboard</Link>
+            <button type="button" onClick={() => void adminAuth.signOut()} aria-label="Abmelden" className="flex size-9 items-center justify-center rounded-full border border-[#e0d5c7] bg-[#fffaf4] hover:border-[#a85b39]"><LogOut className="size-4" /></button>
           </div>
         </header>
 

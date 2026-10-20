@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { acais, bowlFilters, bowls, bowlSteps, coffeeExtra, coffees, iceBurgers, matchas, menuCategories, menuNotes, wraps, type Bowl, type BowlFilter, type MenuProduct } from "@/lib/menu-data";
 import { COFFEE_OPTIONS, priceOf, type CoffeeOption, type MenuRef } from "@/lib/menu-pricing";
+import { track, trackOnce } from "@/lib/analytics";
 import { cart, euro, useCart } from "@/lib/cart-store";
 
 export const Route = createFileRoute("/speisekarte")({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/speisekarte")({
   ] }), component: OrderPage,
 });
 
-type Selection = { kind: "bowl"; item: Bowl } | { kind: "product"; item: MenuProduct; coffee?: boolean };
+type Selection = ({ kind: "bowl"; item: Bowl } | { kind: "product"; item: MenuProduct; coffee?: boolean }) & { category: string };
 type CategoryId = (typeof menuCategories)[number]["id"];
 
 const productSections: { id: CategoryId; eyebrow: string; title: string; text: string; items: MenuProduct[] }[] = [
@@ -76,6 +77,17 @@ function OrderPage() {
     window.scrollTo({ top: Math.max(0, top), behavior: smooth && !prefersReducedMotion() ? "smooth" : "auto" });
     window.history.replaceState(null, "", `#${id}`);
   };
+
+  // Anonyme Statistik fürs Admin-Dashboard.
+  useEffect(() => { track("page_view"); }, []);
+  useEffect(() => { trackOnce(`category:${active}`, "category_view", { category: active }); }, [active]);
+  useEffect(() => { if (selection) track("item_view", { item: selection.item.name, category: selection.category }); }, [selection]);
+  const resultCount = visibleBowls.length + visibleCoffees.length + Object.values(visibleProducts).reduce((sum, list) => sum + list.length, 0);
+  useEffect(() => {
+    if (q.length < 2) return;
+    const timeout = setTimeout(() => track("search", { query: q, qty: resultCount }), 1200);
+    return () => clearTimeout(timeout);
+  }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sprunglinks (#matcha …) von der Startseite und aus der Adresszeile.
   useEffect(() => {
@@ -133,12 +145,12 @@ function OrderPage() {
     return () => window.removeEventListener("resize", onResize);
   }, [active]);
 
-  const productCard = (item: MenuProduct, id: CategoryId) => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><ProductImage item={item} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "product", item })}>{item.options || item.ingredients || id === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button></div></div></article>;
+  const productCard = (item: MenuProduct, id: CategoryId) => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><ProductImage item={item} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "product", item, category: id })}>{item.options || item.ingredients || id === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button></div></div></article>;
 
   const sections: Record<CategoryId, () => React.ReactNode> = {
-    bowls: () => <><SectionTitle eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 px-1.5 text-[10px] sm:left-4 sm:top-4 sm:px-2.5 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 text-xs font-semibold text-secondary sm:mt-4">Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "bowl", item })}>Auswählen <ArrowRight className="size-4" /></Button></div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
+    bowls: () => <><SectionTitle eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 px-1.5 text-[10px] sm:left-4 sm:top-4 sm:px-2.5 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 text-xs font-semibold text-secondary sm:mt-4">Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "bowl", item, category: "bowls" })}>Auswählen <ArrowRight className="size-4" /></Button></div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
     create: () => <><SectionTitle eyebrow="Taste the Bowl-volution" title="Create your Bowl" /><p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{menuNotes.create}</p><div className="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">{bowlSteps.map(step => <div key={step.number} className="border-t border-border pt-5"><div className="flex items-baseline gap-3"><span className="font-display text-4xl text-secondary">{step.number.padStart(2, "0")}</span><h3 className="text-2xl">{step.title}</h3></div><p className="mt-2 text-sm text-muted-foreground">{step.note}</p><ul className="mt-4 space-y-2 text-sm">{step.items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div></>,
-    coffee: () => <><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="mt-6 max-w-3xl divide-y divide-border">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><Coffee className="size-5 shrink-0 text-secondary" /><h3 className="min-w-0 flex-1 text-xl">{name}</h3><strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" aria-label={`${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></>,
+    coffee: () => <><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="mt-6 max-w-3xl divide-y divide-border">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><Coffee className="size-5 shrink-0 text-secondary" /><h3 className="min-w-0 flex-1 text-xl">{name}</h3><strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" aria-label={`${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, category: "coffee", item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></>,
     matcha: () => null, acai: () => null, ice: () => null, wrap: () => null,
   };
   for (const section of productSections) {
@@ -201,6 +213,7 @@ function ItemDialog({ selection, onClose }: { selection: Selection; onClose: () 
   const detail = selection.kind === "bowl" ? `${size === "small" ? "Klein" : "Groß"} · ${base}` : option || "Standard";
   const add = () => {
     const trimmed = note.trim();
+    track("add_to_cart", { item: item.name, category: selection.category, variant: detail, qty, value: price * qty });
     cart.add({ id: `${item.name}-${detail}-${trimmed}`, name: item.name, detail: `${detail}${trimmed ? ` · ${trimmed}` : ""}`, price, qty, image: item.image, ref, ...(trimmed ? { note: trimmed } : {}) });
     onClose();
   };

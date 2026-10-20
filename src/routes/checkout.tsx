@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cart as cartStore, euro, useCart } from "@/lib/cart-store";
 import { DELIVERY, orderStore, type Fulfillment, type Order } from "@/lib/order-store";
+import { track, trackOnce } from "@/lib/analytics";
 import { isOpenForAsap, nextSlotDay } from "@/lib/pickup-slots";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createOrderCheckout } from "@/utils/payments.functions";
@@ -68,6 +69,9 @@ function CheckoutPage() {
     }
     return () => clearInterval(timer);
   }, []);
+  useEffect(() => {
+    if (count > 0) trackOnce("checkout", "checkout_start", { qty: count, value: total });
+  }, [count > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const errors = useMemo(
     () => ({
@@ -128,6 +132,7 @@ function CheckoutPage() {
       items,
       total: grandTotal,
     });
+    track("order_placed", { qty: count, value: grandTotal, variant: `${payment} · ${fulfillment}` });
     if (payment === "onsite") {
       cartStore.clear();
       navigate({ to: "/order-success", search: { id: order.id } });

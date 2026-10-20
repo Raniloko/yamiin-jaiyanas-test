@@ -76,9 +76,33 @@ function subscribe(listener: () => void) {
   };
 }
 
+// ============= Gast-Schlüssel (Statusseite ohne Login) =============
+
+const TOKENS_KEY = "yj-order-tokens";
+
+function rememberGuestToken(id: string, token: string) {
+  try {
+    const tokens = JSON.parse(localStorage.getItem(TOKENS_KEY) || "{}") as Record<string, string>;
+    tokens[id] = token;
+    // Nur die letzten 20 Bestellungen merken.
+    const recent = Object.fromEntries(Object.entries(tokens).slice(-20));
+    localStorage.setItem(TOKENS_KEY, JSON.stringify(recent));
+  } catch {
+    /* ohne Speicher keine Statusabfrage – Bestellung klappt trotzdem */
+  }
+}
+
+export function guestToken(id: string): string | undefined {
+  try {
+    return (JSON.parse(localStorage.getItem(TOKENS_KEY) || "{}") as Record<string, string>)[id];
+  } catch {
+    return undefined;
+  }
+}
+
 // ============= Cloud-Sync (Lovable Cloud) =============
 
-type OrderRow = {
+export type OrderRow = {
   id: string;
   created_at: string;
   pickup_at: string;
@@ -114,7 +138,7 @@ function toRow(order: Order) {
   };
 }
 
-function fromRow(row: OrderRow): Order {
+export function fromRow(row: OrderRow): Order {
   return {
     id: row.id,
     createdAt: Date.parse(row.created_at),
@@ -161,12 +185,16 @@ export function subscribeToOrderChanges(onChange?: () => void): () => void {
 
 export const orderStore = {
   create(order: Omit<Order, "id" | "createdAt" | "status">) {
-    const id = `YJ-${Math.floor(1000 + Math.random() * 9000)}`;
+    // 6 Ziffern: bei 4 Ziffern wären doppelte Nummern schon nach ~100 Bestellungen wahrscheinlich.
+    const id = `YJ-${Math.floor(100000 + Math.random() * 900000)}`;
     const full: Order = { ...order, id, createdAt: Date.now(), status: "bestaetigt" };
+    // Geheimer Gast-Schlüssel: nur dieses Gerät darf den Status ohne Login abfragen.
+    const accessToken = crypto.randomUUID();
+    rememberGuestToken(id, accessToken);
     write([full, ...read()].slice(0, 30));
     void supabase
       .from("orders")
-      .insert(toRow(full))
+      .insert({ ...toRow(full), access_token: accessToken })
       .then(({ error }) => error && console.error("Bestellung konnte nicht gespeichert werden:", error.message));
     return full;
   },
@@ -193,7 +221,4 @@ export function useOrders() {
   return useSyncExternalStore(subscribe, read, () => EMPTY);
 }
 
-export function useOrder(id: string | undefined) {
-  const orders = useOrdersLive();
-  return orders.find((order) => order.id === id);
-}
+// Gäste: siehe useGuestOrder (src/lib/use-guest-order.ts) – Bestellungen sind nur für Admins lesbar.

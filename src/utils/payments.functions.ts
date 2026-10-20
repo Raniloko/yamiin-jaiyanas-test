@@ -22,7 +22,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // (inkl. MwSt.), nie aus dem Browser – so lässt sich der Preis nicht manipulieren.
 export const createOrderCheckout = createServerFn({ method: "POST" })
   .inputValidator((data: OrderCheckoutInput) => {
-    if (!/^YJ-\d{4}$/.test(data.orderId)) throw new Error("Ungültige Bestellnummer");
+    if (!/^YJ-\d{4,6}$/.test(data.orderId)) throw new Error("Ungültige Bestellnummer");
     if (!Array.isArray(data.items) || data.items.length < 1 || data.items.length > 50) {
       throw new Error("Ungültige Positionen");
     }

@@ -5,7 +5,7 @@ import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
 // Markiert eine Bestellung als bezahlt, sobald die Zahlung abgeschlossen ist.
 async function markOrderPaid(session: any) {
   const orderId = session?.metadata?.orderId;
-  if (typeof orderId !== "string" || !/^YJ-\d{4}$/.test(orderId)) {
+  if (typeof orderId !== "string" || !/^YJ-\d{4,6}$/.test(orderId)) {
     console.error("Webhook ohne gültige Bestellnummer:", session?.id);
     return;
   }

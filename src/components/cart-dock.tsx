@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cart, euro, useCart } from "@/lib/cart-store";
 
-const HIDDEN_ON = ["/checkout", "/kitchen", "/order-success"];
+const HIDDEN_ON = ["/checkout", "/kitchen", "/order-success", "/admin"];
 const EASE = "duration-500 ease-[cubic-bezier(.32,.72,0,1)] motion-reduce:transition-none";
 
 export function CartDock() {

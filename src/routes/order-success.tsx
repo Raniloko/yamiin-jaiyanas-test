@@ -3,7 +3,8 @@ import { ArrowRight, Bike, Check, ChefHat, Clock3, MapPin, Phone, ShoppingBag, S
 import { useEffect, useState } from "react";
 
 import { cart, euro } from "@/lib/cart-store";
-import { ORDER_STEPS, useOrder } from "@/lib/order-store";
+import { ORDER_STEPS } from "@/lib/order-store";
+import { useGuestOrder } from "@/lib/use-guest-order";
 
 export const Route = createFileRoute("/order-success")({
   validateSearch: (search: Record<string, unknown>) => ({ id: typeof search["id"] === "string" ? search["id"] : undefined }),
@@ -25,7 +26,7 @@ const ICONS = [Check, ChefHat, ShoppingBag, Sparkles];
 
 function StatusPage() {
   const { id } = Route.useSearch();
-  const order = useOrder(id);
+  const { order, loading } = useGuestOrder(id);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -36,7 +37,7 @@ function StatusPage() {
     return () => clearInterval(timer);
   }, []);
 
-  if (!hydrated) return <main className="min-h-[70vh] bg-[#f8f6f0]" />;
+  if (!hydrated || loading) return <main className="min-h-[70vh] bg-[#f8f6f0]" />;
   if (!order) {
     return (
       <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 bg-[#f8f6f0] px-6 text-center text-[#1f2022]">
