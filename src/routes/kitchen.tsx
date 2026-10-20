@@ -9,10 +9,12 @@ export const Route = createFileRoute("/kitchen")({
   component: KitchenPage,
 });
 
-const PAYMENT_LABEL = { online: "Online bezahlt", paypal: "PayPal", onsite: "Zahlt vor Ort" } as const;
+const PAYMENT_LABEL = { online: "Online bezahlt", paypal: "PayPal bezahlt", onsite: "Zahlt vor Ort" } as const;
 
 function KitchenPage() {
-  const orders = useOrdersLive();
+  const all = useOrdersLive();
+  // Online-/PayPal-Bestellungen erst nach bestätigter Zahlung anzeigen.
+  const orders = all.filter((order) => order.payment === "onsite" || order.paid);
   const open = orders.filter((order) => order.status !== "abgeholt");
 
   return (

@@ -11,4 +11,5 @@
 - [x] Smartphone, Tablet und Desktop abschließend prüfen
 - [x] Vollständige Original-Speisekarte mit Bildern, Nährwerten und allen Kategorien importieren und Bestellweg prüfen
 - [x] Lovable Cloud aktivieren und Bestellungen in der Datenbank speichern (Live-Status Küchen-Tablet ↔ Gast-Gerät)
-- [ ] Stripe & PayPal Zahlung anbinden (letzter Schritt, vom Nutzer auf später verschoben)
+- [x] Stripe-Zahlung anbinden (eingebetteter Checkout, Bestellung erst nach Zahlung in der Küche sichtbar)
+- [ ] Stripe Go-Live abschließen (Konto bestätigen, Bankdaten) und Live-Zahlungen freischalten
