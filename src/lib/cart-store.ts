@@ -1,6 +1,20 @@
 import { useSyncExternalStore } from "react";
 
-export type CartItem = { id: string; name: string; detail: string; price: number; image: string; qty: number };
+import type { MenuRef } from "@/lib/menu-pricing";
+
+export type CartItem = {
+  id: string;
+  name: string;
+  detail: string;
+  /** Anzeigepreis – abgerechnet wird online immer der Server-Preis aus der Speisekarte (siehe `ref`). */
+  price: number;
+  image: string;
+  qty: number;
+  /** Welches Gericht in welcher Variante – Grundlage für die Preisprüfung auf dem Server. */
+  ref?: MenuRef;
+  /** Notiz an die Küche zu dieser Position. */
+  note?: string;
+};
 
 const KEY = "yj-cart";
 const EMPTY: CartItem[] = [];
@@ -14,7 +28,8 @@ function load() {
   loaded = true;
   try {
     const parsed = JSON.parse(localStorage.getItem(KEY) || "[]");
-    if (Array.isArray(parsed)) items = parsed;
+    // Positionen ohne `ref` stammen aus einer älteren Version und lassen sich nicht prüfen.
+    if (Array.isArray(parsed)) items = parsed.filter((entry: CartItem) => entry && entry.ref);
   } catch {
     items = EMPTY;
   }

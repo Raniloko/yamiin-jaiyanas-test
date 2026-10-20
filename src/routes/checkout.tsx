@@ -53,6 +53,7 @@ function CheckoutPage() {
   const [touched, setTouched] = useState(false);
   const [allSlots, setAllSlots] = useState(false);
   const [checkoutOrder, setCheckoutOrder] = useState<Order | null>(null);
+  const [payError, setPayError] = useState("");
 
   useEffect(() => {
     setNow(new Date());
@@ -143,20 +144,20 @@ function CheckoutPage() {
       const result = await createOrderCheckout({
         data: {
           orderId: checkoutOrder.id,
-          items: checkoutOrder.items.map((item) => ({
-            name: item.detail ? `${item.name} (${item.detail})` : item.name,
-            unitAmount: Math.round(item.price * 100),
-            qty: item.qty,
-          })),
-          deliveryFeeCents: Math.round((checkoutOrder.deliveryFee ?? 0) * 100),
+          // Nur Referenz + Menge – den Preis berechnet der Server aus der Speisekarte.
+          items: checkoutOrder.items.flatMap((item) => (item.ref ? [{ ref: item.ref, qty: item.qty }] : [])),
+          fulfillment: checkoutOrder.fulfillment ?? "pickup",
           customerEmail: checkoutOrder.contact.email,
           returnUrl: `${window.location.origin}/order-success?id=${checkoutOrder.id}&session_id={CHECKOUT_SESSION_ID}`,
           environment: getStripeEnvironment(),
         },
       });
-      if ("error" in result) throw new Error(result.error);
-      if (!result.clientSecret) throw new Error("Keine Zahlungs-Session erhalten");
-      return result.clientSecret;
+      const message = "error" in result ? result.error : !result.clientSecret ? "Keine Zahlungs-Session erhalten." : "";
+      if (message) {
+        setPayError(message);
+        throw new Error(message);
+      }
+      return (result as { clientSecret: string }).clientSecret;
     };
 
     return (
@@ -165,7 +166,10 @@ function CheckoutPage() {
         <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
           <button
             type="button"
-            onClick={() => setCheckoutOrder(null)}
+            onClick={() => {
+              setPayError("");
+              setCheckoutOrder(null);
+            }}
             className="inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-semibold text-[#6f675f] transition-colors hover:text-[#c46b38]"
           >
             <ArrowLeft className="size-4" /> Zurück zur Kasse
@@ -182,6 +186,11 @@ function CheckoutPage() {
           <p className="mt-3 text-sm text-[#6f675f]">
             Deine Bestellung ist reserviert – sobald die Zahlung durch ist, geht sie direkt in die Küche.
           </p>
+          {payError && (
+            <p role="alert" className="mt-6 rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-sm text-[#b4432f]">
+              {payError}
+            </p>
+          )}
           <div className="mt-6 overflow-hidden rounded-3xl border border-[#e2d8ca] bg-white shadow-xl shadow-[#1f2022]/5">
             <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
               <EmbeddedCheckout />

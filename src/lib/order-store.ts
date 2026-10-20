@@ -34,14 +34,8 @@ export type Order = {
 
 export type Fulfillment = "pickup" | "delivery";
 
-// Liefer-Einstellungen – hier zentral anpassen.
-export const DELIVERY = {
-  fee: 2.5,
-  minOrder: 15,
-  /** Liefergebiet: Hanau (PLZ 63450–63457) */
-  zipPrefix: "6345",
-  city: "Hanau",
-};
+// Liefer-Einstellungen liegen in menu-pricing.ts, damit auch der Server sie nutzen kann.
+export { DELIVERY } from "@/lib/menu-pricing";
 
 const KEY = "yj-orders";
 const EMPTY: Order[] = [];
