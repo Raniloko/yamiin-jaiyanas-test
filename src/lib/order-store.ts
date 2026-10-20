@@ -145,7 +145,7 @@ export async function refreshOrdersFromCloud() {
     console.error("Bestellungen konnten nicht geladen werden:", error.message);
     return;
   }
-  const cloud = (data as OrderRow[]).map(fromRow);
+  const cloud = (data as unknown as OrderRow[]).map(fromRow);
   // Cloud gewinnt bei Konflikten – lokal bleiben Bestellungen, die noch nicht gespeichert sind.
   const merged = new Map(read().map((order) => [order.id, order]));
   for (const order of cloud) merged.set(order.id, order);
