@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_emails: {
+        Row: {
+          email: string
+        }
+        Insert: {
+          email: string
+        }
+        Update: {
+          email?: string
+        }
+        Relationships: []
+      }
+      menu_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          device: string | null
+          event: string
+          id: number
+          item: string | null
+          qty: number | null
+          query: string | null
+          session_id: string
+          value: number | null
+          variant: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          device?: string | null
+          event: string
+          id?: never
+          item?: string | null
+          qty?: number | null
+          query?: string | null
+          session_id: string
+          value?: number | null
+          variant?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          device?: string | null
+          event?: string
+          id?: never
+          item?: string | null
+          qty?: number | null
+          query?: string | null
+          session_id?: string
+          value?: number | null
+          variant?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           access_token: string
@@ -68,52 +122,6 @@ export type Database = {
           status?: string
           stripe_session_id?: string | null
           total?: number
-        }
-        Relationships: []
-      }
-      admin_emails: {
-        Row: { email: string }
-        Insert: { email: string }
-        Update: { email?: string }
-        Relationships: []
-      }
-      menu_events: {
-        Row: {
-          category: string | null
-          created_at: string
-          device: string | null
-          event: string
-          id: number
-          item: string | null
-          qty: number | null
-          query: string | null
-          session_id: string
-          value: number | null
-          variant: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          device?: string | null
-          event: string
-          item?: string | null
-          qty?: number | null
-          query?: string | null
-          session_id: string
-          value?: number | null
-          variant?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          device?: string | null
-          event?: string
-          item?: string | null
-          qty?: number | null
-          query?: string | null
-          session_id?: string
-          value?: number | null
-          variant?: string | null
         }
         Relationships: []
       }
