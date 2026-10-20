@@ -166,6 +166,13 @@
   letter-spacing: -0.02em;
 }
 
+/* Küchen-Bon: beim Drucken nur die geöffnete Bestellung zeigen. */
+@media print {
+  body * { visibility: hidden !important; }
+  .print-receipt, .print-receipt * { visibility: visible !important; }
+  .print-receipt { position: absolute; inset: 0 auto auto 0; width: 100%; color: #000; background: #fff; }
+}
+
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "DM Serif Display", ui-serif, Georgia, serif;

@@ -126,8 +126,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  // Das Admin-Dashboard hat ein eigenes Layout (Seitenleiste/Navigation) ohne Website-Kopf und -Fuß.
-  const internal = useRouterState({ select: (state) => state.location.pathname.startsWith("/admin") });
+  // Dashboard und Küche haben ein eigenes Vollbild-Layout ohne Website-Kopf und -Fuß.
+  const internal = useRouterState({ select: (state) => /^\/(admin|kitchen)/.test(state.location.pathname) });
 
   return (
     <QueryClientProvider client={queryClient}>
