@@ -22,12 +22,12 @@ export function AdminGate({ children, title }: { children: (state: Extract<Admin
   const state = useAdminSession();
   if (state.status === "admin") return <>{children(state)}</>;
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-background px-4 py-10 text-foreground">
+    <main className="admin-theme flex min-h-dvh items-center justify-center bg-background px-4 py-10 text-foreground">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <BrandMark className="size-16" />
-          <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-secondary">Yamiin &amp; Jaiyana&rsquo;s · Intern</p>
-          <h1 className="mt-2 font-display text-4xl">{title}</h1>
+          <BrandMark className="size-16 grayscale" />
+          <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Yamiin &amp; Jaiyana&rsquo;s · Intern</p>
+          <h1 className="mt-2 text-3xl">{title}</h1>
         </div>
         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-7">
           {state.status === "loading" && (
@@ -39,7 +39,7 @@ export function AdminGate({ children, title }: { children: (state: Extract<Admin
           {state.status === "recovery" && <NewPasswordForm />}
           {state.status === "no-access" && (
             <div className="text-center">
-              <LockKeyhole className="mx-auto size-8 text-secondary" />
+              <LockKeyhole className="mx-auto size-8" />
               <p className="mt-4 font-semibold">Kein Zugriff</p>
               <p className="mt-2 text-sm text-muted-foreground">
                 {state.session.user.email} ist nicht als Admin freigeschaltet
@@ -51,7 +51,7 @@ export function AdminGate({ children, title }: { children: (state: Extract<Admin
             </div>
           )}
         </div>
-        <Link to="/" className="mt-6 block text-center text-sm text-muted-foreground hover:text-secondary">
+        <Link to="/" className="mt-6 block text-center text-sm text-muted-foreground hover:text-foreground">
           ← Zur Website
         </Link>
       </div>
@@ -116,12 +116,12 @@ function LoginForm() {
         </div>
       )}
       {error && <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
-      {info && <p role="status" className="rounded-xl bg-secondary/10 px-3 py-2 text-sm text-foreground">{info}</p>}
+      {info && <p role="status" className="rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground">{info}</p>}
       <Button type="submit" disabled={busy} className="h-11 w-full rounded-full">
         {busy && <LoaderCircle className="size-4 animate-spin" />}
         {mode === "signin" ? "Anmelden" : mode === "signup" ? "Konto anlegen" : "Link senden"}
       </Button>
-      <button type="button" onClick={() => { setMode(mode === "reset" ? "signin" : "reset"); setError(""); setInfo(""); }} className="block w-full text-center text-sm text-muted-foreground hover:text-secondary">
+      <button type="button" onClick={() => { setMode(mode === "reset" ? "signin" : "reset"); setError(""); setInfo(""); }} className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">
         {mode === "reset" ? "Zurück zur Anmeldung" : "Passwort vergessen?"}
       </button>
     </form>

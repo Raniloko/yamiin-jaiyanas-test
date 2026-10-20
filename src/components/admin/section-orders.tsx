@@ -1,4 +1,4 @@
-import { AlertTriangle, Bike, CheckCircle2, Download, Mail, Phone, Search, Store } from "lucide-react";
+import { AlertTriangle, Bike, CheckCircle2, Download, Mail, Phone, Search, SlidersHorizontal, Store } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ export function OrdersSection({ data }: { data: AdminData }) {
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(40);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const q = query.trim().toLowerCase();
 
   const rows = current.filter((order) => {
@@ -46,6 +47,26 @@ export function OrdersSection({ data }: { data: AdminData }) {
     return true;
   });
   const selected = data.orders.find((order) => order.id === selectedId) ?? null;
+  const activeFilters = Number(status !== "all") + Number(payment !== "all") + Number(kind !== "all");
+  const filters = (stacked: boolean) => (
+    <>
+      <FilterRow label="Status" stacked={stacked}>
+        <Chip active={status === "all"} onClick={() => setStatus("all")}>Alle</Chip>
+        <Chip active={status === "open"} onClick={() => setStatus("open")}>Offen</Chip>
+        {ORDER_STEPS.map((step) => <Chip key={step.key} active={status === step.key} onClick={() => setStatus(step.key)}>{step.label}</Chip>)}
+      </FilterRow>
+      <FilterRow label="Zahlung" stacked={stacked}>
+        {(["all", "onsite", "online", "paypal", "unpaid"] as const).map((key) => (
+          <Chip key={key} active={payment === key} onClick={() => setPayment(key)}>{key === "all" ? "Alle" : key === "unpaid" ? "Zahlung offen" : PAYMENT_LABEL[key]}</Chip>
+        ))}
+      </FilterRow>
+      <FilterRow label="Art" stacked={stacked}>
+        <Chip active={kind === "all"} onClick={() => setKind("all")}>Alle</Chip>
+        <Chip active={kind === "pickup"} onClick={() => setKind("pickup")}>Abholung</Chip>
+        <Chip active={kind === "delivery"} onClick={() => setKind("delivery")}>Lieferung</Chip>
+      </FilterRow>
+    </>
+  );
 
   const exportCsv = () =>
     downloadCsv(`bestellungen-${new Date().toISOString().slice(0, 10)}.csv`,
@@ -61,38 +82,41 @@ export function OrdersSection({ data }: { data: AdminData }) {
   return (
     <div className="space-y-4">
       <Panel title={`Bestellungen (${formatNumber(rows.length)})`} subtitle="Im gewählten Zeitraum · Tippe eine Bestellung für Details" action={<Button size="sm" variant="outline" onClick={exportCsv} disabled={rows.length === 0}><Download className="size-4" /><span className="hidden sm:inline">CSV</span></Button>}>
-        <div className="mb-4 space-y-2.5">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
-            <Input type="search" aria-label="Bestellungen durchsuchen" placeholder="Nr., Name, Telefon oder E-Mail" value={query} onChange={(event) => setQuery(event.target.value)} className="h-9 bg-background pl-8" />
+        <div className="mb-3 flex gap-2 sm:mb-4">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" />
+            <Input type="search" aria-label="Bestellungen durchsuchen" placeholder="Nr., Name, Telefon, E-Mail" value={query} onChange={(event) => setQuery(event.target.value)} className="h-10 bg-background pl-9" />
           </div>
-          <FilterRow label="Status">
-            <Chip active={status === "all"} onClick={() => setStatus("all")}>Alle</Chip>
-            <Chip active={status === "open"} onClick={() => setStatus("open")}>Offen</Chip>
-            {ORDER_STEPS.map((step) => <Chip key={step.key} active={status === step.key} onClick={() => setStatus(step.key)}>{step.label}</Chip>)}
-          </FilterRow>
-          <FilterRow label="Zahlung">
-            {(["all", "onsite", "online", "paypal", "unpaid"] as const).map((key) => (
-              <Chip key={key} active={payment === key} onClick={() => setPayment(key)}>{key === "all" ? "Alle" : key === "unpaid" ? "Zahlung offen" : PAYMENT_LABEL[key]}</Chip>
-            ))}
-          </FilterRow>
-          <FilterRow label="Art">
-            <Chip active={kind === "all"} onClick={() => setKind("all")}>Alle</Chip>
-            <Chip active={kind === "pickup"} onClick={() => setKind("pickup")}>Abholung</Chip>
-            <Chip active={kind === "delivery"} onClick={() => setKind("delivery")}>Lieferung</Chip>
-          </FilterRow>
+          {/* Handy: Filter im Blatt von unten statt drei Zeilen Chips */}
+          <Button variant={activeFilters ? "default" : "outline"} className="h-10 shrink-0 rounded-full sm:hidden" onClick={() => setFiltersOpen(true)}>
+            <SlidersHorizontal className="size-4" />Filter{activeFilters ? ` · ${activeFilters}` : ""}
+          </Button>
         </div>
+        <div className="mb-4 hidden space-y-2.5 sm:block">{filters(false)}</div>
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <SheetContent side="bottom" className="admin-theme max-h-[85dvh] overflow-y-auto rounded-t-3xl pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+            <SheetHeader className="text-left">
+              <SheetTitle className="font-sans text-lg font-semibold">Filter</SheetTitle>
+              <SheetDescription>{formatNumber(rows.length)} Bestellungen passen</SheetDescription>
+            </SheetHeader>
+            <div className="mt-4 space-y-5">{filters(true)}</div>
+            <div className="mt-6 grid grid-cols-2 gap-2">
+              <Button variant="outline" className="rounded-full" onClick={() => { setStatus("all"); setPayment("all"); setKind("all"); }}>Zurücksetzen</Button>
+              <Button className="rounded-full" onClick={() => setFiltersOpen(false)}>Anzeigen</Button>
+            </div>
+          </SheetContent>
+        </Sheet>
 
         {rows.length === 0 ? <EmptyState>Keine Bestellungen für diese Auswahl.</EmptyState> : (
           <ul className="divide-y divide-border">
             {rows.slice(0, limit).map((order) => (
               <li key={order.id}>
                 <button type="button" onClick={() => setSelectedId(order.id)} className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-1 py-3 text-left transition-colors hover:bg-muted/40 sm:grid-cols-[7rem_minmax(0,1fr)_7.5rem_12rem_5.5rem]">
-                  <span className="font-mono text-xs text-muted-foreground sm:order-none">#{order.id}</span>
-                  <strong className="text-right tabular-nums sm:order-last">{formatEuro(order.total)}</strong>
-                  <span className="min-w-0 truncate text-sm font-medium">{order.contact.name}<span className="ml-2 text-xs font-normal text-muted-foreground">{order.items.reduce((sum, item) => sum + item.qty, 0)} Artikel</span></span>
-                  <span className="text-right text-xs text-muted-foreground sm:text-left">{dateTime(order.createdAt)}</span>
-                  <span className="col-span-2 flex flex-wrap items-center gap-1.5 sm:col-span-1">
+                  <span className="min-w-0 truncate text-sm font-semibold sm:order-2 sm:font-medium">{order.contact.name}<span className="ml-2 text-xs font-normal text-muted-foreground">{order.items.reduce((sum, item) => sum + item.qty, 0)} Artikel</span></span>
+                  <strong className="text-right tabular-nums sm:order-5">{formatEuro(order.total)}</strong>
+                  <span className="col-span-2 font-mono text-[11px] text-muted-foreground sm:order-1 sm:col-span-1 sm:text-xs">#{order.id}<span className="sm:hidden"> · {dateTime(order.createdAt)}</span></span>
+                  <span className="hidden text-xs text-muted-foreground sm:order-3 sm:block">{dateTime(order.createdAt)}</span>
+                  <span className="col-span-2 flex flex-wrap items-center gap-1.5 sm:order-4 sm:col-span-1">
                     <StatusBadge order={order} />
                   </span>
                 </button>
@@ -104,7 +128,7 @@ export function OrdersSection({ data }: { data: AdminData }) {
       </Panel>
 
       <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelectedId(null)}>
-        <SheetContent className="w-full overflow-y-auto bg-background sm:max-w-md">
+        <SheetContent className="admin-theme w-full overflow-y-auto bg-background sm:max-w-md">
           {selected && <OrderDetail order={selected} onStatus={(next) => void data.setStatus(selected.id, next)} />}
         </SheetContent>
       </Sheet>
@@ -112,7 +136,15 @@ export function OrdersSection({ data }: { data: AdminData }) {
   );
 }
 
-function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterRow({ label, children, stacked }: { label: string; children: React.ReactNode; stacked: boolean }) {
+  if (stacked) {
+    return (
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+        <div className="flex flex-wrap gap-1.5">{children}</div>
+      </div>
+    );
+  }
   return (
     <div className="flex items-center gap-2">
       <span className="w-14 shrink-0 text-xs text-muted-foreground">{label}</span>
@@ -123,11 +155,11 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
 
 function StatusBadge({ order }: { order: Order }) {
   if (isUnpaidOnline(order)) {
-    return <span className="inline-flex items-center gap-1 rounded-full bg-[#fab219]/15 px-2 py-0.5 text-[11px] font-semibold text-[#8a5a00]"><AlertTriangle className="size-3" aria-hidden="true" />Zahlung offen</span>;
+    return <span className="inline-flex items-center gap-1 rounded-full border border-foreground/40 px-2 py-0.5 text-[11px] font-semibold"><AlertTriangle className="size-3" aria-hidden="true" />Zahlung offen</span>;
   }
   return (
     <>
-      <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${order.status === "abgeholt" ? "bg-muted text-muted-foreground" : "bg-secondary/15 text-foreground"}`}>{statusLabel(order)}</span>
+      <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${order.status === "abgeholt" ? "bg-muted text-muted-foreground" : "bg-foreground text-background"}`}>{statusLabel(order)}</span>
       <span className="text-[11px] text-muted-foreground">{PAYMENT_LABEL[order.payment]}{order.payment !== "onsite" ? " (bezahlt)" : ""} · {order.fulfillment === "delivery" ? "Lieferung" : "Abholung"}</span>
     </>
   );
@@ -138,7 +170,7 @@ function OrderDetail({ order, onStatus }: { order: Order; onStatus: (status: Ord
   return (
     <>
       <SheetHeader className="text-left">
-        <SheetTitle className="font-display text-3xl font-normal">#{order.id}</SheetTitle>
+        <SheetTitle className="font-sans text-2xl font-semibold tracking-tight">#{order.id}</SheetTitle>
         <SheetDescription>{dateTime(order.createdAt)} · {order.pickupLabel}</SheetDescription>
       </SheetHeader>
       <div className="mt-5 space-y-5 text-sm">
@@ -157,8 +189,8 @@ function OrderDetail({ order, onStatus }: { order: Order; onStatus: (status: Ord
         )}
         <section className="rounded-xl border border-border bg-card p-3">
           <p className="font-semibold">{order.contact.name}</p>
-          <a href={`tel:${order.contact.phone}`} className="mt-1 flex items-center gap-2 text-muted-foreground hover:text-secondary"><Phone className="size-3.5" />{order.contact.phone}</a>
-          {order.contact.email && <a href={`mailto:${order.contact.email}`} className="mt-1 flex items-center gap-2 break-all text-muted-foreground hover:text-secondary"><Mail className="size-3.5 shrink-0" />{order.contact.email}</a>}
+          <a href={`tel:${order.contact.phone}`} className="mt-1 flex items-center gap-2 text-muted-foreground hover:text-foreground hover:underline"><Phone className="size-3.5" />{order.contact.phone}</a>
+          {order.contact.email && <a href={`mailto:${order.contact.email}`} className="mt-1 flex items-center gap-2 break-all text-muted-foreground hover:text-foreground hover:underline"><Mail className="size-3.5 shrink-0" />{order.contact.email}</a>}
           <p className="mt-2 flex items-start gap-2">{delivery ? <Bike className="mt-0.5 size-3.5 shrink-0" /> : <Store className="mt-0.5 size-3.5 shrink-0" />}{delivery && order.address ? `${order.address.street}, ${order.address.zip} ${order.address.city}` : "Abholung im Laden"}</p>
         </section>
         <section>
@@ -174,7 +206,7 @@ function OrderDetail({ order, onStatus }: { order: Order; onStatus: (status: Ord
             <li className="flex justify-between p-3 font-semibold"><span>Gesamt</span><span className="tabular-nums">{formatEuro(order.total)}</span></li>
           </ul>
         </section>
-        {order.note && <p className="rounded-xl bg-secondary/10 p-3 text-sm"><strong>Hinweis:</strong> {order.note}</p>}
+        {order.note && <p className="rounded-xl border border-border bg-muted p-3 text-sm"><strong>Hinweis:</strong> {order.note}</p>}
       </div>
     </>
   );
@@ -211,7 +243,7 @@ export function CustomersSection({ data }: { data: AdminData }) {
           <ul className="divide-y divide-border">
             {rows.slice(0, limit).map((customer) => (
               <li key={customer.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 py-3 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_6rem_7rem_8rem] sm:items-center">
-                <span className="min-w-0 truncate font-medium">{customer.name}{customer.orders >= 2 && <span className="ml-2 rounded-full bg-secondary/15 px-2 py-0.5 text-[11px] font-semibold">Stammkunde</span>}</span>
+                <span className="min-w-0 truncate font-medium">{customer.name}{customer.orders >= 2 && <span className="ml-2 rounded-full bg-foreground text-background px-2 py-0.5 text-[11px] font-semibold">Stammkunde</span>}</span>
                 <strong className="text-right tabular-nums sm:order-4">{formatEuro(customer.revenue)}</strong>
                 <span className="min-w-0 truncate text-xs text-muted-foreground sm:order-2">{customer.email || customer.phone}</span>
                 <span className="text-right text-xs text-muted-foreground sm:order-3 sm:text-sm sm:text-foreground">{customer.orders}× bestellt</span>
