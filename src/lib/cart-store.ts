@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 
+import { track } from "@/lib/analytics";
 import type { MenuRef } from "@/lib/menu-pricing";
 
 export type CartItem = {
@@ -62,6 +63,10 @@ function subscribe(listener: () => void) {
   };
 }
 
+function trackRemoval(entry: CartItem, qty: number) {
+  track("remove_from_cart", { item: entry.name, variant: entry.detail, qty, value: entry.price * qty });
+}
+
 export const cart = {
   add(item: CartItem) {
     load();
@@ -70,10 +75,14 @@ export const cart = {
   },
   change(id: string, amount: number) {
     load();
+    const entry = items.find((item) => item.id === id);
+    if (entry && amount < 0) trackRemoval(entry, Math.min(entry.qty, -amount));
     setItems(items.map((entry) => (entry.id === id ? { ...entry, qty: entry.qty + amount } : entry)).filter((entry) => entry.qty > 0));
   },
   remove(id: string) {
     load();
+    const entry = items.find((item) => item.id === id);
+    if (entry) trackRemoval(entry, entry.qty);
     setItems(items.filter((entry) => entry.id !== id));
   },
   clear() {

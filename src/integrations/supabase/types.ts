@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       orders: {
         Row: {
+          access_token: string
           address: Json | null
           contact: Json
           created_at: string
@@ -33,6 +34,7 @@ export type Database = {
           total: number
         }
         Insert: {
+          access_token?: string
           address?: Json | null
           contact: Json
           created_at?: string
@@ -50,6 +52,7 @@ export type Database = {
           total: number
         }
         Update: {
+          access_token?: string
           address?: Json | null
           contact?: Json
           created_at?: string
@@ -68,12 +71,62 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_emails: {
+        Row: { email: string }
+        Insert: { email: string }
+        Update: { email?: string }
+        Relationships: []
+      }
+      menu_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          device: string | null
+          event: string
+          id: number
+          item: string | null
+          qty: number | null
+          query: string | null
+          session_id: string
+          value: number | null
+          variant: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          device?: string | null
+          event: string
+          item?: string | null
+          qty?: number | null
+          query?: string | null
+          session_id: string
+          value?: number | null
+          variant?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          device?: string | null
+          event?: string
+          item?: string | null
+          qty?: number | null
+          query?: string | null
+          session_id?: string
+          value?: number | null
+          variant?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_menu_analytics: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

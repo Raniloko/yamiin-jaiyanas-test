@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -125,12 +126,14 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Das Admin-Dashboard hat ein eigenes Layout (Seitenleiste/Navigation) ohne Website-Kopf und -Fuß.
+  const internal = useRouterState({ select: (state) => state.location.pathname.startsWith("/admin") });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SiteHeader />
+      {!internal && <SiteHeader />}
       <Outlet />
-      <SiteFooter />
+      {!internal && <SiteFooter />}
       <CartDock />
     </QueryClientProvider>
   );
