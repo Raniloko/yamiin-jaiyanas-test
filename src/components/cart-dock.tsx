@@ -44,7 +44,7 @@ export function CartDock() {
               </span>
               <span className={`min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] ${EASE} ${expanded ? "max-w-[10rem] translate-x-0 opacity-100" : "max-w-0 -translate-x-2 opacity-0"}`}>
                 <span className="block text-sm font-semibold">{count} {count === 1 ? "Artikel" : "Artikel"}</span>
-                <span className="block text-xs text-[#cfc2b5]">{euro(total)} · Abholung</span>
+                <span className="block text-xs text-[#cfc2b5]">{euro(total)}</span>
               </span>
             </button>
             <Button
@@ -64,7 +64,7 @@ export function CartDock() {
           <SheetHeader className="flex-row items-center justify-between gap-4 border-b border-[#eadfd2] px-6 py-5 text-left">
             <div>
               <SheetTitle className="font-display text-3xl">Dein Warenkorb</SheetTitle>
-              <SheetDescription>{count ? `${count} Artikel · Abholung in Hanau` : "Noch ist dein Warenkorb leer."}</SheetDescription>
+              <SheetDescription>{count ? `${count} Artikel · Abholung oder Lieferung in Hanau` : "Noch ist dein Warenkorb leer."}</SheetDescription>
             </div>
             <Button type="button" variant="outline" size="icon" aria-label="Warenkorb schließen" onClick={() => cart.openDrawer(false)} className="shrink-0 rounded-full border-[#d9cec0]">
               <X />
@@ -74,7 +74,7 @@ export function CartDock() {
           {items.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center text-[#6f675f]">
               <span className="flex size-16 items-center justify-center rounded-full bg-[#f1e8dc]"><ShoppingBag className="size-7 text-[#a85b39]" /></span>
-              <p>Füge deine Favoriten hinzu und hole sie frisch bei uns ab.</p>
+              <p>Füge deine Favoriten hinzu – zum Abholen oder liefern lassen.</p>
               <Button onClick={() => { cart.openDrawer(false); navigate({ to: "/speisekarte" }); }} className="rounded-full bg-[#292725] text-white hover:bg-[#a85b39]">Zur Speisekarte</Button>
             </div>
           ) : (
@@ -106,7 +106,7 @@ export function CartDock() {
                 ))}
               </ul>
               <div className="border-t border-[#d9cec0] bg-[#f8f2ea] px-6 pb-6 pt-5">
-                <div className="flex justify-between text-sm text-[#6f675f]"><span>Abholung</span><span>Willy-Brandt-Str. 23, Hanau</span></div>
+                <p className="text-sm text-[#6f675f]">Abholung oder Lieferung wählst du an der Kasse.</p>
                 <div className="mt-2 flex justify-between text-lg font-bold"><span>Zwischensumme</span><span>{euro(total)}</span></div>
                 <p className="text-xs text-[#6f675f]">inkl. MwSt.</p>
                 <Button onClick={goCheckout} className="mt-4 h-12 w-full rounded-full bg-[#292725] text-white hover:bg-[#a85b39]">Zur Kasse · {euro(total)} <ArrowRight className="ml-1" /></Button>

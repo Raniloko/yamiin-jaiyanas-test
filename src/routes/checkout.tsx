@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cart as cartStore, euro, useCart } from "@/lib/cart-store";
 import { DELIVERY, orderStore, type Fulfillment, type Order } from "@/lib/order-store";
+import { isOpenForAsap, nextSlotDay } from "@/lib/pickup-slots";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createOrderCheckout } from "@/utils/payments.functions";
 
@@ -27,23 +28,21 @@ export const Route = createFileRoute("/checkout")({
 });
 
 const PAYMENTS: { key: Order["payment"]; title: string; text: string; icon: typeof CreditCard }[] = [
-  { key: "online", title: "Karte · Apple Pay · Google Pay", text: "Sofort sicher online bezahlen", icon: CreditCard },
+  { key: "online", title: "Karte & Wallet", text: "Visa, Mastercard, Apple Pay, Google Pay", icon: CreditCard },
   { key: "paypal", title: "PayPal", text: "Mit deinem PayPal-Konto", icon: Wallet },
-  { key: "onsite", title: "Vor Ort zahlen", text: "Bar oder Karte bei Abholung/Lieferung", icon: Store },
+  { key: "onsite", title: "Vor Ort zahlen", text: "Bar oder Karte", icon: Store },
 ];
 
-function timeSlots() {
-  const now = new Date();
-  const start = new Date(now.getTime() + 30 * 60000);
-  start.setMinutes(Math.ceil(start.getMinutes() / 15) * 15, 0, 0);
-  return Array.from({ length: 8 }, (_, index) => new Date(start.getTime() + index * 15 * 60000));
-}
+/** Zubereitungs- bzw. Lieferzeit für "Schnellstmöglich" in Minuten. */
+const PREP_MINUTES = { pickup: 25, delivery: 45 } as const;
+const SLOTS_COLLAPSED = 12;
 const hhmm = (date: Date) => date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
 function CheckoutPage() {
   const navigate = useNavigate();
   const { items, count, total } = useCart();
-  const [slots, setSlots] = useState<Date[]>([]);
+  // Erst im Browser gesetzt, damit Server und Client dieselbe Uhrzeit nutzen.
+  const [now, setNow] = useState<Date | null>(null);
   const [pickup, setPickup] = useState<"asap" | number>("asap");
   const [payment, setPayment] = useState<Order["payment"]>("onsite");
   const [contact, setContact] = useState({ name: "", phone: "", email: "" });
@@ -52,10 +51,12 @@ function CheckoutPage() {
   const [note, setNote] = useState("");
   const [remember, setRemember] = useState(true);
   const [touched, setTouched] = useState(false);
+  const [allSlots, setAllSlots] = useState(false);
   const [checkoutOrder, setCheckoutOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    setSlots(timeSlots());
+    setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 60000);
     try {
       const saved = JSON.parse(localStorage.getItem("yj-contact") || "null");
       if (saved) setContact(saved);
@@ -64,6 +65,7 @@ function CheckoutPage() {
     } catch {
       /* ignorieren */
     }
+    return () => clearInterval(timer);
   }, []);
 
   const errors = useMemo(
@@ -75,6 +77,16 @@ function CheckoutPage() {
     [contact],
   );
   const delivery = fulfillment === "delivery";
+  const prepMinutes = PREP_MINUTES[fulfillment];
+  const slotDay = useMemo(() => (now ? nextSlotDay(now) : null), [now]);
+  const asapOpen = now ? isOpenForAsap(now, prepMinutes) : true;
+  // Wenn "Schnellstmöglich" nicht geht (geschlossen) oder die Wunschzeit verstrichen ist, erste freie Zeit wählen.
+  useEffect(() => {
+    if (!now) return;
+    const stillValid = pickup === "asap" ? asapOpen : slotDay?.slots.some((slot) => slot.getTime() === pickup);
+    if (!stillValid) setPickup(asapOpen ? "asap" : (slotDay?.slots[0]?.getTime() ?? "asap"));
+  }, [now, pickup, asapOpen, slotDay]);
+  const pickupError = now && !asapOpen && !slotDay ? "Gerade sind keine Bestellungen möglich." : "";
   const addressErrors = {
     street: delivery && address.street.trim().length < 4 ? "Bitte gib Straße und Hausnummer ein." : "",
     zip: delivery && !address.zip.startsWith(DELIVERY.zipPrefix) ? `Wir liefern nur innerhalb von ${DELIVERY.city} (PLZ 63450–63457).` : "",
@@ -82,12 +94,20 @@ function CheckoutPage() {
   const deliveryFee = delivery ? DELIVERY.fee : 0;
   const belowMin = delivery && total < DELIVERY.minOrder;
   const grandTotal = total + deliveryFee;
-  const valid = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip && !belowMin;
+  const valid = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip && !belowMin && !pickupError;
 
   const submit = () => {
     setTouched(true);
-    if (!valid || count === 0) return;
-    const pickupAt = pickup === "asap" ? Date.now() + 25 * 60000 : pickup;
+    if (!valid || count === 0) {
+      // Zum ersten fehlerhaften Feld springen, damit man auf dem Handy sieht, was fehlt.
+      requestAnimationFrame(() => {
+        const first = document.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]');
+        first?.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (first instanceof HTMLInputElement) first.focus({ preventScroll: true });
+      });
+      return;
+    }
+    const pickupAt = pickup === "asap" ? Date.now() + prepMinutes * 60000 : pickup;
     if (remember) {
       localStorage.setItem("yj-contact", JSON.stringify(contact));
       if (delivery) localStorage.setItem("yj-address", JSON.stringify(address));
@@ -97,7 +117,7 @@ function CheckoutPage() {
     }
     const order = orderStore.create({
       pickupAt,
-      pickupLabel: pickup === "asap" ? "Schnellstmöglich" : `Heute ${hhmm(new Date(pickup))} Uhr`,
+      pickupLabel: pickup === "asap" ? "Schnellstmöglich" : `${slotDay?.label ?? "Heute"} ${hhmm(new Date(pickup))} Uhr`,
       fulfillment,
       address: delivery ? address : undefined,
       deliveryFee,
@@ -107,12 +127,13 @@ function CheckoutPage() {
       items,
       total: grandTotal,
     });
-    cartStore.clear();
     if (payment === "onsite") {
+      cartStore.clear();
       navigate({ to: "/order-success", search: { id: order.id } });
     } else {
       // Online-Zahlung: Bestellung ist angelegt, aber erst nach erfolgreicher
       // Zahlung für die Küche sichtbar (Webhook markiert sie als bezahlt).
+      // Der Warenkorb bleibt bis zur Rückkehr von der Zahlung erhalten (geleert auf /order-success).
       setCheckoutOrder(order);
     }
   };
@@ -191,6 +212,7 @@ function CheckoutPage() {
         autoComplete={auto}
         value={contact[key]}
         onChange={(event) => setContact({ ...contact, [key]: event.target.value })}
+        aria-invalid={touched && !!errors[key]}
         className={`h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base transition-shadow focus-visible:ring-[#c46b38] ${touched && errors[key] ? "border-[#b4432f]" : ""}`}
       />
       {touched && errors[key] && <span className="mt-1 block text-xs text-[#b4432f]">{errors[key]}</span>}
@@ -215,8 +237,8 @@ function CheckoutPage() {
           </span>
         </div>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_24rem]">
-          <div className="flex flex-col gap-10">
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
+          <div className="flex min-w-0 flex-col gap-10">
             <Step n={1} title="Abholen oder liefern?">
               <div className="grid gap-3 sm:grid-cols-2">
                 {([
@@ -237,41 +259,58 @@ function CheckoutPage() {
                   </button>
                 ))}
               </div>
-              {belowMin && <p className="mt-3 text-sm text-[#b4432f]">Für die Lieferung brauchen wir einen Mindestbestellwert von {euro(DELIVERY.minOrder)}.</p>}
+              {belowMin && <p data-invalid={touched} className="mt-3 text-sm text-[#b4432f]">Für die Lieferung brauchen wir einen Mindestbestellwert von {euro(DELIVERY.minOrder)}.</p>}
             </Step>
 
             <Step n={2} title={delivery ? "Wann soll geliefert werden?" : "Wann holst du ab?"}>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button
                   type="button"
+                  disabled={!asapOpen}
                   onClick={() => setPickup("asap")}
-                  className={`flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[.98] ${pickup === "asap" ? "border-[#1f2022] bg-[#1f2022] text-[#f8f6f0] shadow-lg" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]"}`}
+                  className={`flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${pickup === "asap" ? "border-[#1f2022] bg-[#1f2022] text-[#f8f6f0] shadow-lg" : "border-[#e2d8ca] bg-white hover:border-[#c46b38] disabled:hover:border-[#e2d8ca]"}`}
                 >
                   <span className={`flex size-11 shrink-0 items-center justify-center rounded-full ${pickup === "asap" ? "bg-[#c46b38]" : "bg-[#f1e8dc] text-[#c46b38]"}`}><Zap className="size-5" /></span>
                   <span>
                     <strong className="block">Schnellstmöglich</strong>
-                    <span className={`text-sm ${pickup === "asap" ? "text-[#cfc2b5]" : "text-[#6f675f]"}`}>fertig in ca. 20–25 Minuten</span>
+                    <span className={`text-sm ${pickup === "asap" ? "text-[#cfc2b5]" : "text-[#6f675f]"}`}>
+                      {!asapOpen ? "Gerade geschlossen – wähle eine Wunschzeit" : delivery ? "bei dir in ca. 40–50 Minuten" : "fertig in ca. 20–25 Minuten"}
+                    </span>
                   </span>
                 </button>
                 <div className="flex items-center gap-2 rounded-2xl border border-dashed border-[#d9cec0] px-4 py-3 text-sm text-[#6f675f]">
                   <MapPin className="size-4 shrink-0 text-[#c46b38]" /> {delivery ? "Lieferung nach Hanau" : "Willy-Brandt-Str. 23, Hanau"}
                 </div>
               </div>
-              <p className="mb-2 mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]"><Clock3 className="size-3.5" /> Oder Wunschzeit heute</p>
-              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-                {slots.map((slot) => {
+              <p className="mb-2 mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">
+                <Clock3 className="size-3.5" /> {asapOpen ? "Oder Wunschzeit" : "Wunschzeit"} {slotDay ? slotDay.label.toLowerCase() : "heute"}
+              </p>
+              {pickupError && <p data-invalid={touched} className="text-sm text-[#b4432f]">{pickupError}</p>}
+              <div className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+                {(slotDay?.slots ?? []).map((slot, index) => {
                   const active = pickup === slot.getTime();
+                  // Ab Tablet erst die nächsten 12 Zeiten, der Rest per "Weitere Zeiten" (gewählte Zeit bleibt sichtbar).
+                  const collapsed = !allSlots && index >= SLOTS_COLLAPSED && !active;
                   return (
                     <button
                       key={slot.getTime()}
                       type="button"
                       onClick={() => setPickup(slot.getTime())}
-                      className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-semibold tabular-nums transition-all duration-200 active:scale-95 ${active ? "border-[#c46b38] bg-[#c46b38] text-white shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]"}`}
+                      className={`${collapsed ? "sm:hidden" : ""} shrink-0 snap-start rounded-full border px-4 py-2.5 text-sm font-semibold tabular-nums transition-all duration-200 active:scale-95 ${active ? "border-[#c46b38] bg-[#c46b38] text-white shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]"}`}
                     >
                       {hhmm(slot)}
                     </button>
                   );
                 })}
+                {!allSlots && (slotDay?.slots.length ?? 0) > SLOTS_COLLAPSED && (
+                  <button
+                    type="button"
+                    onClick={() => setAllSlots(true)}
+                    className="hidden shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-[#c46b38] underline-offset-4 hover:underline sm:inline-flex"
+                  >
+                    Weitere Zeiten
+                  </button>
+                )}
               </div>
             </Step>
 
@@ -282,12 +321,12 @@ function CheckoutPage() {
                   <>
                     <label className="block sm:col-span-2">
                       <span className="mb-1.5 block text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">Straße & Hausnummer</span>
-                      <Input autoComplete="street-address" value={address.street} onChange={(event) => setAddress({ ...address, street: event.target.value })} className={`h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base ${touched && addressErrors.street ? "border-[#b4432f]" : ""}`} />
+                      <Input autoComplete="street-address" aria-invalid={touched && !!addressErrors.street} value={address.street} onChange={(event) => setAddress({ ...address, street: event.target.value })} className={`h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base ${touched && addressErrors.street ? "border-[#b4432f]" : ""}`} />
                       {touched && addressErrors.street && <span className="mt-1 block text-xs text-[#b4432f]">{addressErrors.street}</span>}
                     </label>
                     <label className="block">
                       <span className="mb-1.5 block text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">PLZ</span>
-                      <Input inputMode="numeric" maxLength={5} autoComplete="postal-code" value={address.zip} onChange={(event) => setAddress({ ...address, zip: event.target.value.replace(/\D/g, "") })} className={`h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base ${touched && addressErrors.zip ? "border-[#b4432f]" : ""}`} />
+                      <Input inputMode="numeric" maxLength={5} autoComplete="postal-code" aria-invalid={touched && !!addressErrors.zip} value={address.zip} onChange={(event) => setAddress({ ...address, zip: event.target.value.replace(/\D/g, "") })} className={`h-13 rounded-xl border-[#e2d8ca] bg-white px-4 text-base ${touched && addressErrors.zip ? "border-[#b4432f]" : ""}`} />
                       {touched && addressErrors.zip && <span className="mt-1 block text-xs text-[#b4432f]">{addressErrors.zip}</span>}
                     </label>
                     <label className="block">
@@ -300,7 +339,7 @@ function CheckoutPage() {
                 {field("email", "E-Mail für den Beleg", "email", "email")}
               </div>
               <details className="group mt-4 rounded-xl border border-[#e2d8ca] bg-white/60 px-4 py-3 open:bg-white">
-                <summary className="cursor-pointer list-none text-sm font-semibold text-[#6f675f] marker:hidden">+ Hinweis an die Küche (Allergien, ohne Zwiebeln …)</summary>
+                <summary className="cursor-pointer list-none text-sm font-semibold text-[#6f675f] marker:hidden">+ Hinweis an die Küche <span className="font-normal">(z. B. Allergien)</span></summary>
                 <Textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="z. B. Sesam-Allergie" className="mt-3 border-[#e2d8ca] bg-white" />
               </details>
               <button type="button" onClick={() => setRemember(!remember)} className="mt-4 flex items-center gap-3 text-sm text-[#6f675f]">
@@ -318,12 +357,12 @@ function CheckoutPage() {
                       key={key}
                       type="button"
                       onClick={() => setPayment(key)}
-                      className={`relative flex flex-col items-start gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[.98] ${active ? "border-[#c46b38] bg-[#fff7f1] shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]/60"}`}
+                      className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 pr-10 text-left sm:flex-col sm:items-start sm:pr-4 transition-all duration-200 active:scale-[.98] ${active ? "border-[#c46b38] bg-[#fff7f1] shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]/60"}`}
                     >
-                      <span className={`flex size-10 items-center justify-center rounded-xl ${active ? "bg-[#c46b38] text-white" : "bg-[#f1e8dc] text-[#1f2022]"}`}><Icon className="size-5" /></span>
-                      <span>
+                      <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${active ? "bg-[#c46b38] text-white" : "bg-[#f1e8dc] text-[#1f2022]"}`}><Icon className="size-5" /></span>
+                      <span className="min-w-0">
                         <strong className="block text-sm leading-tight">{title}</strong>
-                        <span className="text-xs text-[#6f675f]">{text}</span>
+                        <span className="mt-0.5 block text-xs leading-snug text-[#6f675f]">{key === "onsite" ? `${text} ${delivery ? "an der Haustür" : "an der Theke"}` : text}</span>
                       </span>
                       {active && <span className="absolute right-3 top-3 flex size-5 items-center justify-center rounded-full bg-[#c46b38] text-white animate-in zoom-in-50"><Check className="size-3" /></span>}
                     </button>
@@ -334,7 +373,7 @@ function CheckoutPage() {
             </Step>
           </div>
 
-          <aside className="lg:sticky lg:top-28 lg:h-fit">
+          <aside className="min-w-0 lg:sticky lg:top-28 lg:h-fit">
             <div className="overflow-hidden rounded-3xl bg-[#1f2022] text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/20">
               <div className="flex items-center justify-between px-6 pt-6">
                 <h2 className="font-display text-2xl">Deine Bestellung</h2>

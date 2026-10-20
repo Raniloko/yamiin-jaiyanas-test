@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Bike, Check, ChefHat, Clock3, MapPin, Phone, ShoppingBag, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { euro } from "@/lib/cart-store";
+import { cart, euro } from "@/lib/cart-store";
 import { ORDER_STEPS, useOrder } from "@/lib/order-store";
 
 export const Route = createFileRoute("/order-success")({
@@ -29,6 +29,8 @@ function StatusPage() {
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
+    // Nach Rückkehr von der Online-Zahlung ist die Bestellung abgeschickt – Warenkorb leeren.
+    cart.clear();
     setHydrated(true);
     const timer = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(timer);
