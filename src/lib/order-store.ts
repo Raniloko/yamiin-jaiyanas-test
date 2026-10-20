@@ -28,6 +28,8 @@ export type Order = {
   address?: { street: string; zip: string; city: string } | undefined;
   deliveryFee?: number;
   status: OrderStatus;
+  /** true, sobald die Online-Zahlung bestätigt ist (Vor-Ort-Zahlung bleibt false). */
+  paid?: boolean;
 };
 
 export type Fulfillment = "pickup" | "delivery";
@@ -96,6 +98,7 @@ type OrderRow = {
   items: CartItem[] | null;
   total: number | string;
   status: OrderStatus;
+  paid: boolean | null;
 };
 
 function toRow(order: Order) {
@@ -113,6 +116,7 @@ function toRow(order: Order) {
     items: order.items,
     total: order.total,
     status: order.status,
+    paid: order.paid ?? false,
   };
 }
 
@@ -131,6 +135,7 @@ function fromRow(row: OrderRow): Order {
     address: row.address ?? undefined,
     deliveryFee: row.delivery_fee == null ? 0 : Number(row.delivery_fee),
     status: row.status,
+    paid: row.paid ?? false,
   };
 }
 
