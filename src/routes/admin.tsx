@@ -4,6 +4,7 @@ import { ChefHat, ExternalLink, LayoutDashboard, LogOut, MousePointerClick, Rece
 
 import { AdminGate } from "@/components/admin/admin-gate";
 import { InstallHint } from "@/components/admin/install-hint";
+import { OperationsButton, PauseBanner } from "@/components/admin/operations";
 import { CustomersSection, OrdersSection } from "@/components/admin/section-orders";
 import { MenuSection, OverviewSection } from "@/components/admin/section-overview";
 import { ProductsSection } from "@/components/admin/section-products";
@@ -90,6 +91,7 @@ function Dashboard({ email }: { email: string }) {
           ))}
         </nav>
         <div className="mt-auto space-y-1 border-t border-border pt-4 text-sm">
+          <OperationsButton variant="nav" />
           <Link to="/kitchen" className="flex items-center gap-3 rounded-xl px-3 py-2 text-foreground/70 hover:bg-muted hover:text-foreground"><ChefHat className="size-4" />Küche</Link>
           <a href="/" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl px-3 py-2 text-foreground/70 hover:bg-muted hover:text-foreground"><ExternalLink className="size-4" />Website</a>
           <p className="truncate px-3 pt-3 text-xs text-muted-foreground" title={email}>{email}</p>
@@ -106,6 +108,7 @@ function Dashboard({ email }: { email: string }) {
               <h1 className="truncate text-lg leading-tight">{active.title}</h1>
               <p className="truncate text-[11px] text-muted-foreground" aria-live="polite">{updated}</p>
             </div>
+            <OperationsButton />
             <Link to="/kitchen" aria-label="Küche" className="flex size-10 items-center justify-center rounded-full border border-border bg-card"><ChefHat className="size-4" /></Link>
             <button type="button" aria-label="Abmelden" onClick={() => void adminAuth.signOut()} className="flex size-10 items-center justify-center rounded-full border border-border bg-card"><LogOut className="size-4" /></button>
           </div>
@@ -133,6 +136,7 @@ function Dashboard({ email }: { email: string }) {
             </div>
             <div className="flex items-center gap-2">{rangePicker}{refreshButton}</div>
           </div>
+          <PauseBanner className="mb-4" />
           <InstallHint app="admin" className="mb-4" />
           <p className="mb-3 px-1 text-xs text-muted-foreground lg:hidden">{active.text}</p>
           {data.error && <p role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{data.error}</p>}

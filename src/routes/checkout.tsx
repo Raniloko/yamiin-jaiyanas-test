@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
-import { ArrowLeft, ArrowRight, Bike, Check, Clock3, CreditCard, MapPin, Minus, Plus, ShieldCheck, Store, Wallet, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bike, Check, CirclePause, Clock3, CreditCard, LoaderCircle, MapPin, Minus, PackageX, Plus, ShieldCheck, Store, Trash2, Wallet, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cart as cartStore, euro, useCart } from "@/lib/cart-store";
 import { DELIVERY, orderStore, type Fulfillment, type Order } from "@/lib/order-store";
 import { track, trackOnce } from "@/lib/analytics";
+import { blockedReason, isPaused, orderBlockMessage, untilLabel, useAvailability } from "@/lib/availability";
 import { isOpenForAsap, nextSlotDay } from "@/lib/pickup-slots";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createOrderCheckout } from "@/utils/payments.functions";
@@ -55,6 +56,15 @@ function CheckoutPage() {
   const [allSlots, setAllSlots] = useState(false);
   const [checkoutOrder, setCheckoutOrder] = useState<Order | null>(null);
   const [payError, setPayError] = useState("");
+  const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState("");
+  // Pause & Ausverkauft live – die Datenbank lehnt solche Bestellungen zusätzlich selbst ab.
+  const availability = useAvailability();
+  const paused = isPaused(availability);
+  const blocked = items.flatMap((item) => {
+    const reason = blockedReason(availability, item.ref);
+    return reason ? [{ item, reason }] : [];
+  });
 
   useEffect(() => {
     setNow(new Date());
@@ -99,10 +109,12 @@ function CheckoutPage() {
   const deliveryFee = delivery ? DELIVERY.fee : 0;
   const belowMin = delivery && total < DELIVERY.minOrder;
   const grandTotal = total + deliveryFee;
-  const valid = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip && !belowMin && !pickupError;
+  const valid = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip && !belowMin && !pickupError && !paused && blocked.length === 0;
 
-  const submit = () => {
+  const submit = async () => {
+    if (placing) return;
     setTouched(true);
+    setOrderError("");
     if (!valid || count === 0) {
       // Zum ersten fehlerhaften Feld springen, damit man auf dem Handy sieht, was fehlt.
       requestAnimationFrame(() => {
@@ -120,7 +132,8 @@ function CheckoutPage() {
       localStorage.removeItem("yj-contact");
       localStorage.removeItem("yj-address");
     }
-    const order = orderStore.create({
+    setPlacing(true);
+    const result = await orderStore.create({
       pickupAt,
       pickupLabel: pickup === "asap" ? "Schnellstmöglich" : `${slotDay?.label ?? "Heute"} ${hhmm(new Date(pickup))} Uhr`,
       fulfillment,
@@ -132,6 +145,13 @@ function CheckoutPage() {
       items,
       total: grandTotal,
     });
+    setPlacing(false);
+    if ("error" in result) {
+      setOrderError(orderBlockMessage(result.error) ?? "Deine Bestellung konnte nicht gesendet werden. Bitte prüfe deine Internetverbindung und versuch es noch einmal.");
+      requestAnimationFrame(() => document.getElementById("order-error")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+      return;
+    }
+    const { order } = result;
     track("order_placed", { qty: count, value: grandTotal, variant: `${payment} · ${fulfillment}` });
     if (payment === "onsite") {
       cartStore.clear();
@@ -250,6 +270,34 @@ function CheckoutPage() {
             <ShieldCheck className="size-4 text-[#c46b38]" /> Ohne Konto · in 30 Sekunden
           </span>
         </div>
+
+        {(paused || blocked.length > 0 || orderError) && (
+          <div className="mt-6 space-y-3" aria-live="polite">
+            {paused && (
+              <div data-invalid="true" className="flex gap-3 rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-[#8f3222]">
+                <CirclePause className="mt-0.5 size-5 shrink-0" />
+                <p className="text-sm"><strong className="block">Online-Bestellungen sind gerade pausiert{untilLabel(availability.pausedUntil) === "bis auf Weiteres" ? "" : ` · ${untilLabel(availability.pausedUntil)}`}.</strong>
+                  {availability.pauseNote || "Die Küche ist gerade voll – bitte versuch es etwas später noch einmal. Dein Warenkorb bleibt gespeichert."}</p>
+              </div>
+            )}
+            {blocked.length > 0 && (
+              <div data-invalid="true" className="rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-[#8f3222]">
+                <p className="flex items-center gap-2 text-sm font-semibold"><PackageX className="size-5 shrink-0" />Leider gerade nicht mehr da – bitte entfernen:</p>
+                <ul className="mt-2 space-y-1.5">
+                  {blocked.map(({ item, reason }) => (
+                    <li key={item.id} className="flex items-center gap-3 text-sm">
+                      <span className="min-w-0 flex-1 truncate">{item.qty}× {item.name} <span className="opacity-80">({reason})</span></span>
+                      <button type="button" onClick={() => cartStore.remove(item.id)} aria-label={`${item.name} entfernen`} className="flex shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#1f2022]"><Trash2 className="size-3.5" />Entfernen</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {orderError && (
+              <p id="order-error" role="alert" className="rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-sm text-[#8f3222]">{orderError}</p>
+            )}
+          </div>
+        )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="flex min-w-0 flex-col gap-10">
@@ -400,6 +448,7 @@ function CheckoutPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{item.name}</p>
                       <p className="truncate text-xs text-[#cfc2b5]">{item.detail}</p>
+                      {blockedReason(availability, item.ref) && <p className="text-xs font-semibold text-[#f0a48f]">{blockedReason(availability, item.ref)}</p>}
                       <div className="mt-1.5 flex items-center justify-between">
                         <div className="flex items-center rounded-full bg-white/10">
                           <button type="button" onClick={() => cartStore.change(item.id, -1)} aria-label="Weniger" className="flex size-7 items-center justify-center rounded-full hover:bg-white/15"><Minus className="size-3" /></button>
@@ -418,8 +467,8 @@ function CheckoutPage() {
                   <span className="text-sm text-[#cfc2b5]">Gesamt <span className="text-xs">inkl. MwSt.</span></span>
                   <span className="font-display text-3xl tabular-nums">{euro(grandTotal)}</span>
                 </div>
-                <button type="button" onClick={submit} className="group mt-5 hidden h-14 w-full items-center justify-center gap-2 rounded-full bg-[#c46b38] font-bold text-white transition-all duration-200 hover:bg-[#d9946d] active:scale-[.98] lg:flex">
-                  {payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={paused || undefined} className={`group mt-5 hidden h-14 w-full items-center justify-center gap-2 rounded-full font-bold text-white transition-all duration-200 active:scale-[.98] disabled:opacity-70 lg:flex ${paused ? "bg-white/20" : "bg-[#c46b38] hover:bg-[#d9946d]"}`}>
+                  {placing ? <><LoaderCircle className="size-4 animate-spin" /> Wird gesendet …</> : paused ? <><CirclePause className="size-4" /> Gerade pausiert</> : <>{payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></>}
                 </button>
                 {touched && !valid && <p className="mt-3 hidden text-center text-xs text-[#f0a48f] lg:block">Bitte prüfe deine Angaben.</p>}
               </div>
@@ -430,12 +479,15 @@ function CheckoutPage() {
 
       {/* Mobile: feste Bestellleiste */}
       <div className="fixed inset-x-3 bottom-3 z-40 lg:hidden">
-        <button type="button" onClick={submit} className="flex h-16 w-full items-center justify-between rounded-2xl bg-[#1f2022] pl-5 pr-2 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/30 active:scale-[.98]">
+        <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={paused || undefined} className="flex h-16 w-full items-center justify-between rounded-2xl bg-[#1f2022] pl-5 pr-2 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/30 active:scale-[.98] disabled:opacity-80">
           <span className="text-left">
-            <span className="block text-xs text-[#cfc2b5]">{touched && !valid ? "Bitte Angaben prüfen" : `${count} Artikel · inkl. MwSt.`}</span>
+            <span className="block text-xs text-[#cfc2b5]">{paused ? "Bestellungen pausiert" : blocked.length > 0 ? "Ausverkauftes entfernen" : touched && !valid ? "Bitte Angaben prüfen" : `${count} Artikel · inkl. MwSt.`}</span>
             <span className="block font-display text-xl tabular-nums">{euro(grandTotal)}</span>
           </span>
-          <span className="flex h-12 items-center gap-2 rounded-xl bg-[#c46b38] px-5 font-bold text-white">Bestellen <ArrowRight className="size-4" /></span>
+          <span className={`flex h-12 items-center gap-2 rounded-xl px-5 font-bold text-white ${paused ? "bg-white/20" : "bg-[#c46b38]"}`}>
+            {placing ? <LoaderCircle className="size-4 animate-spin" /> : paused ? <CirclePause className="size-4" /> : null}
+            {placing ? "Sendet …" : paused ? "Pausiert" : <>Bestellen <ArrowRight className="size-4" /></>}
+          </span>
         </button>
       </div>
     </main>

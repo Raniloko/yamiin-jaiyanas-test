@@ -3,7 +3,8 @@ import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { cart, euro, useCart } from "@/lib/cart-store";
+import { blockedReason, useAvailability } from "@/lib/availability";
+import { cart, euro, useCart, type CartItem } from "@/lib/cart-store";
 
 const HIDDEN_ON = ["/checkout", "/kitchen", "/order-success", "/admin"];
 const EASE = "duration-500 ease-[cubic-bezier(.32,.72,0,1)] motion-reduce:transition-none";
@@ -88,6 +89,7 @@ export function CartDock() {
                         <div className="min-w-0">
                           <p className="truncate font-semibold">{item.name}</p>
                           <p className="line-clamp-2 text-xs text-[#6f675f]">{item.detail}</p>
+                          <BlockedNote item={item} />
                         </div>
                         <button type="button" onClick={() => cart.remove(item.id)} aria-label={`${item.name} entfernen`} className="rounded-full p-1.5 text-[#a85b39] transition-colors hover:bg-[#f1e8dc]">
                           <Trash2 className="size-4" />
@@ -118,4 +120,10 @@ export function CartDock() {
       </Sheet>
     </>
   );
+}
+
+/** Nur im geöffneten Warenkorb – so hält nicht jede Seite eine Live-Verbindung offen. */
+function BlockedNote({ item }: { item: CartItem }) {
+  const reason = blockedReason(useAvailability(), item.ref);
+  return reason ? <p className="text-xs font-semibold text-[#b4432f]">Leider {reason}</p> : null;
 }

@@ -184,19 +184,21 @@ export function subscribeToOrderChanges(onChange?: () => void): () => void {
 }
 
 export const orderStore = {
-  create(order: Omit<Order, "id" | "createdAt" | "status">) {
+  /** Speichert die Bestellung – erst danach gilt sie. Lehnt die Datenbank ab (pausiert, ausverkauft), kommt die Meldung zurück. */
+  async create(order: Omit<Order, "id" | "createdAt" | "status">): Promise<{ order: Order } | { error: string }> {
     // 6 Ziffern: bei 4 Ziffern wären doppelte Nummern schon nach ~100 Bestellungen wahrscheinlich.
     const id = `YJ-${Math.floor(100000 + Math.random() * 900000)}`;
     const full: Order = { ...order, id, createdAt: Date.now(), status: "bestaetigt" };
     // Geheimer Gast-Schlüssel: nur dieses Gerät darf den Status ohne Login abfragen.
     const accessToken = crypto.randomUUID();
+    const { error } = await supabase.from("orders").insert({ ...toRow(full), access_token: accessToken });
+    if (error) {
+      console.error("Bestellung konnte nicht gespeichert werden:", error.message);
+      return { error: error.message };
+    }
     rememberGuestToken(id, accessToken);
     write([full, ...read()].slice(0, 30));
-    void supabase
-      .from("orders")
-      .insert({ ...toRow(full), access_token: accessToken })
-      .then(({ error }) => error && console.error("Bestellung konnte nicht gespeichert werden:", error.message));
-    return full;
+    return { order: full };
   },
   setStatus(id: string, status: OrderStatus) {
     write(read().map((order) => (order.id === id ? { ...order, status } : order)));
