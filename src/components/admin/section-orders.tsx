@@ -128,7 +128,7 @@ export function OrdersSection({ data }: { data: AdminData }) {
       </Panel>
 
       <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelectedId(null)}>
-        <SheetContent className="admin-theme w-full overflow-y-auto bg-background sm:max-w-md">
+        <SheetContent className="admin-theme w-full overflow-y-auto bg-background pt-[max(1.5rem,env(safe-area-inset-top))] sm:max-w-md [&>button]:top-[max(1rem,env(safe-area-inset-top))]">
           {selected && <OrderDetail order={selected} onStatus={(next) => void data.setStatus(selected.id, next)} />}
         </SheetContent>
       </Sheet>

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { InstallHint } from "@/components/admin/install-hint";
 import { BrandMark } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -173,7 +174,7 @@ export function KitchenBoard() {
   return (
     <div className="admin-theme min-h-dvh pb-10">
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[110rem] items-center gap-3 px-3 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-[110rem] items-center gap-3 px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
           <BrandMark className="size-9 grayscale" />
           <div className="min-w-0 flex-1">
             <h1 className="text-xl leading-tight">Küche</h1>
@@ -203,6 +204,7 @@ export function KitchenBoard() {
       </header>
 
       <main className="mx-auto max-w-[110rem] px-3 pt-4 sm:px-6">
+        <InstallHint app="kitchen" className="mb-4" />
         {(late > 0 || soon > 0) && (
           <div className="mb-4 flex flex-wrap gap-2" role="status" aria-live="polite">
             {late > 0 && <p className="kitchen-pulse-late flex items-center gap-2 rounded-full bg-[#d03b3b] px-4 py-2 text-sm font-bold text-white"><AlarmClock className="size-4" />{late} überfällig</p>}
@@ -388,7 +390,7 @@ function OrderDetail({ order, now, onAdvance, onClose }: { order: Order; now: nu
 
   return (
     <div className="print-receipt flex min-h-full flex-col">
-      <SheetHeader className="sticky top-0 z-10 flex-row items-center gap-3 space-y-0 border-b border-border bg-background/95 px-5 py-3 text-left backdrop-blur print:static">
+      <SheetHeader className="sticky top-0 z-10 flex-row items-center gap-3 space-y-0 border-b border-border bg-background/95 px-5 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-left backdrop-blur print:static">
         <button type="button" onClick={onClose} aria-label="Zurück" className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-card print:hidden"><ChevronLeft className="size-5" /></button>
         <div className="min-w-0 flex-1">
           <SheetTitle className="font-mono text-xl font-semibold">#{order.id}</SheetTitle>
