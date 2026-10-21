@@ -26,6 +26,24 @@ export type Database = {
         }
         Relationships: []
       }
+      menu_availability: {
+        Row: {
+          created_at: string
+          key: string
+          until: string | null
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          until?: string | null
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          until?: string | null
+        }
+        Relationships: []
+      }
       menu_events: {
         Row: {
           category: string | null
@@ -122,6 +140,27 @@ export type Database = {
           status?: string
           stripe_session_id?: string | null
           total?: number
+        }
+        Relationships: []
+      }
+      shop_status: {
+        Row: {
+          id: number
+          pause_note: string | null
+          paused_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          pause_note?: string | null
+          paused_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          pause_note?: string | null
+          paused_until?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

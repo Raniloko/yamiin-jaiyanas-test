@@ -6,6 +6,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { InstallHint } from "@/components/admin/install-hint";
+import { OperationsButton, PauseBanner } from "@/components/admin/operations";
 import { BrandMark } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -180,6 +181,7 @@ export function KitchenBoard() {
             <h1 className="text-xl leading-tight">Küche</h1>
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-2 animate-pulse rounded-full bg-[#0ca30c]" aria-hidden="true" />Live · {clock} Uhr</p>
           </div>
+          <OperationsButton />
           <button type="button" onClick={toggleSound} aria-pressed={sound} className={cn("flex h-10 items-center gap-2 rounded-full border px-3 text-sm font-semibold", sound ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
             {sound ? <Bell className="size-4" /> : <BellOff className="size-4" />}<span className="hidden sm:inline">{sound ? "Ton an" : "Ton aus"}</span>
           </button>
@@ -204,6 +206,7 @@ export function KitchenBoard() {
       </header>
 
       <main className="mx-auto max-w-[110rem] px-3 pt-4 sm:px-6">
+        <PauseBanner className="mb-4" />
         <InstallHint app="kitchen" className="mb-4" />
         {(late > 0 || soon > 0) && (
           <div className="mb-4 flex flex-wrap gap-2" role="status" aria-live="polite">

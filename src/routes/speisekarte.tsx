@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, Coffee, Minus, Plus, Search, ShoppingBag } from "lucide-react";
+import { ArrowRight, CirclePause, Coffee, Minus, Plus, Search, ShoppingBag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { acais, bowlFilters, bowls, bowlSteps, coffeeExtra, coffees, iceBurgers, matchas, menuCategories, menuNotes, wraps, type Bowl, type BowlFilter, type MenuProduct } from "@/lib/menu-data";
 import { COFFEE_OPTIONS, priceOf, type CoffeeOption, type MenuRef } from "@/lib/menu-pricing";
 import { track, trackOnce } from "@/lib/analytics";
+import { blockedReason, isPaused, isSoldOut, itemKey, optionKey, untilLabel, useAvailability } from "@/lib/availability";
 import { cart, euro, useCart } from "@/lib/cart-store";
 
 export const Route = createFileRoute("/speisekarte")({
@@ -42,6 +43,8 @@ function stickyOffset() {
 
 function OrderPage() {
   const { count } = useCart();
+  const availability = useAvailability();
+  const soldOut = (name: string) => isSoldOut(availability, itemKey(name));
   const [active, setActive] = useState<CategoryId>("bowls");
   const [filter, setFilter] = useState<BowlFilter>("Alle");
   const [query, setQuery] = useState("");
@@ -145,12 +148,12 @@ function OrderPage() {
     return () => window.removeEventListener("resize", onResize);
   }, [active]);
 
-  const productCard = (item: MenuProduct, id: CategoryId) => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><ProductImage item={item} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "product", item, category: id })}>{item.options || item.ingredients || id === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button></div></div></article>;
+  const productCard = (item: MenuProduct, id: CategoryId) => <article key={item.name} className={`${CARD} ${soldOut(item.name) ? SOLD_OUT_CARD : ""}`}><div className={CARD_MEDIA}><ProductImage item={item} />{soldOut(item.name) && <SoldOutBadge />}</div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div>{soldOut(item.name) ? <Button size="sm" variant="outline" disabled className="sm:h-9 sm:px-4">Ausverkauft</Button> : <Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "product", item, category: id })}>{item.options || item.ingredients || id === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button>}</div></div></article>;
 
   const sections: Record<CategoryId, () => React.ReactNode> = {
-    bowls: () => <><SectionTitle eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={CARD}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 px-1.5 text-[10px] sm:left-4 sm:top-4 sm:px-2.5 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} /></div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 text-xs font-semibold text-secondary sm:mt-4">Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div><Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "bowl", item, category: "bowls" })}>Auswählen <ArrowRight className="size-4" /></Button></div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
+    bowls: () => <><SectionTitle eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={`${CARD} ${soldOut(item.name) ? SOLD_OUT_CARD : ""}`}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 px-1.5 text-[10px] sm:left-4 sm:top-4 sm:px-2.5 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} />{soldOut(item.name) && <SoldOutBadge />}</div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 text-xs font-semibold text-secondary sm:mt-4">Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div>{soldOut(item.name) ? <Button size="sm" variant="outline" disabled className="sm:h-9 sm:px-4">Ausverkauft</Button> : <Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "bowl", item, category: "bowls" })}>Auswählen <ArrowRight className="size-4" /></Button>}</div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
     create: () => <><SectionTitle eyebrow="Taste the Bowl-volution" title="Create your Bowl" /><p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{menuNotes.create}</p><div className="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">{bowlSteps.map(step => <div key={step.number} className="border-t border-border pt-5"><div className="flex items-baseline gap-3"><span className="font-display text-4xl text-secondary">{step.number.padStart(2, "0")}</span><h3 className="text-2xl">{step.title}</h3></div><p className="mt-2 text-sm text-muted-foreground">{step.note}</p><ul className="mt-4 space-y-2 text-sm">{step.items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div></>,
-    coffee: () => <><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="mt-6 max-w-3xl divide-y divide-border">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><Coffee className="size-5 shrink-0 text-secondary" /><h3 className="min-w-0 flex-1 text-xl">{name}</h3><strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" aria-label={`${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, category: "coffee", item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></>,
+    coffee: () => <><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="mt-6 max-w-3xl divide-y divide-border">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><Coffee className="size-5 shrink-0 text-secondary" /><h3 className={`min-w-0 flex-1 text-xl ${soldOut(name ?? "") ? "text-muted-foreground line-through" : ""}`}>{name}</h3>{soldOut(name ?? "") && <span className={SOLD_OUT_PILL}>Ausverkauft</span>}<strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" disabled={soldOut(name ?? "")} aria-label={soldOut(name ?? "") ? `${name} ausverkauft` : `${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, category: "coffee", item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></>,
     matcha: () => null, acai: () => null, ice: () => null, wrap: () => null,
   };
   for (const section of productSections) {
@@ -163,6 +166,7 @@ function OrderPage() {
         <div><p className="text-xs font-bold uppercase tracking-widest text-secondary">Yamiin & Jaiyana&apos;s · Hanau</p><h1 className="mt-3 text-5xl sm:text-6xl">Unsere <em className="text-secondary">Speisekarte.</em></h1><p className="mt-4 text-muted-foreground">Bowls · Matcha · Coffee · Açaí · Sweet Treats</p></div>
         <Button variant="outline" onClick={() => cart.openDrawer()} className="gap-2"><ShoppingBag className="size-4" />Warenkorb <Badge>{count}</Badge></Button>
       </div>
+      {isPaused(availability) && <p role="status" className="mt-6 flex max-w-2xl gap-3 rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-sm text-[#8f3222]"><CirclePause className="mt-0.5 size-5 shrink-0" /><span><strong className="block">Online-Bestellungen sind gerade pausiert{untilLabel(availability.pausedUntil) === "bis auf Weiteres" ? "" : ` · ${untilLabel(availability.pausedUntil)}`}.</strong>{availability.pauseNote || "Du kannst dir trotzdem schon etwas aussuchen – bestellen geht, sobald wir wieder öffnen."}</span></p>}
       <div className="relative mt-8 max-w-md"><Search aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" /><Input type="search" aria-label="Gerichte suchen" placeholder="Ganze Speisekarte durchsuchen" value={query} onChange={event => setQuery(event.target.value)} className="bg-card pl-10" /></div>
     </header>
     <nav aria-label="Kategorien" className="sticky top-[4.5rem] z-30 border-y border-border bg-background/95 backdrop-blur-md sm:top-20">
@@ -184,21 +188,27 @@ function OrderPage() {
   </main>;
 }
 function SectionTitle({ eyebrow, title, id }: { eyebrow: string; title: string; id?: string }) { return <div><p className="text-xs font-bold uppercase tracking-widest text-secondary">{eyebrow}</p><h2 id={id} className="mt-2 text-4xl">{title}</h2></div>; }
+function SoldOutBadge() { return <span className={`absolute bottom-2 left-2 sm:bottom-4 sm:left-4 ${SOLD_OUT_PILL}`}>Ausverkauft</span>; }
 function EmptySearch() { return <p className="py-10 text-muted-foreground">Keine passenden Gerichte gefunden.</p>; }
 function ProductImage({ item }: { item: MenuProduct }) { return item.image ? <img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} /> : <div className="flex h-full min-h-28 items-center justify-center sm:aspect-[4/3]" aria-hidden="true"><Coffee className="size-10 text-secondary sm:size-16" strokeWidth={1} /></div>; }
 // Gerichtskarten: auf dem Handy kompakt mit Bild links, ab Tablet als hohe Karte.
 const CARD = "grid grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-md sm:flex sm:flex-col sm:rounded-lg";
 const CARD_MEDIA = "relative bg-muted/50";
+const SOLD_OUT_CARD = "opacity-60 hover:shadow-none [&_img]:grayscale";
+const SOLD_OUT_PILL = "shrink-0 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background sm:text-xs";
 const CARD_IMG = "h-full w-full object-contain p-2 sm:aspect-[4/3] sm:h-auto sm:p-5";
 const CARD_BODY = "flex min-w-0 flex-1 flex-col p-4 sm:p-5";
 const CARD_TITLE = "text-xl leading-tight sm:text-2xl";
 const CARD_TEXT = "mt-1.5 line-clamp-2 flex-1 text-sm leading-5 text-muted-foreground sm:mt-3 sm:line-clamp-none sm:leading-6";
 const CARD_FOOT = "mt-3 flex items-center justify-between gap-2 sm:mt-4 sm:border-t sm:border-border sm:pt-4";
 function ItemDialog({ selection, onClose }: { selection: Selection; onClose: () => void }) {
+  const availability = useAvailability();
+  const optionOut = (value: string) => isSoldOut(availability, optionKey(value));
   const [size, setSize] = useState<"small" | "large">("small");
   const bases = bowlSteps[0]?.items ?? ["Bulgur"];
-  const [base, setBase] = useState(bases[0] ?? "Bulgur");
-  const [option, setOption] = useState(selection.kind === "product" ? selection.item.options?.[0] ?? "" : "");
+  // Vorauswahl: erste Basis/Option, die gerade nicht ausverkauft ist.
+  const [base, setBase] = useState(() => bases.find(value => !optionOut(value)) ?? bases[0] ?? "Bulgur");
+  const [option, setOption] = useState(() => selection.kind === "product" ? selection.item.options?.find(value => !optionOut(value)) ?? selection.item.options?.[0] ?? "" : "");
   const [note, setNote] = useState("");
   const [qty, setQty] = useState(1);
   const item = selection.item;
@@ -210,14 +220,16 @@ function ItemDialog({ selection, onClose }: { selection: Selection; onClose: () 
   // Derselbe Rechenweg wie auf dem Server (menu-pricing.ts) – Anzeige und Abbuchung stimmen überein.
   const price = (priceOf(ref) ?? 0) / 100;
   const nutrition = selection.kind === "bowl" ? selection.item.nutrition[size] : null;
+  const blocked = blockedReason(availability, ref);
   const detail = selection.kind === "bowl" ? `${size === "small" ? "Klein" : "Groß"} · ${base}` : option || "Standard";
   const add = () => {
+    if (blocked) return;
     const trimmed = note.trim();
     track("add_to_cart", { item: item.name, category: selection.category, variant: detail, qty, value: price * qty });
     cart.add({ id: `${item.name}-${detail}-${trimmed}`, name: item.name, detail: `${detail}${trimmed ? ` · ${trimmed}` : ""}`, price, qty, image: item.image, ref, ...(trimmed ? { note: trimmed } : {}) });
     onClose();
   };
-  const chip = (active: boolean) => `rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${active ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-secondary"}`;
+  const chip = (active: boolean) => `rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-45 disabled:line-through disabled:active:scale-100 ${active ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-secondary"}`;
   const legend = "mb-2.5 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground";
 
   return <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
@@ -238,11 +250,11 @@ function ItemDialog({ selection, onClose }: { selection: Selection; onClose: () 
 
           {selection.kind === "bowl" && <>
             <fieldset><legend className={legend}>Größe</legend><div className="grid grid-cols-2 gap-2">{(["small", "large"] as const).map(value => <button key={value} type="button" aria-pressed={size === value} onClick={() => setSize(value)} className={`flex flex-col items-start rounded-2xl border-2 px-4 py-3 text-left transition-all duration-200 active:scale-[.98] ${size === value ? "border-secondary bg-secondary/10" : "border-border bg-card hover:border-secondary/50"}`}><span className="text-sm font-semibold">{value === "small" ? "Klein" : "Groß"}</span><span className="text-sm text-muted-foreground">{selection.item[value]}</span></button>)}</div></fieldset>
-            <fieldset><legend className={legend}>Basis</legend><div className="flex flex-wrap gap-2">{bases.map(value => <button key={value} type="button" aria-pressed={base === value} onClick={() => setBase(value)} className={chip(base === value)}>{value}</button>)}</div></fieldset>
+            <fieldset><legend className={legend}>Basis</legend><div className="flex flex-wrap gap-2">{bases.map(value => <button key={value} type="button" aria-pressed={base === value} disabled={optionOut(value)} onClick={() => setBase(value)} className={chip(base === value)}>{value}{optionOut(value) && " · aus"}</button>)}</div></fieldset>
           </>}
 
           {selection.kind === "product" && selection.item.ingredients && <div><p className={legend}>Zutaten</p><ul className="flex flex-wrap gap-2">{selection.item.ingredients.map(ingredient => <li key={ingredient} className="rounded-full bg-muted px-3 py-1.5 text-sm">{ingredient}</li>)}</ul></div>}
-          {selection.kind === "product" && selection.item.options && <fieldset><legend className={legend}>{selection.item.optionLabel}</legend><div className="flex flex-wrap gap-2">{selection.item.options.map(value => <button key={value} type="button" aria-pressed={option === value} onClick={() => setOption(value)} className={chip(option === value)}>{value}{value === "Extra Flavor" ? ` + ${coffeeExtra.price}` : ""}</button>)}</div></fieldset>}
+          {selection.kind === "product" && selection.item.options && <fieldset><legend className={legend}>{selection.item.optionLabel}</legend><div className="flex flex-wrap gap-2">{selection.item.options.map(value => <button key={value} type="button" aria-pressed={option === value} disabled={optionOut(value)} onClick={() => setOption(value)} className={chip(option === value)}>{value}{value === "Extra Flavor" ? ` + ${coffeeExtra.price}` : ""}{optionOut(value) && " · aus"}</button>)}</div></fieldset>}
 
           {nutrition && <details className="group rounded-2xl border border-border bg-card px-4 py-3 open:pb-4">
             <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold marker:hidden">Nährwerte · {size === "small" ? "Klein" : "Groß"}<span className="text-muted-foreground">{nutrition.k} kcal · {String(nutrition.p).replace(".", ",")} g Protein</span></summary>
@@ -260,9 +272,9 @@ function ItemDialog({ selection, onClose }: { selection: Selection; onClose: () 
           <span className="w-6 text-center font-semibold tabular-nums" aria-live="polite">{qty}</span>
           <button type="button" aria-label="Mehr" disabled={qty >= 20} onClick={() => setQty(current => Math.min(20, current + 1))} className="flex size-11 items-center justify-center rounded-full transition-colors hover:bg-muted disabled:opacity-40"><Plus className="size-4" /></button>
         </div>
-        <Button className="h-12 min-w-0 flex-1 justify-between rounded-full bg-secondary px-5 text-base font-semibold text-secondary-foreground hover:bg-secondary/90" aria-label={`In den Warenkorb, ${euro(price * qty)}`} onClick={add}>
+        {blocked ? <Button disabled className="h-12 min-w-0 flex-1 rounded-full text-base font-semibold first-letter:uppercase">{blocked === "ausverkauft" ? "Ausverkauft" : blocked}</Button> : <Button className="h-12 min-w-0 flex-1 justify-between rounded-full bg-secondary px-5 text-base font-semibold text-secondary-foreground hover:bg-secondary/90" aria-label={`In den Warenkorb, ${euro(price * qty)}`} onClick={add}>
           <span className="truncate"><span className="sm:hidden">Hinzufügen</span><span className="hidden sm:inline">In den Warenkorb</span></span><span className="shrink-0 tabular-nums">{euro(price * qty)}</span>
-        </Button>
+        </Button>}
       </div>
     </DialogContent>
   </Dialog>;
