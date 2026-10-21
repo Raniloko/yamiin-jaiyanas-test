@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { LoaderCircle, LockKeyhole, LogOut } from "lucide-react";
 import { useState, type FormEvent, type ReactNode } from "react";
 
@@ -22,7 +21,7 @@ export function AdminGate({ children, title }: { children: (state: Extract<Admin
   const state = useAdminSession();
   if (state.status === "admin") return <>{children(state)}</>;
   return (
-    <main className="admin-theme flex min-h-dvh items-center justify-center bg-background px-4 py-10 text-foreground">
+    <main className="admin-theme flex min-h-dvh items-center justify-center bg-background px-4 pb-10 pt-[max(2.5rem,env(safe-area-inset-top))] text-foreground">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandMark className="size-16 grayscale" />
@@ -51,9 +50,10 @@ export function AdminGate({ children, title }: { children: (state: Extract<Admin
             </div>
           )}
         </div>
-        <Link to="/" className="mt-6 block text-center text-sm text-muted-foreground hover:text-foreground">
-          ← Zur Website
-        </Link>
+        {/* Neuer Tab: In der Home-Bildschirm-App gibt es keine Zurück-Taste, die Website öffnet so in Safari. */}
+        <a href="/" target="_blank" rel="noreferrer" className="mt-6 block text-center text-sm text-muted-foreground hover:text-foreground">
+          Zur Website ↗
+        </a>
       </div>
     </main>
   );

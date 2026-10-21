@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ChefHat, ExternalLink, LayoutDashboard, LogOut, MousePointerClick, Receipt, RefreshCw, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
 
 import { AdminGate } from "@/components/admin/admin-gate";
+import { InstallHint } from "@/components/admin/install-hint";
 import { CustomersSection, OrdersSection } from "@/components/admin/section-orders";
 import { MenuSection, OverviewSection } from "@/components/admin/section-overview";
 import { ProductsSection } from "@/components/admin/section-products";
@@ -10,6 +11,7 @@ import { BrandMark } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { adminAuth } from "@/lib/admin-auth";
 import { useAdminData } from "@/lib/admin-data";
+import { appHead } from "@/lib/app-install";
 import { RANGES, type RangeKey } from "@/lib/admin-metrics";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +29,10 @@ export const Route = createFileRoute("/admin")({
     tab: TABS.some((tab) => tab.key === search["tab"]) ? (search["tab"] as TabKey) : "overview",
     range: RANGES.some((range) => range.key === search["range"]) ? (search["range"] as RangeKey) : "30d",
   }),
-  head: () => ({ meta: [{ title: "Admin-Dashboard – Yamiin & Jaiyana's" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => {
+    const app = appHead("admin");
+    return { meta: [{ title: "Admin-Dashboard – Yamiin & Jaiyana's" }, { name: "robots", content: "noindex, nofollow" }, ...app.meta], links: app.links };
+  },
   component: AdminPage,
 });
 
@@ -71,11 +76,11 @@ function Dashboard({ email }: { email: string }) {
   return (
     <div className="admin-theme min-h-dvh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:bg-[linear-gradient(to_right,var(--card)_15rem,var(--background)_15rem)]">
       {/* Desktop: Seitenleiste */}
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-card px-4 py-5 lg:flex">
-        <Link to="/" className="flex items-center gap-3 px-2">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-card px-4 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] lg:flex">
+        <div className="flex items-center gap-3 px-2">
           <BrandMark className="size-10 grayscale" />
           <span className="leading-tight"><span className="block text-sm font-bold uppercase">Yamiin &amp; Jaiyana&rsquo;s</span><span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Admin</span></span>
-        </Link>
+        </div>
         <nav aria-label="Dashboard" className="mt-8 space-y-1">
           {TABS.map((entry) => (
             <button key={entry.key} type="button" onClick={() => go({ tab: entry.key })} aria-current={entry.key === tab ? "page" : undefined}
@@ -95,7 +100,7 @@ function Dashboard({ email }: { email: string }) {
       <div className="min-w-0 pb-28 md:pb-10">
         {/* Handy & Tablet: feste Kopfzeile mit Titel, Zeitraum und Aktualisieren */}
         <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md lg:hidden">
-          <div className="flex items-center gap-3 px-4 pb-2 pt-3 sm:px-6">
+          <div className="flex items-center gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
             <BrandMark className="size-8 grayscale" />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg leading-tight">{active.title}</h1>
@@ -128,6 +133,7 @@ function Dashboard({ email }: { email: string }) {
             </div>
             <div className="flex items-center gap-2">{rangePicker}{refreshButton}</div>
           </div>
+          <InstallHint app="admin" className="mb-4" />
           <p className="mb-3 px-1 text-xs text-muted-foreground lg:hidden">{active.text}</p>
           {data.error && <p role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{data.error}</p>}
 
