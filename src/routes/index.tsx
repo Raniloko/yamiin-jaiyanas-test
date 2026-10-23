@@ -47,6 +47,7 @@ function Home() {
 function GlowCta({ children, hash = "bowls", tone = "light" }: { children: ReactNode; hash?: string; tone?: "light" | "dark" }) {
   return (
     <span className="glow-cta">
+      <span className="glow-cta-halo" aria-hidden="true"><span /></span>
       <Link
         to="/speisekarte"
         hash={hash}
