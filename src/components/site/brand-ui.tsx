@@ -48,15 +48,25 @@ export function OpenBadge({ className, fallback = "Willy-Brandt-Straße 23 · Ha
   );
 }
 
+/** Umlaufendes Licht um beliebige Bedienelemente (z. B. den Bestell-Button der Kasse) – nur wenn `active`. */
+export function GlowFrame({ active, radius = "9999px", className, children }: { active: boolean; radius?: string; className?: string; children: ReactNode }) {
+  return (
+    <span className={cn(active ? "glow-cta" : "relative inline-flex", className)} style={{ borderRadius: radius }}>
+      {active && <span className="glow-cta-halo" aria-hidden="true"><span /></span>}
+      {children}
+    </span>
+  );
+}
+
 /** Dunkler Seitenkopf mit Foto, warmem Licht und aufsteigender Überschrift. */
-export function PageHero({ children, aside, className }: { children: ReactNode; aside?: ReactNode; className?: string }) {
+export function PageHero({ children, aside, className, compact, width = "max-w-[90rem]" }: { children: ReactNode; aside?: ReactNode; className?: string; compact?: boolean; width?: string }) {
   return (
     <section className={cn("relative isolate overflow-hidden border-b border-border bg-[#292725] text-[#f5f0e8]", className)}>
       <img src={heroBowlImage} alt="" aria-hidden="true" className="hero-drift absolute inset-0 -z-20 size-full object-cover object-center opacity-35" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(30,28,25,.96)_0%,rgba(30,28,25,.82)_55%,rgba(30,28,25,.55)_100%)]" aria-hidden="true" />
       {/* Warmes Licht als Verlauf statt Weichzeichner – Safari zeichnet große Unschärfen sonst eckig. */}
       <div className="absolute -left-48 top-0 -z-10 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.32),transparent_65%)]" aria-hidden="true" />
-      <div className={cn("mx-auto grid max-w-[90rem] items-center gap-10 px-5 py-14 sm:px-8 sm:py-20", aside && "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]")}>
+      <div className={cn("mx-auto grid items-center gap-10 px-5 sm:px-8", width, compact ? "py-10 sm:py-14" : "py-14 sm:py-20", aside && "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]")}>
         <div className="relative z-10 min-w-0">{children}</div>
         {aside}
       </div>

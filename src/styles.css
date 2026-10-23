@@ -298,7 +298,7 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
   position: absolute;
   inset: -14px;
   z-index: -1;
-  border-radius: 9999px;
+  border-radius: inherit;
   filter: blur(7px);
   opacity: 0.9;
   pointer-events: none;
@@ -309,7 +309,7 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 .glow-cta:hover .glow-cta-halo > span { animation-duration: 1.6s; }
 
 /* Glanz, der beim Darüberfahren einmal über die Fläche streicht */
-.glow-cta-face { position: relative; overflow: hidden; box-shadow: 0 0 0 1px rgb(245 195 166 / 0.35); }
+.glow-cta-face { position: relative; overflow: hidden; }
 .glow-cta-face::after {
   content: "";
   position: absolute;
@@ -350,6 +350,13 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 }
 .live-ping { animation: live-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
 
+/* Haken zeichnet sich (Bestellstatus) */
+@keyframes draw-check {
+  from { stroke-dashoffset: 30; }
+  to { stroke-dashoffset: 0; }
+}
+.draw-check { stroke-dasharray: 30; animation: draw-check 700ms 300ms cubic-bezier(.65,0,.35,1) both; }
+
 /* Beim Scrollen sanft einblenden – nur wo der Browser es kann, sonst sofort sichtbar. */
 @supports (animation-timeline: view()) {
   @keyframes reveal-up {
@@ -370,6 +377,7 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
   .hero-drift,
   .float-bob,
   .live-ping,
+  .draw-check,
   .reveal { animation: none !important; }
 }
 
