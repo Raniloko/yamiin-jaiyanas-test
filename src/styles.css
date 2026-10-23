@@ -245,28 +245,131 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 
 .animate-ticker { animation: ticker 28s linear infinite; }
 
-@keyframes hero-glow {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(180deg); }
+/* ============= Startseite ============= */
+
+/* Bestell-Button: ein Lichtstreifen läuft endlos um den Rand, dahinter ein weicher Schein. */
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
 }
 
-.hero-glow-button {
+@keyframes glow-orbit {
+  to { --glow-angle: 360deg; }
+}
+
+.glow-cta {
+  --glow-light: #fff3ea;
+  --glow-warm: #f5c3a6;
+  --glow-deep: #c46b38;
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  background: linear-gradient(90deg, transparent, oklch(0.82 0.12 48), transparent);
+  display: inline-flex;
+  border-radius: 9999px;
 }
 
-.hero-glow-button::before {
+/* Leuchtende Kante (2px Ring, innen ausgeschnitten) */
+.glow-cta::before,
+.glow-cta::after {
   content: "";
   position: absolute;
-  inset: -140%;
-  z-index: -1;
-  background: conic-gradient(from 0deg, transparent 0deg, oklch(0.9 0.15 55) 35deg, transparent 80deg, transparent 360deg);
-  animation: hero-glow 3.8s linear infinite;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--glow-angle),
+    transparent 0deg 150deg,
+    var(--glow-deep) 220deg,
+    var(--glow-warm) 290deg,
+    var(--glow-light) 340deg,
+    transparent 360deg
+  );
+  animation: glow-orbit 3.2s linear infinite;
 }
 
-.hero-glow-button:hover::before { animation-duration: 1.8s; }
+.glow-cta::before {
+  inset: -3px;
+  padding: 3px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Schein, der dem Licht folgt */
+.glow-cta::after {
+  inset: -10px;
+  z-index: -1;
+  filter: blur(18px);
+  opacity: 0.95;
+}
+
+.glow-cta:hover::before,
+.glow-cta:hover::after { animation-duration: 1.6s; }
+
+/* Glanz, der beim Darüberfahren einmal über die Fläche streicht */
+.glow-cta-face { position: relative; overflow: hidden; box-shadow: 0 0 0 1px rgb(245 195 166 / 0.35); }
+.glow-cta-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 700ms cubic-bezier(.2,.7,0,1);
+  pointer-events: none;
+}
+.glow-cta:hover .glow-cta-face::after,
+.glow-cta:focus-within .glow-cta-face::after { transform: translateX(120%); }
+
+/* Überschrift: Wörter steigen nacheinander auf */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(0.35em); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.hero-rise { animation: hero-rise 900ms cubic-bezier(.2,.7,0,1) both; }
+
+/* Langsamer Zoom auf dem Hero-Foto */
+@keyframes hero-drift {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.1) translate(-1%, -1%); }
+}
+.hero-drift { animation: hero-drift 24s ease-in-out infinite alternate; }
+
+/* Schwebende Karten */
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float-bob { animation: float-bob 6s ease-in-out infinite; }
+
+/* Grüner Punkt "geöffnet" */
+@keyframes live-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.6); opacity: 0; }
+}
+.live-ping { animation: live-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+
+/* Beim Scrollen sanft einblenden – nur wo der Browser es kann, sonst sofort sichtbar. */
+@supports (animation-timeline: view()) {
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(2.5rem) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  .reveal {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-cta::before,
+  .glow-cta::after { animation: none; --glow-angle: 300deg; }
+  .hero-rise,
+  .hero-drift,
+  .float-bob,
+  .live-ping,
+  .reveal { animation: none !important; }
+}
 
 ::selection { background: var(--secondary); color: var(--secondary-foreground); }
 

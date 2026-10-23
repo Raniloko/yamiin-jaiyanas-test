@@ -10,7 +10,7 @@ import { cart as cartStore, euro, useCart } from "@/lib/cart-store";
 import { DELIVERY, orderStore, type Fulfillment, type Order } from "@/lib/order-store";
 import { track, trackOnce } from "@/lib/analytics";
 import { blockedReason, isPaused, orderBlockMessage, untilLabel, useAvailability } from "@/lib/availability";
-import { isOpenForAsap, nextSlotDay } from "@/lib/pickup-slots";
+import { isOpenForAsap, nextSlotDay, PREP_MINUTES } from "@/lib/pickup-slots";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createOrderCheckout } from "@/utils/payments.functions";
 
@@ -36,7 +36,6 @@ const PAYMENTS: { key: Order["payment"]; title: string; text: string; icon: type
 ];
 
 /** Zubereitungs- bzw. Lieferzeit für "Schnellstmöglich" in Minuten. */
-const PREP_MINUTES = { pickup: 25, delivery: 45 } as const;
 const SLOTS_COLLAPSED = 12;
 const hhmm = (date: Date) => date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
