@@ -268,9 +268,9 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
   border-radius: 9999px;
 }
 
-/* Leuchtende Kante (2px Ring, innen ausgeschnitten) */
+/* Lichtring (innen ausgeschnitten) – einmal scharf als Kante, einmal weich als Schein. */
 .glow-cta::before,
-.glow-cta::after {
+.glow-cta-halo > span {
   content: "";
   position: absolute;
   border-radius: inherit;
@@ -283,28 +283,30 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
     var(--glow-light) 340deg,
     transparent 360deg
   );
-  animation: glow-orbit 3.2s linear infinite;
-}
-
-.glow-cta::before {
-  inset: -3px;
-  padding: 3px;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
+  animation: glow-orbit 3.2s linear infinite;
 }
 
-/* Schein, der dem Licht folgt */
-.glow-cta::after {
-  inset: -10px;
+.glow-cta::before { inset: -3px; padding: 3px; }
+
+/* Schein: derselbe Ring, nur weichgezeichnet. Er bleibt dicht am Rand – eine große, stark
+   weichgezeichnete Fläche schneidet Safari (iPad/Mac) sonst sichtbar als Kasten ab. */
+.glow-cta-halo {
+  position: absolute;
+  inset: -14px;
   z-index: -1;
-  filter: blur(18px);
-  opacity: 0.95;
+  border-radius: 9999px;
+  filter: blur(7px);
+  opacity: 0.9;
+  pointer-events: none;
 }
+.glow-cta-halo > span { position: absolute; inset: 7px; padding: 6px; }
 
 .glow-cta:hover::before,
-.glow-cta:hover::after { animation-duration: 1.6s; }
+.glow-cta:hover .glow-cta-halo > span { animation-duration: 1.6s; }
 
 /* Glanz, der beim Darüberfahren einmal über die Fläche streicht */
 .glow-cta-face { position: relative; overflow: hidden; box-shadow: 0 0 0 1px rgb(245 195 166 / 0.35); }
@@ -363,7 +365,7 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .glow-cta::before,
-  .glow-cta::after { animation: none; --glow-angle: 300deg; }
+  .glow-cta-halo > span { animation: none; --glow-angle: 300deg; }
   .hero-rise,
   .hero-drift,
   .float-bob,

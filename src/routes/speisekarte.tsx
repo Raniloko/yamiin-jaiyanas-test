@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, CirclePause, Coffee, Minus, Plus, Search, ShoppingBag } from "lucide-react";
+import { ArrowRight, CirclePause, Clock3, Coffee, Flame, Leaf, Minus, Plus, Search, ShoppingBag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { OpenBadge, PageHero, RiseTitle } from "@/components/site/brand-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,6 +13,7 @@ import { COFFEE_OPTIONS, priceOf, type CoffeeOption, type MenuRef } from "@/lib/
 import { track, trackOnce } from "@/lib/analytics";
 import { blockedReason, isPaused, isSoldOut, itemKey, optionKey, untilLabel, useAvailability } from "@/lib/availability";
 import { cart, euro, useCart } from "@/lib/cart-store";
+import { PREP_MINUTES } from "@/lib/pickup-slots";
 
 export const Route = createFileRoute("/speisekarte")({
   head: () => ({ meta: [
@@ -148,29 +150,43 @@ function OrderPage() {
     return () => window.removeEventListener("resize", onResize);
   }, [active]);
 
-  const productCard = (item: MenuProduct, id: CategoryId) => <article key={item.name} className={`${CARD} ${soldOut(item.name) ? SOLD_OUT_CARD : ""}`}><div className={CARD_MEDIA}><ProductImage item={item} />{soldOut(item.name) && <SoldOutBadge />}</div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div>{soldOut(item.name) ? <Button size="sm" variant="outline" disabled className="sm:h-9 sm:px-4">Ausverkauft</Button> : <Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "product", item, category: id })}>{item.options || item.ingredients || id === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button>}</div></div></article>;
+  const productCard = (item: MenuProduct, id: CategoryId) => <article key={item.name} className={`${CARD} ${soldOut(item.name) ? SOLD_OUT_CARD : ""}`}><div className={CARD_MEDIA}><ProductImage item={item} />{soldOut(item.name) && <SoldOutBadge />}</div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3>{item.signature && <span className="mt-1 text-xs font-semibold text-secondary sm:mt-2">Signature</span>}<p className={CARD_TEXT}>{item.description}</p><div className={CARD_FOOT}><div className="text-sm"><strong>{item.price}</strong>{item.size && <p className="mt-0.5 text-xs text-muted-foreground">{item.size}</p>}</div>{soldOut(item.name) ? <Button size="sm" variant="outline" disabled className="rounded-full sm:h-10 sm:px-4">Ausverkauft</Button> : <Button size="sm" className="rounded-full transition-colors group-hover:bg-[#c46b38] sm:h-10 sm:px-5" onClick={() => setSelection({ kind: "product", item, category: id })}>{item.options || item.ingredients || id === "wrap" ? "Auswählen" : "Hinzufügen"}<Plus className="size-4" /></Button>}</div></div></article>;
 
   const sections: Record<CategoryId, () => React.ReactNode> = {
-    bowls: () => <><SectionTitle eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={`${CARD} ${soldOut(item.name) ? SOLD_OUT_CARD : ""}`}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 px-1.5 text-[10px] sm:left-4 sm:top-4 sm:px-2.5 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} />{soldOut(item.name) && <SoldOutBadge />}</div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 text-xs font-semibold text-secondary sm:mt-4">Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div>{soldOut(item.name) ? <Button size="sm" variant="outline" disabled className="sm:h-9 sm:px-4">Ausverkauft</Button> : <Button size="sm" className="sm:h-9 sm:px-4" onClick={() => setSelection({ kind: "bowl", item, category: "bowls" })}>Auswählen <ArrowRight className="size-4" /></Button>}</div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
-    create: () => <><SectionTitle eyebrow="Taste the Bowl-volution" title="Create your Bowl" /><p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{menuNotes.create}</p><div className="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">{bowlSteps.map(step => <div key={step.number} className="border-t border-border pt-5"><div className="flex items-baseline gap-3"><span className="font-display text-4xl text-secondary">{step.number.padStart(2, "0")}</span><h3 className="text-2xl">{step.title}</h3></div><p className="mt-2 text-sm text-muted-foreground">{step.note}</p><ul className="mt-4 space-y-2 text-sm">{step.items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div></>,
-    coffee: () => <><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="mt-6 max-w-3xl divide-y divide-border">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><Coffee className="size-5 shrink-0 text-secondary" /><h3 className={`min-w-0 flex-1 text-xl ${soldOut(name ?? "") ? "text-muted-foreground line-through" : ""}`}>{name}</h3>{soldOut(name ?? "") && <span className={SOLD_OUT_PILL}>Ausverkauft</span>}<strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" disabled={soldOut(name ?? "")} aria-label={soldOut(name ?? "") ? `${name} ausverkauft` : `${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, category: "coffee", item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></>,
+    bowls: () => <><SectionTitle eyebrow="Signature Bowls" title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)} className="h-9 rounded-full px-4">{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={`${CARD} ${soldOut(item.name) ? SOLD_OUT_CARD : ""}`}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 z-10 rounded-full bg-[#292725] px-2 text-[10px] text-[#f5f0e8] hover:bg-[#292725] sm:left-4 sm:top-4 sm:px-3 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} />{soldOut(item.name) && <SoldOutBadge />}</div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#f5c3a6]/35 px-2.5 py-1 text-xs font-semibold text-[#8a4a22] sm:mt-4"><Flame className="size-3.5" />Protein · {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div>{soldOut(item.name) ? <Button size="sm" variant="outline" disabled className="rounded-full sm:h-10 sm:px-4">Ausverkauft</Button> : <Button size="sm" className="rounded-full transition-colors group-hover:bg-[#c46b38] sm:h-10 sm:px-5" onClick={() => setSelection({ kind: "bowl", item, category: "bowls" })}>Auswählen <ArrowRight className="size-4" /></Button>}</div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
+    create: () => <div className="relative isolate overflow-hidden rounded-[2rem] bg-[#292725] p-6 text-[#f5f0e8] sm:p-10">
+      <div className="absolute -right-40 -top-40 -z-10 size-[32rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.4),transparent_65%)]" aria-hidden="true" />
+      <div className="reveal"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f5c3a6]">Taste the Bowl-volution</p><h2 className="mt-3 text-5xl leading-[0.95] sm:text-6xl">Create your <em className="text-[#f5c3a6]">Bowl</em></h2></div>
+      <p className="mt-4 max-w-2xl leading-7 text-white/75">{menuNotes.create}</p>
+      <ol className="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">{bowlSteps.map(step => <li key={step.number} className="reveal rounded-2xl border border-white/10 bg-white/5 p-5 transition-colors duration-300 hover:border-[#f5c3a6]/40 hover:bg-white/10"><div className="flex items-baseline gap-3"><span className="font-display text-4xl text-[#f5c3a6]">{step.number.padStart(2, "0")}</span><h3 className="text-2xl">{step.title}</h3></div><p className="mt-1 text-sm text-white/60">{step.note}</p><ul className="mt-4 flex flex-wrap gap-1.5">{step.items.map(item => <li key={item} className="rounded-full bg-white/10 px-3 py-1 text-sm">{item}</li>)}</ul></li>)}</ol>
+    </div>,
+    coffee: () => <><SectionTitle eyebrow="Hot Drinks" title="Coffee" /><div className="reveal mt-8 max-w-3xl divide-y divide-border rounded-3xl border border-border bg-card px-4 sm:px-7">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f5c3a6]/35 text-[#8a4a22]"><Coffee className="size-5" /></span><h3 className={`min-w-0 flex-1 text-xl ${soldOut(name ?? "") ? "text-muted-foreground line-through" : ""}`}>{name}</h3>{soldOut(name ?? "") && <span className={SOLD_OUT_PILL}>Ausverkauft</span>}<strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" className="rounded-full hover:border-[#c46b38] hover:bg-[#c46b38] hover:text-white" disabled={soldOut(name ?? "")} aria-label={soldOut(name ?? "") ? `${name} ausverkauft` : `${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, category: "coffee", item: { name: name ?? "", description: "Hot Drink", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Flavor" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee · {coffeeExtra.price}</p></>,
     matcha: () => null, acai: () => null, ice: () => null, wrap: () => null,
   };
   for (const section of productSections) {
     sections[section.id] = () => <><SectionTitle eyebrow={section.eyebrow} title={section.title} /><p className="mt-3 text-muted-foreground">{section.text}</p><div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">{(visibleProducts[section.id] ?? []).map(item => productCard(item, section.id))}</div></>;
   }
 
+  const pausedBanner = isPaused(availability) && <p role="status" className="hero-rise mt-6 flex max-w-2xl gap-3 rounded-2xl bg-[#fbe9e4] px-4 py-3 text-sm text-[#8f3222]"><CirclePause className="mt-0.5 size-5 shrink-0" /><span><strong className="block">Online-Bestellungen sind gerade pausiert{untilLabel(availability.pausedUntil) === "bis auf Weiteres" ? "" : ` · ${untilLabel(availability.pausedUntil)}`}.</strong>{availability.pauseNote || "Du kannst dir trotzdem schon etwas aussuchen – bestellen geht, sobald wir wieder öffnen."}</span></p>;
+
   return <main className="min-h-screen bg-background text-foreground">
-    <header className="mx-auto max-w-7xl px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
-      <div className="flex flex-wrap items-end justify-between gap-5">
-        <div><p className="text-xs font-bold uppercase tracking-widest text-secondary">Yamiin & Jaiyana&apos;s · Hanau</p><h1 className="mt-3 text-5xl sm:text-6xl">Unsere <em className="text-secondary">Speisekarte.</em></h1><p className="mt-4 text-muted-foreground">Bowls · Matcha · Coffee · Açaí · Sweet Treats</p></div>
-        <Button variant="outline" onClick={() => cart.openDrawer()} className="gap-2"><ShoppingBag className="size-4" />Warenkorb <Badge>{count}</Badge></Button>
+    <PageHero aside={<HeroBowls />}>
+      <OpenBadge className="mb-6" />
+      <RiseTitle lead="Unsere" accent="Speisekarte." className="text-6xl sm:text-7xl lg:text-8xl" />
+      <p className="hero-rise mt-5 max-w-lg text-base leading-7 text-white/80 sm:text-lg" style={{ animationDelay: "380ms" }}>Bowls, Matcha, Coffee, Açaí und Sweet Treats – frisch zubereitet, mit Nährwerten zu jeder Bowl.</p>
+      {pausedBanner}
+      <div className="hero-rise mt-7 flex max-w-xl flex-wrap items-center gap-3" style={{ animationDelay: "480ms" }}>
+        <div className="relative min-w-0 flex-1 basis-64"><Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-white/60" /><Input type="search" aria-label="Gerichte suchen" placeholder="Ganze Speisekarte durchsuchen" value={query} onChange={event => setQuery(event.target.value)} className="h-12 rounded-full border-white/20 bg-white/10 pl-11 text-base text-white backdrop-blur-md placeholder:text-white/55 focus-visible:ring-[#f5c3a6]" /></div>
+        <Button variant="outline" onClick={() => cart.openDrawer()} className="h-12 gap-2 rounded-full border-white/20 bg-white/10 px-5 text-[#f5f0e8] backdrop-blur-md hover:bg-white/20 hover:text-white"><ShoppingBag className="size-4" />Warenkorb <span className="rounded-full bg-[#c46b38] px-2 py-0.5 text-xs font-bold text-white">{count}</span></Button>
       </div>
-      {isPaused(availability) && <p role="status" className="mt-6 flex max-w-2xl gap-3 rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-sm text-[#8f3222]"><CirclePause className="mt-0.5 size-5 shrink-0" /><span><strong className="block">Online-Bestellungen sind gerade pausiert{untilLabel(availability.pausedUntil) === "bis auf Weiteres" ? "" : ` · ${untilLabel(availability.pausedUntil)}`}.</strong>{availability.pauseNote || "Du kannst dir trotzdem schon etwas aussuchen – bestellen geht, sobald wir wieder öffnen."}</span></p>}
-      <div className="relative mt-8 max-w-md"><Search aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" /><Input type="search" aria-label="Gerichte suchen" placeholder="Ganze Speisekarte durchsuchen" value={query} onChange={event => setQuery(event.target.value)} className="bg-card pl-10" /></div>
-    </header>
+      <ul className="hero-rise mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/75" style={{ animationDelay: "580ms" }}>
+        <li className="flex items-center gap-2"><Clock3 className="size-4 text-[#f5c3a6]" />Abholbereit in ca. {PREP_MINUTES.pickup} Min</li>
+        <li className="flex items-center gap-2"><Flame className="size-4 text-[#f5c3a6]" />Nährwerte zu jeder Bowl</li>
+        <li className="flex items-center gap-2"><Leaf className="size-4 text-[#f5c3a6]" />Vegane Optionen</li>
+      </ul>
+    </PageHero>
     <nav aria-label="Kategorien" className="sticky top-[4.5rem] z-30 border-y border-border bg-background/95 backdrop-blur-md sm:top-20">
-      <div ref={railRef} className="relative mx-auto flex max-w-7xl gap-1 overflow-x-auto px-5 py-3 [scrollbar-width:none] sm:px-8 [&::-webkit-scrollbar]:hidden">
+      <div ref={railRef} className="relative mx-auto flex max-w-[90rem] gap-1 overflow-x-auto px-5 py-3 [scrollbar-width:none] sm:px-8 [&::-webkit-scrollbar]:hidden">
         {/* Gleitende Markierung der aktiven Kategorie */}
         <span aria-hidden="true" className={`pointer-events-none absolute bottom-3 left-0 top-3 rounded-full bg-foreground shadow-sm transition-[transform,width,opacity] ${EASE} ${indicator ? "opacity-100" : "opacity-0"}`} style={indicator ? { width: indicator.width, transform: `translateX(${indicator.left}px)` } : undefined} />
         {categories.map(item => {
@@ -179,26 +195,35 @@ function OrderPage() {
         })}
       </div>
     </nav>
-    <div className="mx-auto max-w-7xl px-5 pb-36 sm:px-8">
-      {categories.map((item, index) => <section key={item.id} id={item.id} aria-label={item.label} className={`scroll-mt-40 ${index === 0 ? "pt-8" : "mt-14 border-t border-border pt-10 sm:mt-20 sm:pt-14"}`}>{sections[item.id]()}</section>)}
+    <div className="mx-auto max-w-[90rem] px-5 pb-36 sm:px-8">
+      {categories.map((item, index) => <section key={item.id} id={item.id} aria-label={item.label} className={`scroll-mt-40 ${index === 0 ? "pt-10" : "mt-16 border-t border-border pt-12 sm:mt-24 sm:pt-16"}`}>{sections[item.id]()}</section>)}
       {categories.length === 0 && <div className="pt-10"><EmptySearch /><Button variant="outline" onClick={() => setQuery("")}>Suche zurücksetzen</Button></div>}
-      <div className="mt-12 border-t border-border pt-6 text-xs leading-6 text-muted-foreground"><p>{menuNotes.pricing} · {menuNotes.nutrition}</p><p>{menuNotes.allergens}</p></div>
+      <div className="mt-16 rounded-3xl border border-border bg-muted px-5 py-5 text-xs leading-6 text-muted-foreground sm:px-7"><p>{menuNotes.pricing} · {menuNotes.nutrition}</p><p>{menuNotes.allergens}</p></div>
     </div>
     {selection && <ItemDialog key={selection.item.name} selection={selection} onClose={() => setSelection(null)} />}
   </main>;
 }
-function SectionTitle({ eyebrow, title, id }: { eyebrow: string; title: string; id?: string }) { return <div><p className="text-xs font-bold uppercase tracking-widest text-secondary">{eyebrow}</p><h2 id={id} className="mt-2 text-4xl">{title}</h2></div>; }
+function SectionTitle({ eyebrow, title, id }: { eyebrow: string; title: string; id?: string }) { return <div className="reveal"><p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">{eyebrow}</p><h2 id={id} className="mt-3 text-5xl leading-[0.95] sm:text-6xl">{title}</h2></div>; }
+/** Schwebende Bowls neben der Überschrift (nur große Bildschirme). */
+function HeroBowls() {
+  const [main, left, right] = [bowls[0], bowls[4], bowls[3]];
+  return <div className="relative hidden h-[24rem] lg:block" aria-hidden="true">
+    {main && <div className="float-bob absolute right-12 top-0 size-72 rounded-full bg-[radial-gradient(circle_at_50%_40%,#fff_0%,#f1e8dc_72%)] p-6 shadow-2xl shadow-black/40 ring-1 ring-white/20"><img src={main.image} alt="" className="size-full object-contain drop-shadow-xl" /><span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#292725] px-4 py-2 text-sm font-semibold text-[#f5f0e8] ring-1 ring-white/15">{main.name} · ab {main.small}</span></div>}
+    {left && <div className="float-bob absolute bottom-0 left-4 size-44 rounded-full bg-[radial-gradient(circle_at_50%_40%,#fff_0%,#f1e8dc_72%)] p-4 shadow-2xl shadow-black/40 ring-1 ring-white/20" style={{ animationDelay: "-2s" }}><img src={left.image} alt="" className="size-full object-contain drop-shadow-xl" /></div>}
+    {right && <div className="float-bob absolute left-20 top-2 size-32 rounded-full bg-[radial-gradient(circle_at_50%_40%,#fff_0%,#f1e8dc_72%)] p-3 shadow-2xl shadow-black/40 ring-1 ring-white/20" style={{ animationDelay: "-4s" }}><img src={right.image} alt="" className="size-full object-contain drop-shadow-xl" /></div>}
+  </div>;
+}
 function SoldOutBadge() { return <span className={`absolute bottom-2 left-2 sm:bottom-4 sm:left-4 ${SOLD_OUT_PILL}`}>Ausverkauft</span>; }
 function EmptySearch() { return <p className="py-10 text-muted-foreground">Keine passenden Gerichte gefunden.</p>; }
 function ProductImage({ item }: { item: MenuProduct }) { return item.image ? <img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} /> : <div className="flex h-full min-h-28 items-center justify-center sm:aspect-[4/3]" aria-hidden="true"><Coffee className="size-10 text-secondary sm:size-16" strokeWidth={1} /></div>; }
 // Gerichtskarten: auf dem Handy kompakt mit Bild links, ab Tablet als hohe Karte.
-const CARD = "grid grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-md sm:flex sm:flex-col sm:rounded-lg";
-const CARD_MEDIA = "relative bg-muted/50";
+const CARD = "reveal group grid grid-cols-[7.5rem_minmax(0,1fr)] overflow-hidden rounded-3xl border border-border bg-card transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:flex sm:flex-col";
+const CARD_MEDIA = "relative overflow-hidden bg-[radial-gradient(circle_at_50%_60%,#fff_0%,#f1e8dc_78%)]";
 const SOLD_OUT_CARD = "opacity-60 hover:shadow-none [&_img]:grayscale";
 const SOLD_OUT_PILL = "shrink-0 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background sm:text-xs";
-const CARD_IMG = "h-full w-full object-contain p-2 sm:aspect-[4/3] sm:h-auto sm:p-5";
+const CARD_IMG = "h-full w-full object-contain p-2 drop-shadow-lg transition duration-500 group-hover:-rotate-2 group-hover:scale-105 sm:aspect-[4/3] sm:h-auto sm:p-5";
 const CARD_BODY = "flex min-w-0 flex-1 flex-col p-4 sm:p-5";
-const CARD_TITLE = "text-xl leading-tight sm:text-2xl";
+const CARD_TITLE = "text-xl leading-tight sm:text-3xl";
 const CARD_TEXT = "mt-1.5 line-clamp-2 flex-1 text-sm leading-5 text-muted-foreground sm:mt-3 sm:line-clamp-none sm:leading-6";
 const CARD_FOOT = "mt-3 flex items-center justify-between gap-2 sm:mt-4 sm:border-t sm:border-border sm:pt-4";
 function ItemDialog({ selection, onClose }: { selection: Selection; onClose: () => void }) {
