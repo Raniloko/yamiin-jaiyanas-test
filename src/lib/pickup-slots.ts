@@ -60,3 +60,11 @@ export function openStatus(now: Date): { open: boolean; text: string } {
   }
   return { open: false, text: "Gerade geschlossen" };
 }
+
+/** Öffnungszeiten Montag bis Sonntag aus SITE.openingHours – für Kontaktseite & Co. */
+export function weekHours(): { day: number; label: string; hours: string | null }[] {
+  return [1, 2, 3, 4, 5, 6, 0].map((day) => {
+    const hours = SITE.openingHours[day];
+    return { day, label: WEEKDAYS[day] ?? "", hours: hours ? `${clock(hours[0])} – ${clock(hours[1])} Uhr` : null };
+  });
+}

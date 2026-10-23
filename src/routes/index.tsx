@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Bike, Clock3, Flame, Leaf, MapPin, Salad, ShoppingBag, Sparkles, Store, Wallet } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import heroBowlImage from "@/assets/hero-bowl.jpg";
+import { CtaBanner, GlowCta, OpenBadge, SectionHead, Ticker } from "@/components/site/brand-ui";
 import { euro } from "@/lib/cart-store";
 import { acais, bowls, coffees, iceBurgerImage, matchas, parseMenuPrice } from "@/lib/menu-data";
 import { DELIVERY } from "@/lib/menu-pricing";
-import { openStatus, PREP_MINUTES } from "@/lib/pickup-slots";
+import { PREP_MINUTES } from "@/lib/pickup-slots";
 import { SITE } from "@/lib/site-info";
 
 export const Route = createFileRoute("/")({
@@ -32,7 +33,7 @@ function Home() {
   return (
     <main className="overflow-hidden bg-background text-foreground">
       <Hero />
-      <Ticker />
+      <Ticker words={TICKER} />
       <Steps />
       <BowlShowcase />
       <MoreThanBowls />
@@ -40,43 +41,6 @@ function Home() {
       <Story />
       <FinalCta />
     </main>
-  );
-}
-
-/** Haupt-Button mit umlaufendem Licht (siehe .glow-cta in styles.css). */
-function GlowCta({ children, hash = "bowls", tone = "light" }: { children: ReactNode; hash?: string; tone?: "light" | "dark" }) {
-  return (
-    <span className="glow-cta">
-      <span className="glow-cta-halo" aria-hidden="true"><span /></span>
-      <Link
-        to="/speisekarte"
-        hash={hash}
-        className={`glow-cta-face group inline-flex h-14 items-center gap-2.5 rounded-full px-7 text-base font-semibold shadow-xl transition-[background-color,transform] duration-300 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5c3a6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#292725] sm:h-16 sm:px-8 sm:text-lg ${tone === "light" ? "bg-[#f5f0e8] text-[#292725] shadow-black/30 hover:bg-white" : "bg-[#292725] text-[#f5f0e8] shadow-[#292725]/25 hover:bg-[#1f1d1b]"}`}
-      >
-        {children}
-        <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
-      </Link>
-    </span>
-  );
-}
-
-/** "Jetzt geöffnet" – erst im Browser berechnet, damit Server und Gerät dieselbe Uhrzeit nutzen. */
-function OpenBadge() {
-  const [status, setStatus] = useState<ReturnType<typeof openStatus> | null>(null);
-  useEffect(() => {
-    const update = () => setStatus(openStatus(new Date()));
-    update();
-    const timer = setInterval(update, 60000);
-    return () => clearInterval(timer);
-  }, []);
-  return (
-    <p className="hero-rise mb-7 inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-[#f5f0e8] backdrop-blur-md sm:text-sm">
-      <span className="relative flex size-2.5" aria-hidden="true">
-        {status?.open && <span className="live-ping absolute inset-0 rounded-full bg-[#5fd068]" />}
-        <span className={`relative size-2.5 rounded-full ${status ? (status.open ? "bg-[#5fd068]" : "bg-[#f5c3a6]") : "bg-white/40"}`} />
-      </span>
-      {status ? status.text : "Willy-Brandt-Straße 23 · Hanau"}
-    </p>
   );
 }
 
@@ -89,15 +53,15 @@ function Hero() {
     <section className="relative isolate overflow-hidden border-b border-border bg-[#292725] text-[#f5f0e8]">
       <img src={heroBowlImage} alt="" aria-hidden="true" className="hero-drift absolute inset-0 -z-20 size-full object-cover object-center opacity-80" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(30,28,25,.95)_0%,rgba(30,28,25,.72)_48%,rgba(30,28,25,.2)_100%)] max-lg:bg-[linear-gradient(180deg,rgba(30,28,25,.55)_0%,rgba(30,28,25,.85)_55%,rgba(30,28,25,.96)_100%)]" />
-      <div className="absolute -left-40 top-1/3 -z-10 size-[34rem] rounded-full bg-[#c46b38]/25 blur-3xl" aria-hidden="true" />
+      <div className="absolute -left-48 top-1/4 -z-10 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.3),transparent_65%)]" aria-hidden="true" />
 
       <div className="mx-auto grid min-h-[44rem] max-w-[90rem] items-center gap-12 px-5 pb-16 pt-16 sm:min-h-[50rem] sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:py-24">
         <div className="relative z-10 max-w-3xl">
-          <OpenBadge />
+          <OpenBadge className="mb-7" />
           <h1 className="text-[3.6rem] leading-[0.9] sm:text-8xl lg:text-[7.4rem]">
-            {words.map((word) => <span key={word.text} className="hero-rise mr-[0.22em] inline-block" style={{ animationDelay: `${word.delay}ms` }}>{word.text}</span>)}
+            {words.map((word, index) => <span key={word.text}>{index > 0 && " "}<span className="hero-rise inline-block" style={{ animationDelay: `${word.delay}ms` }}>{word.text}</span></span>)}
             <br />
-            <span className="hero-rise mr-[0.22em] inline-block" style={{ animationDelay: "240ms" }}>people</span>
+            <span className="hero-rise inline-block" style={{ animationDelay: "240ms" }}>people</span>{" "}
             <em className="hero-rise inline-block text-[#f5c3a6]" style={{ animationDelay: "340ms" }}>eat well.</em>
           </h1>
           <p className="hero-rise mt-7 max-w-lg text-base leading-7 text-white/80 sm:text-lg" style={{ animationDelay: "480ms" }}>
@@ -154,35 +118,6 @@ function HeroFact({ icon, children }: { icon: ReactNode; children: ReactNode }) 
       <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#f5c3a6] [&_svg]:size-4">{icon}</span>
       {children}
     </li>
-  );
-}
-
-function Ticker() {
-  const row = (hidden: boolean) => (
-    <ul className="flex shrink-0 items-center" aria-hidden={hidden || undefined}>
-      {TICKER.map((word) => (
-        <li key={word} className="flex items-center gap-8 pr-8 font-display text-2xl italic sm:text-3xl">
-          {word}<span className="text-base not-italic text-[#f5c3a6]" aria-hidden="true">✦</span>
-        </li>
-      ))}
-    </ul>
-  );
-  return (
-    <div className="overflow-hidden bg-[#c46b38] py-4 text-[#fff7f1] sm:py-5">
-      <div className="animate-ticker flex w-max">{row(false)}{row(true)}</div>
-    </div>
-  );
-}
-
-function SectionHead({ eyebrow, title, accent, children }: { eyebrow: string; title: string; accent: string; children?: ReactNode }) {
-  return (
-    <div className="reveal grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">{eyebrow}</p>
-        <h2 className="mt-4 text-5xl leading-[0.95] sm:text-7xl">{title}<br /><em className="text-secondary">{accent}</em></h2>
-      </div>
-      {children && <div className="max-w-xl text-lg leading-8 text-muted-foreground lg:justify-self-end">{children}</div>}
-    </div>
   );
 }
 
@@ -275,7 +210,7 @@ function OrderWays() {
     <section className="border-y border-border bg-muted py-20 sm:py-24">
       <div className="mx-auto grid max-w-[90rem] gap-6 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.65fr)]">
         <div className="reveal relative isolate overflow-hidden rounded-[2rem] bg-[#292725] p-7 text-[#f5f0e8] sm:p-10">
-          <div className="absolute -right-24 -top-24 -z-10 size-80 rounded-full bg-[#c46b38]/35 blur-3xl" aria-hidden="true" />
+          <div className="absolute -right-32 -top-32 -z-10 size-[26rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.45),transparent_65%)]" aria-hidden="true" />
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f5c3a6]">Direkt bei uns bestellen</p>
           <h2 className="mt-4 text-5xl leading-none sm:text-6xl">Pick it.<br /><em className="text-[#f5c3a6]">Enjoy it.</em></h2>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -318,18 +253,13 @@ function Story() {
 
 function FinalCta() {
   return (
-    <section className="px-5 pb-24 sm:px-8 sm:pb-28">
-      <div className="reveal relative isolate mx-auto max-w-[90rem] overflow-hidden rounded-[2.5rem] bg-[#292725] px-6 py-16 text-center text-[#f5f0e8] sm:px-10 sm:py-24">
-        <img src={heroBowlImage} alt="" aria-hidden="true" className="absolute inset-0 -z-20 size-full object-cover opacity-25" />
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_120%,rgba(196,107,56,.55),transparent_60%)]" aria-hidden="true" />
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f5c3a6]">Hunger bekommen?</p>
-        <h2 className="mx-auto mt-4 max-w-3xl text-5xl leading-[0.95] sm:text-7xl">Deine Bowl ist in <em className="text-[#f5c3a6]">ca. {PREP_MINUTES.pickup} Minuten</em> fertig.</h2>
-        <div className="mt-10 flex justify-center"><GlowCta>Jetzt Bowl bestellen</GlowCta></div>
-        <p className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/70">
-          <span className="inline-flex items-center gap-2"><MapPin className="size-4" />{SITE.street}, {SITE.zipCity}</span>
-          {SITE.hours.map((entry) => <span key={entry.days}>{entry.days}: {entry.time}</span>)}
-        </p>
-      </div>
-    </section>
+    <CtaBanner
+      eyebrow="Hunger bekommen?"
+      title={<>Deine Bowl ist in <em className="text-[#f5c3a6]">ca. {PREP_MINUTES.pickup} Minuten</em> fertig.</>}
+      cta={<GlowCta>Jetzt Bowl bestellen</GlowCta>}
+    >
+      <span className="inline-flex items-center gap-2"><MapPin className="size-4" />{SITE.street}, {SITE.zipCity}</span>
+      {SITE.hours.map((entry) => <span key={entry.days}>{entry.days}: {entry.time}</span>)}
+    </CtaBanner>
   );
 }
