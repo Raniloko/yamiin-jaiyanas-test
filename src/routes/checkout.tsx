@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
-import { ArrowLeft, ArrowRight, Bike, Check, CirclePause, Clock3, CreditCard, LoaderCircle, MapPin, Minus, PackageX, Plus, ShieldCheck, Store, Trash2, Wallet, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bike, Check, CirclePause, Clock3, CreditCard, LoaderCircle, LockKeyhole, MapPin, Minus, PackageX, Plus, ShieldCheck, ShoppingBag, Store, Trash2, UserRound, Wallet, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { GlowCta, GlowFrame, PageHero, RiseTitle } from "@/components/site/brand-ui";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cart as cartStore, euro, useCart } from "@/lib/cart-store";
@@ -57,6 +58,10 @@ function CheckoutPage() {
   const [payError, setPayError] = useState("");
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState("");
+  // Zur Zahlung oben beginnen – sonst steht man am Handy (Button unten) vor dem Footer statt vor dem Formular.
+  useEffect(() => {
+    if (checkoutOrder) window.scrollTo({ top: 0 });
+  }, [checkoutOrder]);
   // Pause & Ausverkauft live – die Datenbank lehnt solche Bestellungen zusätzlich selbst ab.
   const availability = useAvailability();
   const paused = isPaused(availability);
@@ -187,35 +192,31 @@ function CheckoutPage() {
     return (
       <main className="min-h-screen bg-[#f8f6f0] text-[#1f2022]">
         <PaymentTestModeBanner />
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
+        <PageHero compact width="max-w-3xl">
           <button
             type="button"
             onClick={() => {
               setPayError("");
               setCheckoutOrder(null);
             }}
-            className="inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-semibold text-[#6f675f] transition-colors hover:text-[#c46b38]"
+            className="hero-rise mb-5 inline-flex items-center gap-2 text-sm font-semibold text-white/75 transition-colors hover:text-white"
           >
             <ArrowLeft className="size-4" /> Zurück zur Kasse
           </button>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[.2em] text-[#c46b38]">Bestellung #{checkoutOrder.id}</p>
-              <h1 className="mt-2 font-display text-4xl leading-none sm:text-5xl">Sicher bezahlen<span className="text-[#c46b38]">.</span></h1>
-            </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#e2d8ca] bg-white/70 px-4 py-2 text-xs font-semibold text-[#6f675f]">
-              <ShieldCheck className="size-4 text-[#c46b38]" /> {euro(checkoutOrder.total)} · verschlüsselt
-            </span>
+          <p className="hero-rise text-xs font-bold uppercase tracking-[.2em] text-[#f5c3a6]">Bestellung #{checkoutOrder.id}</p>
+          <RiseTitle lead="Sicher" accent="bezahlen." className="mt-3 text-5xl sm:text-7xl" />
+          <div className="hero-rise mt-6 flex flex-wrap gap-2" style={{ animationDelay: "320ms" }}>
+            <HeroChip icon={<LockKeyhole />}>{euro(checkoutOrder.total)} · verschlüsselt über Stripe</HeroChip>
+            <HeroChip icon={<ShieldCheck />}>Erst nach der Zahlung in der Küche</HeroChip>
           </div>
-          <p className="mt-3 text-sm text-[#6f675f]">
-            Deine Bestellung ist reserviert – sobald die Zahlung durch ist, geht sie direkt in die Küche.
-          </p>
+        </PageHero>
+        <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-8">
           {payError && (
-            <p role="alert" className="mt-6 rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-sm text-[#b4432f]">
+            <p role="alert" className="mb-6 rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-sm text-[#b4432f]">
               {payError}
             </p>
           )}
-          <div className="mt-6 overflow-hidden rounded-3xl border border-[#e2d8ca] bg-white shadow-xl shadow-[#1f2022]/5">
+          <div className="overflow-hidden rounded-[2rem] border border-[#e2d8ca] bg-white shadow-xl shadow-[#1f2022]/5">
             <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
               <EmbeddedCheckout />
             </EmbeddedCheckoutProvider>
@@ -227,15 +228,27 @@ function CheckoutPage() {
 
   if (count === 0) {
     return (
-      <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 bg-[#f8f6f0] px-6 text-center text-[#1f2022]">
-        <h1 className="font-display text-4xl">Dein Warenkorb ist leer</h1>
-        <p className="text-[#6f675f]">Such dir zuerst etwas Leckeres aus.</p>
-        <Link to="/speisekarte" className="inline-flex h-12 items-center gap-2 rounded-full bg-[#1f2022] px-6 font-semibold text-[#f8f6f0] transition-colors hover:bg-[#c46b38]">
-          Zur Speisekarte <ArrowRight className="size-4" />
-        </Link>
+      <main className="bg-[#f8f6f0] text-[#1f2022]">
+        <PageHero width="max-w-3xl" className="text-center">
+          <span className="hero-rise mx-auto flex size-20 items-center justify-center rounded-full bg-white/10 text-[#f5c3a6] ring-1 ring-white/15"><ShoppingBag className="size-9" /></span>
+          <RiseTitle lead="Dein Warenkorb" accent="ist noch leer." className="mt-6 text-5xl sm:text-7xl" />
+          <p className="hero-rise mx-auto mt-5 max-w-md text-white/75" style={{ animationDelay: "380ms" }}>Such dir zuerst etwas Leckeres aus – Bowls, Matcha, Açaí und mehr.</p>
+          <div className="hero-rise mt-9 flex justify-center" style={{ animationDelay: "480ms" }}><GlowCta>Zur Speisekarte</GlowCta></div>
+        </PageHero>
       </main>
     );
   }
+
+  // Live-Übersicht der Auswahl im Kopfbereich – zeigt, was noch fehlt.
+  const contactDone = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip;
+  const choices: Choice[] = [
+    { icon: delivery ? <Bike /> : <Store />, label: delivery ? "Liefern lassen" : "Selbst abholen", done: !belowMin, hint: belowMin ? `Mindestbestellwert ${euro(DELIVERY.minOrder)}` : delivery ? `${euro(DELIVERY.fee)} Liefergebühr` : "Kostenlos" },
+    { icon: <Clock3 />, label: pickup === "asap" ? "Schnellstmöglich" : `${slotDay?.label ?? "Heute"} ${hhmm(new Date(pickup))} Uhr`, done: !pickupError, hint: pickupError || (pickup === "asap" ? `ca. ${PREP_MINUTES[fulfillment]} Min` : "Wunschzeit") },
+    { icon: <UserRound />, label: contactDone ? contact.name.trim() : "Kontakt", done: contactDone, hint: contactDone ? (delivery ? `${address.street}, ${address.zip}` : contact.phone) : "noch offen" },
+    { icon: <CreditCard />, label: PAYMENTS.find((entry) => entry.key === payment)?.title ?? "", done: true, hint: payment === "onsite" ? (delivery ? "an der Haustür" : "an der Theke") : "im nächsten Schritt" },
+  ];
+  const doneCount = choices.filter((entry) => entry.done).length;
+  const ready = valid && count > 0 && !placing;
 
   const field = (key: keyof typeof contact, label: string, type: string, auto: string) => (
     <label className="group block">
@@ -255,20 +268,22 @@ function CheckoutPage() {
   return (
     <main className="min-h-screen bg-[#f8f6f0] pb-32 text-[#1f2022] lg:pb-16">
       <PaymentTestModeBanner />
-      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-8 sm:pt-10">
-        <Link to="/speisekarte" className="inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-semibold text-[#6f675f] transition-colors hover:text-[#c46b38]">
+      <PageHero compact width="max-w-6xl" aside={<ChoicesCard rows={choices} />}>
+        <Link to="/speisekarte" className="hero-rise mb-5 inline-flex items-center gap-2 text-sm font-semibold text-white/75 transition-colors hover:text-white">
           <ArrowLeft className="size-4" /> Weiter einkaufen
         </Link>
-
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[.2em] text-[#c46b38]">Abholung & Lieferung · Hanau</p>
-            <h1 className="mt-2 font-display text-5xl leading-[.95] sm:text-6xl">Fast geschafft<span className="text-[#c46b38]">.</span></h1>
-          </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#e2d8ca] bg-white/70 px-4 py-2 text-xs font-semibold text-[#6f675f]">
-            <ShieldCheck className="size-4 text-[#c46b38]" /> Ohne Konto · in 30 Sekunden
-          </span>
+        <RiseTitle lead="Fast" accent="geschafft." className="text-6xl sm:text-7xl lg:text-8xl" />
+        <div className="hero-rise mt-6 flex flex-wrap gap-2" style={{ animationDelay: "300ms" }}>
+          <HeroChip icon={<ShieldCheck />}>Ohne Konto · in 30 Sekunden</HeroChip>
+          <HeroChip icon={<Clock3 />}>{delivery ? `Lieferung in ca. ${PREP_MINUTES.delivery} Min` : `Abholbereit in ca. ${PREP_MINUTES.pickup} Min`}</HeroChip>
         </div>
+        {/* Handy & Tablet: Fortschritt als Balken */}
+        <div className="hero-rise mt-6 max-w-md lg:hidden" style={{ animationDelay: "380ms" }}>
+          <div className="flex justify-between text-xs font-semibold text-white/70"><span>{doneCount === choices.length ? "Alles bereit" : "Deine Angaben"}</span><span>{doneCount} von {choices.length}</span></div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#f5c3a6] transition-[width] duration-700 ease-[cubic-bezier(.32,.72,0,1)]" style={{ width: `${(doneCount / choices.length) * 100}%` }} /></div>
+        </div>
+      </PageHero>
+      <div className="mx-auto max-w-6xl px-4 sm:px-8">
 
         {(paused || blocked.length > 0 || orderError) && (
           <div className="mt-6 space-y-3" aria-live="polite">
@@ -299,8 +314,8 @@ function CheckoutPage() {
         )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
-          <div className="flex min-w-0 flex-col gap-10">
-            <Step n={1} title="Abholen oder liefern?">
+          <div className="flex min-w-0 flex-col gap-5">
+            <Step n={1} title="Abholen oder liefern?" done={choices[0]!.done}>
               <div className="grid gap-3 sm:grid-cols-2">
                 {([
                   { key: "pickup", title: "Selbst abholen", text: "Kostenlos · Willy-Brandt-Str. 23", icon: Store },
@@ -323,7 +338,7 @@ function CheckoutPage() {
               {belowMin && <p data-invalid={touched} className="mt-3 text-sm text-[#b4432f]">Für die Lieferung brauchen wir einen Mindestbestellwert von {euro(DELIVERY.minOrder)}.</p>}
             </Step>
 
-            <Step n={2} title={delivery ? "Wann soll geliefert werden?" : "Wann holst du ab?"}>
+            <Step n={2} title={delivery ? "Wann soll geliefert werden?" : "Wann holst du ab?"} done={choices[1]!.done}>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button
                   type="button"
@@ -375,7 +390,7 @@ function CheckoutPage() {
               </div>
             </Step>
 
-            <Step n={3} title={delivery ? "Wohin und an wen?" : "Wer holt ab?"}>
+            <Step n={3} title={delivery ? "Wohin und an wen?" : "Wer holt ab?"} done={contactDone}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">{field("name", "Name", "text", "name")}</div>
                 {delivery && (
@@ -409,7 +424,7 @@ function CheckoutPage() {
               </button>
             </Step>
 
-            <Step n={4} title="Wie möchtest du zahlen?">
+            <Step n={4} title="Wie möchtest du zahlen?" done>
               <div className="grid gap-3 sm:grid-cols-3">
                 {PAYMENTS.map(({ key, title, text, icon: Icon }) => {
                   const active = payment === key;
@@ -435,7 +450,8 @@ function CheckoutPage() {
           </div>
 
           <aside className="min-w-0 lg:sticky lg:top-28 lg:h-fit">
-            <div className="overflow-hidden rounded-3xl bg-[#1f2022] text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/20">
+            <div className="relative isolate overflow-hidden rounded-[2rem] bg-[#1f2022] text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/20">
+              <div className="absolute -right-32 -top-32 -z-10 size-[24rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.4),transparent_65%)]" aria-hidden="true" />
               <div className="flex items-center justify-between px-6 pt-6">
                 <h2 className="font-display text-2xl">Deine Bestellung</h2>
                 <span className="rounded-full bg-[#c46b38] px-3 py-1 text-xs font-bold">{count} Artikel</span>
@@ -466,9 +482,13 @@ function CheckoutPage() {
                   <span className="text-sm text-[#cfc2b5]">Gesamt <span className="text-xs">inkl. MwSt.</span></span>
                   <span className="font-display text-3xl tabular-nums">{euro(grandTotal)}</span>
                 </div>
-                <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={paused || undefined} className={`group mt-5 hidden h-14 w-full items-center justify-center gap-2 rounded-full font-bold text-white transition-all duration-200 active:scale-[.98] disabled:opacity-70 lg:flex ${paused ? "bg-white/20" : "bg-[#c46b38] hover:bg-[#d9946d]"}`}>
-                  {placing ? <><LoaderCircle className="size-4 animate-spin" /> Wird gesendet …</> : paused ? <><CirclePause className="size-4" /> Gerade pausiert</> : <>{payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></>}
-                </button>
+                {/* Leuchtet, sobald alles ausgefüllt ist */}
+                <GlowFrame active={ready} className="mt-5 hidden w-full lg:flex">
+                  <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={paused || undefined} className={`glow-cta-face group relative flex h-14 w-full items-center justify-center gap-2 rounded-full font-bold text-white transition-all duration-200 active:scale-[.98] disabled:opacity-70 ${paused ? "bg-white/20" : "bg-[#c46b38] hover:bg-[#d9946d]"}`}>
+                    {placing ? <><LoaderCircle className="size-4 animate-spin" /> Wird gesendet …</> : paused ? <><CirclePause className="size-4" /> Gerade pausiert</> : <>{payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></>}
+                  </button>
+                </GlowFrame>
+                {payment !== "onsite" && <p className="mt-3 hidden items-center justify-center gap-1.5 text-xs text-[#cfc2b5] lg:flex"><LockKeyhole className="size-3.5" />Sichere Zahlung über Stripe</p>}
                 {touched && !valid && <p className="mt-3 hidden text-center text-xs text-[#f0a48f] lg:block">Bitte prüfe deine Angaben.</p>}
               </div>
             </div>
@@ -477,8 +497,9 @@ function CheckoutPage() {
       </div>
 
       {/* Mobile: feste Bestellleiste */}
-      <div className="fixed inset-x-3 bottom-3 z-40 lg:hidden">
-        <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={paused || undefined} className="flex h-16 w-full items-center justify-between rounded-2xl bg-[#1f2022] pl-5 pr-2 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/30 active:scale-[.98] disabled:opacity-80">
+      <div className="fixed inset-x-3 bottom-3 z-40 pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <GlowFrame active={ready} radius="1rem" className="w-full">
+        <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={paused || undefined} className="glow-cta-face relative flex h-16 w-full items-center justify-between rounded-2xl bg-[#1f2022] pl-5 pr-2 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/30 active:scale-[.98] disabled:opacity-80">
           <span className="text-left">
             <span className="block text-xs text-[#cfc2b5]">{paused ? "Bestellungen pausiert" : blocked.length > 0 ? "Ausverkauftes entfernen" : touched && !valid ? "Bitte Angaben prüfen" : `${count} Artikel · inkl. MwSt.`}</span>
             <span className="block font-display text-xl tabular-nums">{euro(grandTotal)}</span>
@@ -488,19 +509,50 @@ function CheckoutPage() {
             {placing ? "Sendet …" : paused ? "Pausiert" : <>Bestellen <ArrowRight className="size-4" /></>}
           </span>
         </button>
+        </GlowFrame>
       </div>
     </main>
   );
 }
 
-function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+function Step({ n, title, done, children }: { n: number; title: string; done?: boolean; children: React.ReactNode }) {
   return (
-    <section>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex size-8 items-center justify-center rounded-full bg-[#1f2022] font-display text-sm text-[#f8f6f0]">{n}</span>
+    <section className="rounded-[1.75rem] border border-[#e2d8ca] bg-[#fdfbf7] p-5 shadow-sm shadow-[#1f2022]/[.03] sm:p-7">
+      <div className="mb-5 flex items-center gap-3">
+        <span className={`flex size-9 shrink-0 items-center justify-center rounded-full font-display text-base transition-colors duration-300 ${done ? "bg-[#c46b38] text-white" : "bg-[#1f2022] text-[#f8f6f0]"}`} aria-hidden="true">
+          {done ? <Check className="size-4 animate-in zoom-in-50" /> : n}
+        </span>
         <h2 className="font-display text-2xl sm:text-3xl">{title}</h2>
+        {done && <span className="sr-only">(erledigt)</span>}
       </div>
       {children}
     </section>
+  );
+}
+
+type Choice = { icon: React.ReactNode; label: string; hint: string; done: boolean };
+
+function HeroChip({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-semibold text-[#f5f0e8] backdrop-blur-md sm:text-sm [&_svg]:size-4 [&_svg]:text-[#f5c3a6]">{icon}{children}</span>;
+}
+
+/** Desktop: was gewählt ist und was noch fehlt – aktualisiert sich beim Ausfüllen. */
+function ChoicesCard({ rows }: { rows: Choice[] }) {
+  const done = rows.filter((row) => row.done).length;
+  return (
+    <div className="hero-rise hidden lg:block" style={{ animationDelay: "420ms" }}>
+      <div className="ml-auto max-w-sm rounded-[2rem] border border-white/15 bg-white/10 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.18em] text-[#f5c3a6]"><span>Deine Auswahl</span><span className="tabular-nums">{done}/{rows.length}</span></div>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#f5c3a6] transition-[width] duration-700 ease-[cubic-bezier(.32,.72,0,1)]" style={{ width: `${(done / rows.length) * 100}%` }} /></div>
+        <ul className="mt-5 space-y-3">
+          {rows.map((row, index) => (
+            <li key={index} className="flex items-center gap-3">
+              <span className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300 [&_svg]:size-4 ${row.done ? "bg-[#c46b38] text-white" : "bg-white/10 text-white/60"}`}>{row.done ? <Check /> : row.icon}</span>
+              <span className="min-w-0"><strong className="block truncate text-sm">{row.label}</strong><span className={`block truncate text-xs ${row.done ? "text-white/60" : "text-[#f5c3a6]"}`}>{row.hint}</span></span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
