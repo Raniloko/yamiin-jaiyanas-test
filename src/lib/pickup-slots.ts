@@ -9,6 +9,9 @@ const WEEKDAYS = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Fr
 
 export type SlotDay = { label: string; slots: Date[] };
 
+/** Zubereitungszeit für "Schnellstmöglich" – Kasse und Startseite nutzen dieselben Werte. */
+export const PREP_MINUTES = { pickup: 25, delivery: 45 } as const;
+
 const minutesOf = (date: Date) => date.getHours() * 60 + date.getMinutes();
 const atMinutes = (day: Date, minutes: number) => {
   const date = new Date(day);
@@ -40,4 +43,20 @@ export function nextSlotDay(now: Date): SlotDay | null {
     return { label, slots };
   }
   return null;
+}
+
+const clock = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+
+/** Für die Startseite: "Jetzt geöffnet · bis 20:00 Uhr" bzw. wann wir wieder öffnen. */
+export function openStatus(now: Date): { open: boolean; text: string } {
+  const minutes = minutesOf(now);
+  const today = SITE.openingHours[now.getDay()];
+  if (today && minutes >= today[0] && minutes < today[1]) return { open: true, text: `Jetzt geöffnet · bis ${clock(today[1])} Uhr` };
+  if (today && minutes < today[0]) return { open: false, text: `Öffnet heute um ${clock(today[0])} Uhr` };
+  for (let offset = 1; offset <= 7; offset++) {
+    const day = (now.getDay() + offset) % 7;
+    const hours = SITE.openingHours[day];
+    if (hours) return { open: false, text: `Öffnet ${offset === 1 ? "morgen" : WEEKDAYS[day]} um ${clock(hours[0])} Uhr` };
+  }
+  return { open: false, text: "Gerade geschlossen" };
 }
