@@ -38,6 +38,14 @@ const PAYMENTS: { key: Order["payment"]; title: string; text: string; icon: type
 
 /** Zubereitungs- bzw. Lieferzeit für "Schnellstmöglich" in Minuten. */
 const SLOTS_COLLAPSED = 12;
+
+type StepId = 1 | 2 | 3 | 4;
+type Contact = { name: string; phone: string; email: string };
+const contactErrors = (contact: Contact) => ({
+  name: contact.name.trim().length < 2 ? "Bitte gib deinen Namen ein." : "",
+  phone: /^\+?[0-9 ()/-]{7,}$/.test(contact.phone) ? "" : "Bitte gib eine gültige Telefonnummer ein.",
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email) ? "" : "Bitte gib eine gültige E-Mail ein.",
+});
 const hhmm = (date: Date) => date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
 function CheckoutPage() {
@@ -58,6 +66,10 @@ function CheckoutPage() {
   const [payError, setPayError] = useState("");
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState("");
+  // Akkordeon: immer nur ein Schritt offen. "flow" = erster Durchlauf Schritt für Schritt,
+  // danach (oder bei gespeicherten Daten) klappt "Ändern" nur den einen Schritt auf.
+  const [openStep, setOpenStep] = useState<StepId | null>(1);
+  const [flow, setFlow] = useState(true);
   // Zur Zahlung oben beginnen – sonst steht man am Handy (Button unten) vor dem Footer statt vor dem Formular.
   useEffect(() => {
     if (checkoutOrder) window.scrollTo({ top: 0 });
@@ -74,8 +86,13 @@ function CheckoutPage() {
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 60000);
     try {
-      const saved = JSON.parse(localStorage.getItem("yj-contact") || "null");
+      const saved = JSON.parse(localStorage.getItem("yj-contact") || "null") as Contact | null;
       if (saved) setContact(saved);
+      // Stammgast: alles schon bekannt – Übersicht statt Schritt-für-Schritt.
+      if (saved && Object.values(contactErrors(saved)).every((error) => !error)) {
+        setOpenStep(null);
+        setFlow(false);
+      }
       const savedAddress = JSON.parse(localStorage.getItem("yj-address") || "null");
       if (savedAddress) setAddress(savedAddress);
     } catch {
@@ -87,14 +104,7 @@ function CheckoutPage() {
     if (count > 0) trackOnce("checkout", "checkout_start", { qty: count, value: total });
   }, [count > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const errors = useMemo(
-    () => ({
-      name: contact.name.trim().length < 2 ? "Bitte gib deinen Namen ein." : "",
-      phone: /^\+?[0-9 ()/-]{7,}$/.test(contact.phone) ? "" : "Bitte gib eine gültige Telefonnummer ein.",
-      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email) ? "" : "Bitte gib eine gültige E-Mail ein.",
-    }),
-    [contact],
-  );
+  const errors = useMemo(() => contactErrors(contact), [contact]);
   const delivery = fulfillment === "delivery";
   const prepMinutes = PREP_MINUTES[fulfillment];
   const slotDay = useMemo(() => (now ? nextSlotDay(now) : null), [now]);
@@ -114,18 +124,45 @@ function CheckoutPage() {
   const belowMin = delivery && total < DELIVERY.minOrder;
   const grandTotal = total + deliveryFee;
   const valid = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip && !belowMin && !pickupError && !paused && blocked.length === 0;
+  const contactDone = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip;
+  const stepDone: Record<StepId, boolean> = { 1: !belowMin, 2: !pickupError, 3: contactDone, 4: true };
+  // Im ersten Durchlauf gelten nur Schritte vor dem offenen als erledigt – so wirkt der Fortschritt ehrlich.
+  const confirmed = (step: StepId) => stepDone[step] && (!flow || openStep === null || step < openStep);
+
+  /** Schritt öffnen (oder alle zuklappen) und ihn ins Bild holen. */
+  const openAt = (step: StepId | null) => {
+    setOpenStep(step);
+    if (!step) return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.getElementById(`step-${step}`)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      }),
+    );
+  };
+  /** Schritt abgeschlossen: im ersten Durchlauf weiter zum nächsten, sonst zurück zur Übersicht. */
+  const finish = (step: StepId, next?: StepId | null) => {
+    if (next !== undefined) return openAt(next);
+    if (flow && step < 4) return openAt((step + 1) as StepId);
+    setFlow(false);
+    openAt(null);
+  };
 
   const submit = async () => {
     if (placing) return;
     setTouched(true);
     setOrderError("");
     if (!valid || count === 0) {
-      // Zum ersten fehlerhaften Feld springen, damit man auf dem Handy sieht, was fehlt.
-      requestAnimationFrame(() => {
-        const first = document.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]');
-        first?.scrollIntoView({ behavior: "smooth", block: "center" });
-        if (first instanceof HTMLInputElement) first.focus({ preventScroll: true });
-      });
+      // Den Schritt mit der fehlenden Angabe aufklappen und zum ersten fehlerhaften Feld springen.
+      const missing = ([1, 2, 3] as StepId[]).find((step) => !stepDone[step]);
+      if (missing && !paused && blocked.length === 0) setOpenStep(missing);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const first = document.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]');
+          first?.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (first instanceof HTMLInputElement) first.focus({ preventScroll: true });
+        }),
+      );
       return;
     }
     const pickupAt = pickup === "asap" ? Date.now() + prepMinutes * 60000 : pickup;
@@ -239,15 +276,23 @@ function CheckoutPage() {
     );
   }
 
-  // Live-Übersicht der Auswahl im Kopfbereich – zeigt, was noch fehlt.
-  const contactDone = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip;
+  // Live-Übersicht der Auswahl (Kopfbereich + zugeklappte Schritte) – zeigt, was noch fehlt.
   const choices: Choice[] = [
-    { icon: delivery ? <Bike /> : <Store />, label: delivery ? "Liefern lassen" : "Selbst abholen", done: !belowMin, hint: belowMin ? `Mindestbestellwert ${euro(DELIVERY.minOrder)}` : delivery ? `${euro(DELIVERY.fee)} Liefergebühr` : "Kostenlos" },
-    { icon: <Clock3 />, label: pickup === "asap" ? "Schnellstmöglich" : `${slotDay?.label ?? "Heute"} ${hhmm(new Date(pickup))} Uhr`, done: !pickupError, hint: pickupError || (pickup === "asap" ? `ca. ${PREP_MINUTES[fulfillment]} Min` : "Wunschzeit") },
-    { icon: <UserRound />, label: contactDone ? contact.name.trim() : "Kontakt", done: contactDone, hint: contactDone ? (delivery ? `${address.street}, ${address.zip}` : contact.phone) : "noch offen" },
-    { icon: <CreditCard />, label: PAYMENTS.find((entry) => entry.key === payment)?.title ?? "", done: true, hint: payment === "onsite" ? (delivery ? "an der Haustür" : "an der Theke") : "im nächsten Schritt" },
+    { icon: delivery ? <Bike /> : <Store />, label: delivery ? "Liefern lassen" : "Selbst abholen", done: confirmed(1), hint: belowMin ? `Mindestbestellwert ${euro(DELIVERY.minOrder)}` : delivery ? `${euro(DELIVERY.fee)} Liefergebühr` : "Kostenlos" },
+    { icon: <Clock3 />, label: pickup === "asap" ? "Schnellstmöglich" : `${slotDay?.label ?? "Heute"} ${hhmm(new Date(pickup))} Uhr`, done: confirmed(2), hint: pickupError || (pickup === "asap" ? `ca. ${PREP_MINUTES[fulfillment]} Min` : "Wunschzeit") },
+    { icon: <UserRound />, label: contactDone ? contact.name.trim() : "Kontakt", done: confirmed(3), hint: contactDone ? (delivery ? `${address.street}, ${address.zip}` : contact.phone) : "noch offen" },
+    { icon: <CreditCard />, label: PAYMENTS.find((entry) => entry.key === payment)?.title ?? "", done: confirmed(4), hint: payment === "onsite" ? (delivery ? "an der Haustür" : "an der Theke") : "im nächsten Schritt" },
   ];
   const doneCount = choices.filter((entry) => entry.done).length;
+  const stepProps = (step: StepId) => ({
+    n: step,
+    open: openStep === step,
+    done: choices[step - 1]!.done,
+    missing: !stepDone[step],
+    upcoming: flow && openStep !== null && step > openStep,
+    summary: choices[step - 1]!,
+    onOpen: () => openAt(step),
+  });
   const ready = valid && count > 0 && !placing;
 
   const field = (key: keyof typeof contact, label: string, type: string, auto: string) => (
@@ -268,7 +313,7 @@ function CheckoutPage() {
   return (
     <main className="min-h-screen bg-[#f8f6f0] pb-32 text-[#1f2022] lg:pb-16">
       <PaymentTestModeBanner />
-      <PageHero compact width="max-w-6xl" aside={<ChoicesCard rows={choices} />}>
+      <PageHero compact width="max-w-6xl" aside={<ChoicesCard rows={choices} onOpen={(step) => openAt(step)} />}>
         <Link to="/speisekarte" className="hero-rise mb-5 inline-flex items-center gap-2 text-sm font-semibold text-white/75 transition-colors hover:text-white">
           <ArrowLeft className="size-4" /> Weiter einkaufen
         </Link>
@@ -279,7 +324,7 @@ function CheckoutPage() {
         </div>
         {/* Handy & Tablet: Fortschritt als Balken */}
         <div className="hero-rise mt-6 max-w-md lg:hidden" style={{ animationDelay: "380ms" }}>
-          <div className="flex justify-between text-xs font-semibold text-white/70"><span>{doneCount === choices.length ? "Alles bereit" : "Deine Angaben"}</span><span>{doneCount} von {choices.length}</span></div>
+          <div className="flex justify-between text-xs font-semibold text-white/70"><span>{openStep ? `Schritt ${openStep} von ${choices.length}` : doneCount === choices.length ? "Alles bereit" : "Fast fertig"}</span><span>{doneCount} von {choices.length}</span></div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#f5c3a6] transition-[width] duration-700 ease-[cubic-bezier(.32,.72,0,1)]" style={{ width: `${(doneCount / choices.length) * 100}%` }} /></div>
         </div>
       </PageHero>
@@ -315,7 +360,7 @@ function CheckoutPage() {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="flex min-w-0 flex-col gap-5">
-            <Step n={1} title="Abholen oder liefern?" done={choices[0]!.done}>
+            <Step {...stepProps(1)} title="Abholen oder liefern?" label="Bestellart">
               <div className="grid gap-3 sm:grid-cols-2">
                 {([
                   { key: "pickup", title: "Selbst abholen", text: "Kostenlos · Willy-Brandt-Str. 23", icon: Store },
@@ -324,7 +369,13 @@ function CheckoutPage() {
                   <button
                     key={key}
                     type="button"
-                    onClick={() => setFulfillment(key)}
+                    onClick={() => {
+                      setFulfillment(key);
+                      // Unter dem Mindestbestellwert bleibt der Schritt offen (Hinweis darunter).
+                      if (key === "delivery" && total < DELIVERY.minOrder) return;
+                      const addressMissing = key === "delivery" && (address.street.trim().length < 4 || !address.zip.startsWith(DELIVERY.zipPrefix));
+                      finish(1, !flow && addressMissing ? 3 : undefined);
+                    }}
                     className={`flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[.98] ${fulfillment === key ? "border-[#c46b38] bg-[#fff7f1] shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]/50"}`}
                   >
                     <span className={`flex size-11 shrink-0 items-center justify-center rounded-full ${fulfillment === key ? "bg-[#c46b38] text-white" : "bg-[#f1e8dc] text-[#1f2022]"}`}><Icon className="size-5" /></span>
@@ -338,12 +389,15 @@ function CheckoutPage() {
               {belowMin && <p data-invalid={touched} className="mt-3 text-sm text-[#b4432f]">Für die Lieferung brauchen wir einen Mindestbestellwert von {euro(DELIVERY.minOrder)}.</p>}
             </Step>
 
-            <Step n={2} title={delivery ? "Wann soll geliefert werden?" : "Wann holst du ab?"} done={choices[1]!.done}>
+            <Step {...stepProps(2)} title={delivery ? "Wann soll geliefert werden?" : "Wann holst du ab?"} label={delivery ? "Lieferzeit" : "Abholzeit"} action={{ label: flow ? "Weiter" : "Übernehmen", onClick: () => finish(2), disabled: !!pickupError }}>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button
                   type="button"
                   disabled={!asapOpen}
-                  onClick={() => setPickup("asap")}
+                  onClick={() => {
+                    setPickup("asap");
+                    finish(2);
+                  }}
                   className={`flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${pickup === "asap" ? "border-[#1f2022] bg-[#1f2022] text-[#f8f6f0] shadow-lg" : "border-[#e2d8ca] bg-white hover:border-[#c46b38] disabled:hover:border-[#e2d8ca]"}`}
                 >
                   <span className={`flex size-11 shrink-0 items-center justify-center rounded-full ${pickup === "asap" ? "bg-[#c46b38]" : "bg-[#f1e8dc] text-[#c46b38]"}`}><Zap className="size-5" /></span>
@@ -371,7 +425,10 @@ function CheckoutPage() {
                     <button
                       key={slot.getTime()}
                       type="button"
-                      onClick={() => setPickup(slot.getTime())}
+                      onClick={() => {
+                        setPickup(slot.getTime());
+                        finish(2);
+                      }}
                       className={`${collapsed ? "sm:hidden" : ""} shrink-0 snap-start rounded-full border px-4 py-2.5 text-sm font-semibold tabular-nums transition-all duration-200 active:scale-95 ${active ? "border-[#c46b38] bg-[#c46b38] text-white shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]"}`}
                     >
                       {hhmm(slot)}
@@ -390,7 +447,14 @@ function CheckoutPage() {
               </div>
             </Step>
 
-            <Step n={3} title={delivery ? "Wohin und an wen?" : "Wer holt ab?"} done={contactDone}>
+            <Step {...stepProps(3)} title={delivery ? "Wohin und an wen?" : "Wer holt ab?"} label="Kontakt" action={{
+              label: flow ? "Weiter zur Zahlung" : "Übernehmen",
+              onClick: () => {
+                if (contactDone) return finish(3);
+                setTouched(true);
+                requestAnimationFrame(() => document.querySelector<HTMLInputElement>('#step-3 [aria-invalid="true"]')?.focus());
+              },
+            }}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">{field("name", "Name", "text", "name")}</div>
                 {delivery && (
@@ -424,7 +488,7 @@ function CheckoutPage() {
               </button>
             </Step>
 
-            <Step n={4} title="Wie möchtest du zahlen?" done>
+            <Step {...stepProps(4)} title="Wie möchtest du zahlen?" label="Zahlung">
               <div className="grid gap-3 sm:grid-cols-3">
                 {PAYMENTS.map(({ key, title, text, icon: Icon }) => {
                   const active = payment === key;
@@ -432,7 +496,10 @@ function CheckoutPage() {
                     <button
                       key={key}
                       type="button"
-                      onClick={() => setPayment(key)}
+                      onClick={() => {
+                        setPayment(key);
+                        finish(4);
+                      }}
                       className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 pr-10 text-left sm:flex-col sm:items-start sm:pr-4 transition-all duration-200 active:scale-[.98] ${active ? "border-[#c46b38] bg-[#fff7f1] shadow-md" : "border-[#e2d8ca] bg-white hover:border-[#c46b38]/60"}`}
                     >
                       <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${active ? "bg-[#c46b38] text-white" : "bg-[#f1e8dc] text-[#1f2022]"}`}><Icon className="size-5" /></span>
@@ -515,17 +582,44 @@ function CheckoutPage() {
   );
 }
 
-function Step({ n, title, done, children }: { n: number; title: string; done?: boolean; children: React.ReactNode }) {
+type StepAction = { label: string; onClick: () => void; disabled?: boolean };
+
+/** Ein Schritt der Kasse: offen mit Inhalt, sonst eine Zeile mit der Auswahl und "Ändern". */
+function Step({ n, title, label, open, done, missing, upcoming, summary, onOpen, action, children }: {
+  n: number; title: string; label: string; open: boolean; done: boolean; missing: boolean; upcoming: boolean;
+  summary: Choice; onOpen: () => void; action?: StepAction; children: React.ReactNode;
+}) {
+  const badge = (
+    <span className={`flex size-9 shrink-0 items-center justify-center rounded-full font-display text-base transition-colors duration-300 ${done ? "bg-[#c46b38] text-white" : open ? "bg-[#1f2022] text-[#f8f6f0]" : "bg-[#f1e8dc] text-[#6f675f]"}`} aria-hidden="true">
+      {done ? <Check className="size-4 animate-in zoom-in-50" /> : n}
+    </span>
+  );
   return (
-    <section className="rounded-[1.75rem] border border-[#e2d8ca] bg-[#fdfbf7] p-5 shadow-sm shadow-[#1f2022]/[.03] sm:p-7">
-      <div className="mb-5 flex items-center gap-3">
-        <span className={`flex size-9 shrink-0 items-center justify-center rounded-full font-display text-base transition-colors duration-300 ${done ? "bg-[#c46b38] text-white" : "bg-[#1f2022] text-[#f8f6f0]"}`} aria-hidden="true">
-          {done ? <Check className="size-4 animate-in zoom-in-50" /> : n}
-        </span>
-        <h2 className="font-display text-2xl sm:text-3xl">{title}</h2>
-        {done && <span className="sr-only">(erledigt)</span>}
-      </div>
-      {children}
+    <section id={`step-${n}`} className={`scroll-mt-24 rounded-[1.75rem] border bg-[#fdfbf7] shadow-sm shadow-[#1f2022]/[.03] transition-[border-color,box-shadow,opacity] duration-300 ${open ? "border-[#c46b38]/50 p-5 shadow-lg shadow-[#1f2022]/[.06] sm:p-7" : "border-[#e2d8ca] p-4 sm:px-6"} ${upcoming ? "opacity-60" : ""}`}>
+      {open ? (
+        <>
+          <div className="mb-5 flex items-center gap-3">
+            {badge}
+            <h2 className="font-display text-2xl sm:text-3xl">{title}</h2>
+          </div>
+          <div className="animate-in fade-in slide-in-from-top-1 duration-300">{children}</div>
+          {action && (
+            <button type="button" onClick={action.onClick} disabled={action.disabled} className="group mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-[#1f2022] px-6 font-semibold text-[#f8f6f0] transition-colors hover:bg-[#c46b38] disabled:opacity-50">
+              {action.label} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          )}
+        </>
+      ) : (
+        <button type="button" onClick={onOpen} aria-expanded={false} className="flex w-full items-center gap-4 text-left">
+          {badge}
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11px] font-bold uppercase tracking-[.14em] text-[#6f675f]">{label}</span>
+            <span className="block truncate font-semibold">{summary.label}</span>
+            <span className={`block truncate text-sm ${missing ? "font-semibold text-[#c46b38]" : "text-[#6f675f]"}`}>{summary.hint}</span>
+          </span>
+          <span className="shrink-0 rounded-full border border-[#e2d8ca] bg-white px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-[#c46b38]">{missing ? "Ausfüllen" : "Ändern"}</span>
+        </button>
+      )}
     </section>
   );
 }
@@ -537,7 +631,7 @@ function HeroChip({ icon, children }: { icon: React.ReactNode; children: React.R
 }
 
 /** Desktop: was gewählt ist und was noch fehlt – aktualisiert sich beim Ausfüllen. */
-function ChoicesCard({ rows }: { rows: Choice[] }) {
+function ChoicesCard({ rows, onOpen }: { rows: Choice[]; onOpen: (step: StepId) => void }) {
   const done = rows.filter((row) => row.done).length;
   return (
     <div className="hero-rise hidden lg:block" style={{ animationDelay: "420ms" }}>
@@ -546,9 +640,11 @@ function ChoicesCard({ rows }: { rows: Choice[] }) {
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#f5c3a6] transition-[width] duration-700 ease-[cubic-bezier(.32,.72,0,1)]" style={{ width: `${(done / rows.length) * 100}%` }} /></div>
         <ul className="mt-5 space-y-3">
           {rows.map((row, index) => (
-            <li key={index} className="flex items-center gap-3">
-              <span className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300 [&_svg]:size-4 ${row.done ? "bg-[#c46b38] text-white" : "bg-white/10 text-white/60"}`}>{row.done ? <Check /> : row.icon}</span>
-              <span className="min-w-0"><strong className="block truncate text-sm">{row.label}</strong><span className={`block truncate text-xs ${row.done ? "text-white/60" : "text-[#f5c3a6]"}`}>{row.hint}</span></span>
+            <li key={index}>
+              <button type="button" onClick={() => onOpen((index + 1) as StepId)} className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-1 text-left transition-colors hover:bg-white/10">
+                <span className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300 [&_svg]:size-4 ${row.done ? "bg-[#c46b38] text-white" : "bg-white/10 text-white/60"}`}>{row.done ? <Check /> : row.icon}</span>
+                <span className="min-w-0"><strong className="block truncate text-sm">{row.label}</strong><span className={`block truncate text-xs ${row.done ? "text-white/60" : "text-[#f5c3a6]"}`}>{row.hint}</span></span>
+              </button>
             </li>
           ))}
         </ul>
