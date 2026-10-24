@@ -11,7 +11,7 @@ export function InstallHint({ app, className }: { app: InternalApp; className?: 
 
   return (
     <aside aria-label="Als App installieren" className={`relative flex gap-3 rounded-2xl border border-border bg-card p-4 pr-10 shadow-sm ${className ?? ""}`}>
-      <BrandMark className="size-10 shrink-0 grayscale" />
+      <BrandMark className="size-10 shrink-0" />
       <div className="min-w-0 text-sm">
         <p className="font-semibold">{name} als App aufs Handy</p>
         {state.kind === "ios" ? (
@@ -23,7 +23,7 @@ export function InstallHint({ app, className }: { app: InternalApp; className?: 
         ) : (
           <>
             <p className="mt-1 text-muted-foreground">Mit eigenem Icon auf dem Home-Bildschirm, im Vollbild ohne Browserleiste.</p>
-            <button type="button" onClick={state.install} className="mt-3 inline-flex h-9 items-center gap-2 rounded-full bg-foreground px-4 text-sm font-semibold text-background">
+            <button type="button" onClick={state.install} className="mt-3 inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground">
               <Download className="size-4" /> Installieren
             </button>
           </>

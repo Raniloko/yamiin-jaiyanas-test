@@ -23,7 +23,7 @@ export function AdminGate({ children, title }: { children: (state: Extract<Admin
     <main className="admin-theme flex min-h-dvh items-center justify-center bg-background px-4 pb-10 pt-[max(2.5rem,env(safe-area-inset-top))] text-foreground">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <BrandMark className="size-16 grayscale" />
+          <BrandMark className="size-16" />
           <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Yamiin &amp; Jaiyana&rsquo;s · Intern</p>
           <h1 className="mt-2 text-3xl">{title}</h1>
         </div>

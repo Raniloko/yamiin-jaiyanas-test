@@ -153,13 +153,21 @@ function FilterRow({ label, children, stacked }: { label: string; children: Reac
   );
 }
 
+/** Status-Farben wie in der Küche: bestätigt blau, in Zubereitung gelb, abholbereit grün, abgeholt grau (immer mit Text). */
+const STATUS_TONE: Record<Order["status"], string> = {
+  bestaetigt: "bg-[#e8f1fc] text-[#1f62b5]",
+  zubereitung: "bg-[#fdf1d6] text-[#8a5a00]",
+  abholbereit: "bg-[#e5f5e5] text-[#06660a]",
+  abgeholt: "bg-muted text-muted-foreground",
+};
+
 function StatusBadge({ order }: { order: Order }) {
   if (isUnpaidOnline(order)) {
-    return <span className="inline-flex items-center gap-1 rounded-full border border-foreground/40 px-2 py-0.5 text-[11px] font-semibold"><AlertTriangle className="size-3" aria-hidden="true" />Zahlung offen</span>;
+    return <span className="inline-flex items-center gap-1 rounded-full bg-[#fdecec] px-2 py-0.5 text-[11px] font-semibold text-[#a32b2b]"><AlertTriangle className="size-3" aria-hidden="true" />Zahlung offen</span>;
   }
   return (
     <>
-      <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${order.status === "abgeholt" ? "bg-muted text-muted-foreground" : "bg-foreground text-background"}`}>{statusLabel(order)}</span>
+      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_TONE[order.status]}`}><span className="size-1.5 rounded-full bg-current" aria-hidden="true" />{statusLabel(order)}</span>
       <span className="text-[11px] text-muted-foreground">{PAYMENT_LABEL[order.payment]}{order.payment !== "onsite" ? " (bezahlt)" : ""} · {order.fulfillment === "delivery" ? "Lieferung" : "Abholung"}</span>
     </>
   );
@@ -243,7 +251,7 @@ export function CustomersSection({ data }: { data: AdminData }) {
           <ul className="divide-y divide-border">
             {rows.slice(0, limit).map((customer) => (
               <li key={customer.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 py-3 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_6rem_7rem_8rem] sm:items-center">
-                <span className="min-w-0 truncate font-medium">{customer.name}{customer.orders >= 2 && <span className="ml-2 rounded-full bg-foreground text-background px-2 py-0.5 text-[11px] font-semibold">Stammkunde</span>}</span>
+                <span className="min-w-0 truncate font-medium">{customer.name}{customer.orders >= 2 && <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-accent-foreground">Stammkunde</span>}</span>
                 <strong className="text-right tabular-nums sm:order-4">{formatEuro(customer.revenue)}</strong>
                 <span className="min-w-0 truncate text-xs text-muted-foreground sm:order-2">{customer.email || customer.phone}</span>
                 <span className="text-right text-xs text-muted-foreground sm:order-3 sm:text-sm sm:text-foreground">{customer.orders}× bestellt</span>

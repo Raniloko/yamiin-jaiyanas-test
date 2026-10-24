@@ -176,7 +176,7 @@ export function KitchenBoard() {
     <div className="admin-theme min-h-dvh pb-10">
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[110rem] items-center gap-3 px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
-          <BrandMark className="size-9 grayscale" />
+          <BrandMark className="size-9" />
           <div className="min-w-0 flex-1">
             <h1 className="text-xl leading-tight">Küche</h1>
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-2 animate-pulse rounded-full bg-[#0ca30c]" aria-hidden="true" />Live · {clock} Uhr</p>
@@ -192,9 +192,9 @@ export function KitchenBoard() {
         <div className="mx-auto grid max-w-[110rem] grid-cols-2 gap-2 px-3 pb-3 sm:px-6 xl:hidden" role="tablist" aria-label="Bereich">
           {LANES.map((entry) => (
             <button key={entry.key} type="button" role="tab" aria-selected={lane === entry.key} onClick={() => setLane(entry.key)}
-              className={cn("relative flex h-14 items-center justify-center gap-2 rounded-2xl border-2 text-base font-semibold transition-colors", lane === entry.key ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
+              className={cn("relative flex h-14 items-center justify-center gap-2 rounded-2xl border-2 text-base font-semibold transition-colors", lane === entry.key ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25" : "border-border bg-card")}>
               <entry.icon className="size-5" />{entry.label}
-              <span className={cn("rounded-full px-2 py-0.5 text-sm tabular-nums", lane === entry.key ? "bg-background/20" : "bg-muted")}>{counts(entry.key)}</span>
+              <span className={cn("rounded-full px-2 py-0.5 text-sm tabular-nums", lane === entry.key ? "bg-white/25" : "bg-muted")}>{counts(entry.key)}</span>
               {urgentIn(entry.key, "late") > 0 ? (
                 <span className="kitchen-pulse-late absolute -right-1 -top-1 rounded-full bg-[#d03b3b] px-2 py-0.5 text-[11px] font-bold text-white">{urgentIn(entry.key, "late")} überfällig</span>
               ) : newIn(entry.key) > 0 ? (

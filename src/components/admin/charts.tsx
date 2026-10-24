@@ -1,7 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps } from "recharts";
 
 import { formatEuro, formatNumber } from "@/lib/admin-metrics";
-import { AXIS, GRID, INK } from "./ui";
+import { AXIS, COUNT, GRID, MONEY } from "./ui";
 
 type Row = Record<string, string | number>;
 
@@ -34,8 +34,8 @@ export function RevenueChart({ data }: { data: { label: string; revenue: number;
           <CartesianGrid vertical={false} stroke={GRID} />
           <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={18} />
           <YAxis {...axisProps} width={48} tickFormatter={compactEuro} allowDecimals={false} />
-          <Tooltip cursor={{ fill: "rgba(17,17,17,0.05)" }} content={<ChartTooltip rows={[{ key: "revenue", name: "Umsatz", format: formatEuro }, { key: "orders", name: "Bestellungen", format: formatNumber }]} />} />
-          <Bar dataKey="revenue" name="Umsatz" fill={INK} maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Tooltip cursor={{ fill: "rgba(196,107,56,0.08)" }} content={<ChartTooltip rows={[{ key: "revenue", name: "Umsatz", format: formatEuro }, { key: "orders", name: "Bestellungen", format: formatNumber }]} />} />
+          <Bar dataKey="revenue" name="Umsatz" fill={MONEY} maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -51,8 +51,8 @@ export function HourChart({ data }: { data: { label: string; orders: number }[] 
           <CartesianGrid vertical={false} stroke={GRID} />
           <XAxis dataKey="label" {...axisProps} tickFormatter={(value: string) => `${value} h`} />
           <YAxis {...axisProps} width={28} allowDecimals={false} />
-          <Tooltip cursor={{ fill: "rgba(17,17,17,0.05)" }} content={<ChartTooltip rows={[{ key: "orders", name: "Bestellungen", format: formatNumber }]} />} labelFormatter={(value) => `${value}:00 – ${Number(value) + 1}:00 Uhr`} />
-          <Bar dataKey="orders" fill={INK} maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Tooltip cursor={{ fill: "rgba(42,120,214,0.08)" }} content={<ChartTooltip rows={[{ key: "orders", name: "Bestellungen", format: formatNumber }]} />} labelFormatter={(value) => `${value}:00 – ${Number(value) + 1}:00 Uhr`} />
+          <Bar dataKey="orders" fill={COUNT} maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -69,7 +69,7 @@ export function VisitorsChart({ data }: { data: { label: string; visitors: numbe
           <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={18} />
           <YAxis {...axisProps} width={28} allowDecimals={false} />
           <Tooltip cursor={{ stroke: AXIS, strokeWidth: 1 }} content={<ChartTooltip rows={[{ key: "visitors", name: "Besucher", format: formatNumber }, { key: "orders", name: "mit Bestellung", format: formatNumber }]} />} />
-          <Line type="monotone" dataKey="visitors" stroke={INK} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: "#ffffff", strokeWidth: 2 }} isAnimationActive={false} />
+          <Line type="monotone" dataKey="visitors" stroke={COUNT} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: "#ffffff", strokeWidth: 2 }} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
