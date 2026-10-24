@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, Bike, Clock3, Mail, MapPin, Navigation, Phone, Store } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
+import acaiImage from "@/assets/brand/acai-1.webp";
+import ebiBowlImage from "@/assets/brand/bowl-ebi.webp";
+import matchaImage from "@/assets/brand/matcha-5.webp";
+import shopPhoto from "@/assets/brand/shop-lotus.webp";
 import { CtaBanner, GlowCta, OpenBadge, PageHero, RiseTitle, SectionHead } from "@/components/site/brand-ui";
 import { euro } from "@/lib/cart-store";
 import { DELIVERY } from "@/lib/menu-pricing";
@@ -72,6 +76,7 @@ function ContactPage() {
       </section>
 
       <CtaBanner
+        images={[acaiImage, matchaImage, ebiBowlImage]}
         eyebrow="Wir freuen uns auf dich"
         title={<>Bis gleich in <em className="text-[#f5c3a6]">Hanau.</em></>}
         cta={<GlowCta href={SITE.mapsUrl} icon={<Navigation className="size-5" />}>Route planen</GlowCta>}
@@ -99,10 +104,12 @@ function TodayCard() {
   const today = useToday();
   const row = WEEK.find((entry) => entry.day === today);
   return (
-    <div className="hero-rise hidden lg:block" style={{ animationDelay: "520ms" }}>
-      <div className="float-bob ml-auto max-w-sm rounded-[2rem] border border-white/15 bg-white/10 p-7 shadow-2xl shadow-black/40 backdrop-blur-xl">
+    <div className="hero-rise relative hidden lg:block" style={{ animationDelay: "520ms" }}>
+      {/* Echtes Foto aus dem Laden, auf Querformat zugeschnitten */}
+      <img src={shopPhoto} alt="Lotus Ice Burger und Latte bei Yamiin & Jaiyana's" className="ml-auto aspect-[4/3] w-[88%] rounded-[2rem] object-cover object-[50%_60%] shadow-2xl shadow-black/50 ring-1 ring-white/10" />
+      <div className="float-bob absolute -bottom-8 left-0 max-w-xs rounded-[2rem] border border-white/15 bg-[#1f1d1b]/80 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#f5c3a6]"><Clock3 className="size-4" />Heute{row ? ` · ${row.label}` : ""}</p>
-        <p className="mt-3 whitespace-nowrap font-display text-5xl leading-none">{row ? (row.hours?.replace(" Uhr", "") ?? "Ruhetag") : "–"}</p>
+        <p className="mt-3 whitespace-nowrap font-display text-4xl leading-none">{row ? (row.hours?.replace(" Uhr", "") ?? "Ruhetag") : "–"}</p>
         <p className="mt-3 text-sm text-white/70">{status?.text ?? "Öffnungszeiten werden geladen …"}</p>
         <div className="mt-6 border-t border-white/10 pt-5 text-sm text-white/80">
           <p className="flex items-start gap-2"><MapPin className="mt-0.5 size-4 shrink-0 text-[#f5c3a6]" />{SITE.street}, {SITE.zipCity}</p>

@@ -4,6 +4,9 @@ import type { ReactNode } from "react";
 
 import falafelBowlAsset from "@/assets/menu/bowl-falafel-exotica.webp.asset.json";
 import ysBowlAsset from "@/assets/menu/bowl-ys.webp.asset.json";
+import falafelImage from "@/assets/brand/bowl-falafel.webp";
+import bowl7Image from "@/assets/brand/bowl-7.webp";
+import matchaImage from "@/assets/brand/matcha-1.webp";
 import { CtaBanner, GlowCta, PageHero, RiseTitle, SectionHead, Ticker } from "@/components/site/brand-ui";
 import { bowls, bowlSteps, matchas } from "@/lib/menu-data";
 
@@ -95,6 +98,7 @@ function AboutPage() {
       </section>
 
       <CtaBanner
+        images={[bowl7Image, matchaImage, falafelImage]}
         eyebrow="Lust bekommen?"
         title={<>Probier dich durch die <em className="text-[#f5c3a6]">Bowls.</em></>}
         cta={<GlowCta>Jetzt Bowl bestellen</GlowCta>}
