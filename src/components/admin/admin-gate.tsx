@@ -73,9 +73,12 @@ function LoginForm() {
     setInfo("");
     const address = email.trim().toLowerCase();
     if (mode === "reset") {
-      const { error } = await adminAuth.resetPassword(address);
-      if (error) setError(translate(error.message));
-      else setInfo("Wenn es ein Konto gibt, ist ein Link zum Zurücksetzen unterwegs. Schau in dein Postfach.");
+      try {
+        await adminAuth.resetPassword(address);
+        setInfo("Wenn es ein Konto gibt, ist ein Link zum Zurücksetzen unterwegs. Schau in dein Postfach.");
+      } catch {
+        setError("Das hat nicht geklappt. Bitte prüfe die E-Mail-Adresse und deine Internetverbindung.");
+      }
     } else {
       const { error } = await adminAuth.signIn(address, password);
       if (error) setError(translate(error.message));

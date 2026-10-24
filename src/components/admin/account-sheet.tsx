@@ -121,17 +121,21 @@ function EmailForm({ email }: { email: string }) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) return setNotice({ kind: "error", text: "Bitte gib eine gültige E-Mail-Adresse ein." });
     if (address === email.toLowerCase()) return setNotice({ kind: "error", text: "Das ist bereits deine aktuelle E-Mail." });
     setBusy(true);
-    if (!(await adminAuth.verifyPassword(email, password))) {
+    let result: Awaited<ReturnType<typeof adminAuth.changeEmail>>;
+    try {
+      result = await adminAuth.changeEmail(address, password);
+    } catch {
       setBusy(false);
-      return setNotice({ kind: "error", text: "Das Passwort stimmt nicht." });
+      return setNotice({ kind: "error", text: "Das hat nicht geklappt. Bitte prüfe deine Internetverbindung." });
     }
-    const { error } = await adminAuth.changeEmail(address);
     setBusy(false);
-    if (error) return setNotice({ kind: "error", text: translate(error.message) });
+    if ("error" in result) return setNotice({ kind: "error", text: translate(result.error) });
     setPassword("");
     setNotice({
       kind: "ok",
-      text: `Fast geschafft: Wir haben einen Bestätigungslink an ${address} geschickt (je nach Einstellung auch an ${email}). Bis du ihn öffnest, bleibt ${email} gültig. Danach meldest du dich mit der neuen E-Mail an – dein Admin-Zugang zieht automatisch mit.`,
+      text: result.both
+        ? `Fast geschafft: Bitte bestätige den Wechsel über die Links, die wir an ${address} und an ${email} geschickt haben. Bis dahin bleibt ${email} gültig – danach zieht dein Admin-Zugang automatisch mit.`
+        : `Fast geschafft: Bitte bestätige ${address} über den Link in der E-Mail. Bis dahin bleibt ${email} gültig – danach zieht dein Admin-Zugang automatisch mit.`,
     });
   };
 

@@ -1,6 +1,8 @@
 // Stammdaten des Ladens – zentral gepflegt für Footer, Kontaktseite & Co.
 export const SITE = {
   name: "Yamiin & Jaiyana's",
+  /** Öffentliche Adresse – für Links in E-Mails. */
+  url: "https://www.yamiin-jaiyanas.de",
   street: "Willy-Brandt-Straße 23",
   zipCity: "63450 Hanau",
   phone: "06181 4187419",

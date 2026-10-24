@@ -2,6 +2,7 @@ import type { Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { requestEmailChange, requestPasswordReset } from "@/utils/team.functions";
 
 /** Rechte der angemeldeten Person – die Datenbank setzt sie zusätzlich selbst durch (RLS). */
 export type AdminAccess = { owner: boolean; stats: boolean };
@@ -50,11 +51,11 @@ export function useAdminSession(): AdminState {
   return state;
 }
 
-const redirectTo = () => `${window.location.origin}${window.location.pathname}`;
-
 export const adminAuth = {
   signIn: (email: string, password: string) => supabase.auth.signInWithPassword({ email, password }),
-  resetPassword: (email: string) => supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() }),
+  /** Link zum Zurücksetzen – die Mail verschickt der Server über Resend (nur an Team-Adressen). */
+  resetPassword: (email: string) =>
+    requestPasswordReset({ data: { email, page: window.location.pathname.startsWith("/kitchen") ? "kitchen" : "admin" } }),
   /** Neues Passwort nach "Passwort vergessen" oder beim Annehmen einer Einladung. */
   updatePassword: (password: string) => supabase.auth.updateUser({ password, data: { needs_password: false } }),
   /** Passwort im Konto ändern – Supabase verlangt dafür das aktuelle Passwort ("Secure password change"). */
@@ -63,12 +64,12 @@ export const adminAuth = {
   listAccounts: () => supabase.rpc("admin_accounts"),
   /** Nur Inhaber: Admin-Recht geben/entziehen und Statistik-Recht setzen (prüft die Datenbank). */
   setAccess: (email: string, admin: boolean, stats: boolean) => supabase.rpc("owner_set_access", { p_email: email, p_admin: admin, p_stats: stats }),
-  /** Aktuelles Passwort prüfen, bevor E-Mail oder Passwort geändert werden. */
+  /** Aktuelles Passwort prüfen, bevor das Passwort geändert wird. */
   verifyPassword: async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return !error;
   },
-  /** Neue E-Mail: Supabase schickt Bestätigungslinks; erst danach gilt sie (Admin-Freigabe zieht die Datenbank mit). */
-  changeEmail: (email: string) => supabase.auth.updateUser({ email }, { emailRedirectTo: `${window.location.origin}/admin` }),
+  /** Neue E-Mail: Server prüft das Passwort und schickt Bestätigungslinks; erst danach gilt sie (Admin-Freigabe zieht die Datenbank mit). */
+  changeEmail: (email: string, password: string) => requestEmailChange({ data: { email, password } }),
   signOut: () => supabase.auth.signOut(),
 };

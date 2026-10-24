@@ -1,16 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bike, Check, ChefHat, Clock3, CreditCard, MapPin, Navigation, Phone, RefreshCw, ShoppingBag, Sparkles, Store } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { GlowCta, PageHero, RiseTitle } from "@/components/site/brand-ui";
 import { stepText } from "@/lib/order-labels";
 import { cart, euro } from "@/lib/cart-store";
-import { ORDER_STEPS, type Order, type OrderStatus } from "@/lib/order-store";
+import { ORDER_STEPS, guestToken, rememberGuestToken, type Order, type OrderStatus } from "@/lib/order-store";
 import { SITE } from "@/lib/site-info";
 import { useGuestOrder } from "@/lib/use-guest-order";
+import { sendOrderConfirmation } from "@/utils/email.functions";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const Route = createFileRoute("/order-success")({
-  validateSearch: (search: Record<string, unknown>) => ({ id: typeof search["id"] === "string" ? search["id"] : undefined }),
+  validateSearch: (search: Record<string, unknown>): { id: string | undefined; t?: string } => ({
+    id: typeof search["id"] === "string" ? search["id"] : undefined,
+    // Gast-Schlüssel aus dem Link der Bestätigungsmail (wird gemerkt und dann aus der Adresse entfernt).
+    ...(typeof search["t"] === "string" && UUID.test(search["t"]) ? { t: search["t"] } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Bestellstatus live – Yamiin & Jaiyana's" },
@@ -28,8 +35,23 @@ export const Route = createFileRoute("/order-success")({
 const ICONS = [Check, ChefHat, ShoppingBag, Sparkles];
 
 function StatusPage() {
-  const { id } = Route.useSearch();
-  const { order, loading } = useGuestOrder(id);
+  const { id, t } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { order, loading } = useGuestOrder(id, t);
+  useEffect(() => {
+    if (!id || !t) return;
+    rememberGuestToken(id, t);
+    void navigate({ search: { id }, replace: true });
+  }, [id, t]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Rückkehr von der Online-Zahlung: Bestätigung anstoßen, falls der Webhook sie noch nicht geschickt hat (der Server sendet nie doppelt).
+  const confirmed = useRef(false);
+  useEffect(() => {
+    if (confirmed.current || !order || order.payment === "onsite" || !order.paid) return;
+    const token = t ?? guestToken(order.id);
+    if (!token) return;
+    confirmed.current = true;
+    void sendOrderConfirmation({ data: { id: order.id, token } }).catch(() => undefined);
+  }, [order, t]);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
