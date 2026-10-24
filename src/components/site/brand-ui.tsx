@@ -3,7 +3,9 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 
-import heroBowlImage from "@/assets/hero-bowl.jpg";
+import acaiImage from "@/assets/brand/acai-2.webp";
+import bowlImage from "@/assets/brand/bowl-ys.webp";
+import matchaImage from "@/assets/brand/matcha-3.webp";
 import { useOpenStatus } from "@/lib/use-open-status";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +64,9 @@ export function GlowFrame({ active, radius = "9999px", className, children }: { 
 export function PageHero({ children, aside, className, compact, width = "max-w-[90rem]" }: { children: ReactNode; aside?: ReactNode; className?: string; compact?: boolean; width?: string }) {
   return (
     <section className={cn("relative isolate overflow-hidden border-b border-border bg-[#292725] text-[#f5f0e8]", className)}>
-      <img src={heroBowlImage} alt="" aria-hidden="true" className="hero-drift absolute inset-0 -z-20 size-full object-cover object-center opacity-35" />
+      {/* Eigener Hintergrund statt des Startseiten-Fotos: warmes Licht + feines Raster */}
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_85%_15%,rgba(245,195,166,.12),transparent_45%)]" aria-hidden="true" />
+      <div className="absolute inset-0 -z-20 opacity-[.07] [background-image:radial-gradient(#f5c3a6_1px,transparent_1px)] [background-size:22px_22px]" aria-hidden="true" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(30,28,25,.96)_0%,rgba(30,28,25,.82)_55%,rgba(30,28,25,.55)_100%)]" aria-hidden="true" />
       {/* Warmes Licht als Verlauf statt Weichzeichner – Safari zeichnet große Unschärfen sonst eckig. */}
       <div className="absolute -left-48 top-0 -z-10 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.32),transparent_65%)]" aria-hidden="true" />
@@ -116,12 +120,16 @@ export function SectionHead({ eyebrow, title, accent, children }: { eyebrow: str
   );
 }
 
-/** Dunkles Abschluss-Banner mit Button. */
-export function CtaBanner({ eyebrow, title, cta, children }: { eyebrow: string; title: ReactNode; cta: ReactNode; children?: ReactNode }) {
+const BANNER_IMAGES = [bowlImage, matchaImage, acaiImage];
+
+/** Dunkles Abschluss-Banner mit Button; links und rechts schweben echte Produktfotos. */
+export function CtaBanner({ eyebrow, title, cta, children, images = BANNER_IMAGES }: { eyebrow: string; title: ReactNode; cta: ReactNode; children?: ReactNode; images?: string[] }) {
   return (
     <section className="px-5 pb-24 sm:px-8 sm:pb-28">
       <div className="reveal relative isolate mx-auto max-w-[90rem] overflow-hidden rounded-[2.5rem] bg-[#292725] px-6 py-16 text-center text-[#f5f0e8] sm:px-10 sm:py-24">
-        <img src={heroBowlImage} alt="" aria-hidden="true" className="absolute inset-0 -z-20 size-full object-cover opacity-25" />
+        {images[0] && <img src={images[0]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute -left-10 top-1/2 -z-10 hidden w-64 -translate-y-1/2 drop-shadow-2xl md:block lg:w-80" />}
+        {images[1] && <img src={images[1]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute -right-6 bottom-6 -z-10 hidden w-40 drop-shadow-2xl md:block lg:w-52" style={{ animationDelay: "-2s" }} />}
+        {images[2] && <img src={images[2]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute right-24 -top-6 -z-10 hidden w-32 drop-shadow-2xl lg:block" style={{ animationDelay: "-4s" }} />}
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_120%,rgba(196,107,56,.55),transparent_60%)]" aria-hidden="true" />
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f5c3a6]">{eyebrow}</p>
         <h2 className="mx-auto mt-4 max-w-3xl text-5xl leading-[0.95] sm:text-7xl">{title}</h2>
