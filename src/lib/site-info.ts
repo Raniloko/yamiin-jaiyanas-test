@@ -16,12 +16,12 @@ export const SITE = {
     3: [600, 1200],
     4: [600, 1200],
     5: [600, 1200],
-    6: [720, 1200],
+    6: [720, 1080],
   } as Record<number, readonly [number, number] | null>,
   // Anzeige – bei Änderungen openingHours oben mitpflegen.
   hours: [
     { days: "Montag – Freitag", time: "10:00 – 20:00" },
-    { days: "Samstag", time: "12:00 – 20:00" },
+    { days: "Samstag", time: "12:00 – 18:00" },
     { days: "Sonntag", time: "Ruhetag" },
   ],
   lieferando: "https://www.lieferando.de/speisekarte/yamiin-jaiyanas-healthy-fastfood",
