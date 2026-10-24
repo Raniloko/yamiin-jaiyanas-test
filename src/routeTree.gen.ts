@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as KitchenRouteImport } from './routes/kitchen'
 import { Route as KontaktRouteImport } from './routes/kontakt'
+import { Route as MeineBestellungenRouteImport } from './routes/meine-bestellungen'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as SpeisekarteRouteImport } from './routes/speisekarte'
 import { Route as UeberUnsRouteImport } from './routes/ueber-uns'
@@ -44,6 +45,11 @@ const KontaktRoute = KontaktRouteImport.update({
   path: '/kontakt',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeineBestellungenRoute = MeineBestellungenRouteImport.update({
+  id: '/meine-bestellungen',
+  path: '/meine-bestellungen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrderSuccessRoute = OrderSuccessRouteImport.update({
   id: '/order-success',
   path: '/order-success',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/kitchen': typeof KitchenRoute
   '/kontakt': typeof KontaktRoute
+  '/meine-bestellungen': typeof MeineBestellungenRoute
   '/order-success': typeof OrderSuccessRoute
   '/speisekarte': typeof SpeisekarteRoute
   '/ueber-uns': typeof UeberUnsRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/kitchen': typeof KitchenRoute
   '/kontakt': typeof KontaktRoute
+  '/meine-bestellungen': typeof MeineBestellungenRoute
   '/order-success': typeof OrderSuccessRoute
   '/speisekarte': typeof SpeisekarteRoute
   '/ueber-uns': typeof UeberUnsRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/kitchen': typeof KitchenRoute
   '/kontakt': typeof KontaktRoute
+  '/meine-bestellungen': typeof MeineBestellungenRoute
   '/order-success': typeof OrderSuccessRoute
   '/speisekarte': typeof SpeisekarteRoute
   '/ueber-uns': typeof UeberUnsRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/kitchen'
     | '/kontakt'
+    | '/meine-bestellungen'
     | '/order-success'
     | '/speisekarte'
     | '/ueber-uns'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/kitchen'
     | '/kontakt'
+    | '/meine-bestellungen'
     | '/order-success'
     | '/speisekarte'
     | '/ueber-uns'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/kitchen'
     | '/kontakt'
+    | '/meine-bestellungen'
     | '/order-success'
     | '/speisekarte'
     | '/ueber-uns'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   KitchenRoute: typeof KitchenRoute
   KontaktRoute: typeof KontaktRoute
+  MeineBestellungenRoute: typeof MeineBestellungenRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   SpeisekarteRoute: typeof SpeisekarteRoute
   UeberUnsRoute: typeof UeberUnsRoute
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KontaktRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meine-bestellungen': {
+      id: '/meine-bestellungen'
+      path: '/meine-bestellungen'
+      fullPath: '/meine-bestellungen'
+      preLoaderRoute: typeof MeineBestellungenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/order-success': {
       id: '/order-success'
       path: '/order-success'
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   KitchenRoute: KitchenRoute,
   KontaktRoute: KontaktRoute,
+  MeineBestellungenRoute: MeineBestellungenRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   SpeisekarteRoute: SpeisekarteRoute,
   UeberUnsRoute: UeberUnsRoute,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { guestToken, useOrders, type Order } from "@/lib/order-store";
+import { guestToken, orderStore, useOrders, type Order } from "@/lib/order-store";
 import { getGuestOrder } from "@/utils/orders.functions";
 
 const POLL_MS = 10000;
@@ -24,7 +24,11 @@ export function useGuestOrder(id: string | undefined) {
       try {
         const result = await getGuestOrder({ data: { id, token } });
         if (stopped) return;
-        if ("order" in result) setRemote({ ...result.order, contact: { ...result.order.contact, phone: "", email: "" } });
+        if ("order" in result) {
+          const order = { ...result.order, contact: { ...result.order.contact, phone: "", email: "" } };
+          setRemote(order);
+          orderStore.remember(order);
+        }
         // Nach der Abholung muss nicht mehr nachgefragt werden.
         if ("order" in result && result.order.status === "abgeholt") return;
       } catch {

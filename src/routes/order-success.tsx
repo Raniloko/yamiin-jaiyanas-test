@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bike, Check, ChefHat, Clock3, CreditCard, MapPin, Navigation, Phone, RefreshCw, ShoppingBag, Sparkles, Store } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { GlowCta, PageHero, RiseTitle } from "@/components/site/brand-ui";
+import { stepText } from "@/lib/order-labels";
 import { cart, euro } from "@/lib/cart-store";
 import { ORDER_STEPS, type Order, type OrderStatus } from "@/lib/order-store";
 import { SITE } from "@/lib/site-info";
@@ -25,15 +26,6 @@ export const Route = createFileRoute("/order-success")({
 });
 
 const ICONS = [Check, ChefHat, ShoppingBag, Sparkles];
-
-/** Für Lieferungen heißen die letzten beiden Schritte anders als bei der Abholung. */
-function stepText(order: Order, status: OrderStatus) {
-  const step = ORDER_STEPS.find((entry) => entry.key === status) ?? ORDER_STEPS[0]!;
-  if (order.fulfillment !== "delivery") return { label: step.label, hint: step.hint };
-  if (status === "abholbereit") return { label: "Unterwegs", hint: "Dein Essen ist auf dem Weg zu dir." };
-  if (status === "abgeholt") return { label: "Zugestellt", hint: "Guten Appetit!" };
-  return { label: step.label, hint: step.hint };
-}
 
 function StatusPage() {
   const { id } = Route.useSearch();
@@ -177,7 +169,8 @@ function StatusPage() {
           <a href={SITE.phoneHref} className="flex h-14 items-center justify-center gap-2 rounded-full border border-[#e2d8ca] bg-white px-6 font-semibold transition-colors hover:border-[#c46b38]"><Phone className="size-4 text-[#c46b38]" /> Fragen? {SITE.phone}</a>
           <div className="flex justify-center"><GlowCta tone="dark">Neue Bestellung</GlowCta></div>
         </div>
-        <p className="mt-6 flex items-center justify-center gap-2 text-xs text-[#6f675f]"><MapPin className="size-3.5" />{SITE.name} · {SITE.street}, {SITE.zipCity}</p>
+        <p className="mt-6 text-center text-sm"><Link to="/meine-bestellungen" className="font-semibold text-[#c46b38] underline-offset-4 hover:underline">Alle meine Bestellungen auf diesem Gerät</Link></p>
+        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-[#6f675f]"><MapPin className="size-3.5" />{SITE.name} · {SITE.street}, {SITE.zipCity}</p>
       </div>
     </main>
   );
