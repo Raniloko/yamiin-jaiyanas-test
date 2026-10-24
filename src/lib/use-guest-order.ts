@@ -9,14 +9,15 @@ const POLL_MS = 10000;
  * Bestellung für die Statusseite des Gastes: zeigt sofort die lokale Kopie und
  * fragt den Live-Status alle 10 Sekunden über den Server ab (mit Gast-Schlüssel).
  */
-export function useGuestOrder(id: string | undefined) {
+export function useGuestOrder(id: string | undefined, linkToken?: string) {
   const local = useOrders().find((order) => order.id === id);
   const [remote, setRemote] = useState<Order | null>(null);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     if (!id) return setChecked(true);
-    const token = guestToken(id);
+    // Link aus der Bestätigungsmail enthält den Schlüssel – so klappt der Status auch auf einem anderen Gerät.
+    const token = linkToken ?? guestToken(id);
     if (!token) return setChecked(true);
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -43,7 +44,7 @@ export function useGuestOrder(id: string | undefined) {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [id]);
+  }, [id, linkToken]);
 
   return { order: remote ?? local, loading: !checked && !local };
 }

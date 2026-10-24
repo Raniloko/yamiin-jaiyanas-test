@@ -14,7 +14,13 @@ async function markOrderPaid(session: any) {
     .from("orders")
     .update({ paid: true, stripe_session_id: session.id })
     .eq("id", orderId);
-  if (error) console.error("Bestellung konnte nicht als bezahlt markiert werden:", error.message);
+  if (error) {
+    console.error("Bestellung konnte nicht als bezahlt markiert werden:", error.message);
+    return;
+  }
+  // Bezahlt → Bestellbestätigung an den Gast (höchstens einmal, auch wenn Stripe das Event wiederholt).
+  const { deliverOrderConfirmation } = await import("@/lib/mailer.server");
+  await deliverOrderConfirmation(orderId);
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {

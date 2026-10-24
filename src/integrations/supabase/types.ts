@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      auth_mail_log: {
+        Row: {
+          email: string
+          id: number
+          kind: string
+          sent_at: string
+        }
+        Insert: {
+          email: string
+          id?: never
+          kind: string
+          sent_at?: string
+        }
+        Update: {
+          email?: string
+          id?: never
+          kind?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       admin_emails: {
         Row: {
           added_at: string
@@ -100,6 +121,7 @@ export type Database = {
           access_token: string
           address: Json | null
           contact: Json
+          confirmation_sent_at: string | null
           created_at: string
           delivery_fee: number
           fulfillment: string
@@ -118,6 +140,7 @@ export type Database = {
           access_token?: string
           address?: Json | null
           contact: Json
+          confirmation_sent_at?: string | null
           created_at?: string
           delivery_fee?: number
           fulfillment?: string
@@ -136,6 +159,7 @@ export type Database = {
           access_token?: string
           address?: Json | null
           contact?: Json
+          confirmation_sent_at?: string | null
           created_at?: string
           delivery_fee?: number
           fulfillment?: string

@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { sendOrderConfirmation } from "@/utils/email.functions";
 
 import type { CartItem } from "@/lib/cart-store";
 
@@ -80,7 +81,7 @@ function subscribe(listener: () => void) {
 
 const TOKENS_KEY = "yj-order-tokens";
 
-function rememberGuestToken(id: string, token: string) {
+export function rememberGuestToken(id: string, token: string) {
   try {
     const tokens = JSON.parse(localStorage.getItem(TOKENS_KEY) || "{}") as Record<string, string>;
     tokens[id] = token;
@@ -215,6 +216,8 @@ export const orderStore = {
     }
     rememberGuestToken(id, accessToken);
     write([full, ...read()].slice(0, 30));
+    // Bestätigung per E-Mail: vor Ort sofort, Online/PayPal sendet der Server erst nach der Zahlung.
+    if (full.payment === "onsite") void sendOrderConfirmation({ data: { id, token: accessToken } }).catch(() => undefined);
     return { order: full };
   },
   /** Live-Stand vom Server in die Gerätekopie übernehmen (nur Anzeige – die Wahrheit liegt in der Datenbank). */
