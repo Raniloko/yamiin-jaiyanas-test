@@ -169,6 +169,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_accounts: {
+        Args: never
+        Returns: {
+          confirmed: boolean
+          created_at: string | null
+          email: string
+          has_account: boolean
+          is_admin: boolean
+          last_sign_in_at: string | null
+        }[]
+      }
       admin_menu_analytics: {
         Args: { p_from: string; p_to: string }
         Returns: Json

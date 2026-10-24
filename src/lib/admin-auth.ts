@@ -49,6 +49,10 @@ export const adminAuth = {
     supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo() } }),
   resetPassword: (email: string) => supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() }),
   updatePassword: (password: string) => supabase.auth.updateUser({ password }),
+  /** Passwort im Konto ändern – Supabase verlangt dafür das aktuelle Passwort ("Secure password change"). */
+  changePassword: (currentPassword: string, password: string) => supabase.auth.updateUser({ password, current_password: currentPassword }),
+  /** Alle Admin-Freigaben und Login-Konten (nur für Admins, sonst leer). */
+  listAccounts: () => supabase.rpc("admin_accounts"),
   /** Aktuelles Passwort prüfen, bevor E-Mail oder Passwort geändert werden. */
   verifyPassword: async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
