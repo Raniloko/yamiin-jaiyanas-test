@@ -5,25 +5,27 @@ import { ChefHat, ExternalLink, LayoutDashboard, LogOut, MousePointerClick, Rece
 import { AdminGate } from "@/components/admin/admin-gate";
 import { InstallHint } from "@/components/admin/install-hint";
 import { AccountButton } from "@/components/admin/account-sheet";
+import { TeamButton } from "@/components/admin/team-sheet";
 import { OperationsButton, PauseBanner } from "@/components/admin/operations";
 import { CustomersSection, OrdersSection } from "@/components/admin/section-orders";
 import { MenuSection, OverviewSection } from "@/components/admin/section-overview";
 import { ProductsSection } from "@/components/admin/section-products";
 import { BrandMark } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
-import { adminAuth } from "@/lib/admin-auth";
+import { adminAuth, type AdminAccess } from "@/lib/admin-auth";
 import { useAdminData } from "@/lib/admin-data";
 import { appHead } from "@/lib/app-install";
 import { RANGES, type RangeKey } from "@/lib/admin-metrics";
 import { cn } from "@/lib/utils";
 
+// `stats`: nur mit Statistik-Recht sichtbar (die Datenbank liefert ohne das Recht auch keine Auswertung/Historie).
 const TABS = [
-  { key: "overview", label: "Übersicht", icon: LayoutDashboard, title: "Übersicht", text: "Umsatz, Bestellungen und Trends auf einen Blick." },
-  { key: "products", label: "Produkte", icon: UtensilsCrossed, title: "Produkte", text: "Jedes Gericht: Aufrufe, Warenkorb, Verkäufe und Varianten." },
-  { key: "menu", label: "Speisekarte", icon: MousePointerClick, title: "Speisekarte", text: "Wie Gäste die Speisekarte nutzen – anonym erfasst." },
-  { key: "orders", label: "Bestellungen", icon: Receipt, title: "Bestellungen", text: "Alle Bestellungen mit Filtern, Details und Export." },
-  { key: "customers", label: "Kunden", icon: Users, title: "Kunden", text: "Wer bestellt – und wer wiederkommt." },
-] as const satisfies readonly { key: string; label: string; icon: LucideIcon; title: string; text: string }[];
+  { key: "overview", label: "Übersicht", icon: LayoutDashboard, title: "Übersicht", text: "Umsatz, Bestellungen und Trends auf einen Blick.", stats: true },
+  { key: "products", label: "Produkte", icon: UtensilsCrossed, title: "Produkte", text: "Jedes Gericht: Aufrufe, Warenkorb, Verkäufe und Varianten.", stats: true },
+  { key: "menu", label: "Speisekarte", icon: MousePointerClick, title: "Speisekarte", text: "Wie Gäste die Speisekarte nutzen – anonym erfasst.", stats: true },
+  { key: "orders", label: "Bestellungen", icon: Receipt, title: "Bestellungen", text: "Alle Bestellungen mit Filtern, Details und Export.", stats: false },
+  { key: "customers", label: "Kunden", icon: Users, title: "Kunden", text: "Wer bestellt – und wer wiederkommt.", stats: true },
+] as const satisfies readonly { key: string; label: string; icon: LucideIcon; title: string; text: string; stats: boolean }[];
 type TabKey = (typeof TABS)[number]["key"];
 
 export const Route = createFileRoute("/admin")({
@@ -41,16 +43,19 @@ export const Route = createFileRoute("/admin")({
 function AdminPage() {
   return (
     <AdminGate title="Admin-Dashboard">
-      {(state) => <Dashboard email={state.session.user.email ?? ""} />}
+      {(state) => <Dashboard email={state.session.user.email ?? ""} access={state.access} />}
     </AdminGate>
   );
 }
 
-function Dashboard({ email }: { email: string }) {
-  const { tab, range } = Route.useSearch();
+function Dashboard({ email, access }: { email: string; access: AdminAccess }) {
+  const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const data = useAdminData(range);
-  const active = TABS.find((entry) => entry.key === tab) ?? TABS[0];
+  const data = useAdminData(search.range, access.stats);
+  const tabs = access.stats ? TABS : TABS.filter((entry) => !entry.stats);
+  const active = tabs.find((entry) => entry.key === search.tab) ?? tabs.find((entry) => entry.key === "orders") ?? tabs[0]!;
+  const tab = active.key;
+  const { range } = search;
   const go = (next: Partial<{ tab: TabKey; range: RangeKey }>) => void navigate({ search: (prev) => ({ ...prev, ...next }), replace: true });
 
   // Beim Wechsel des Bereichs oben beginnen (wichtig auf dem Handy mit unterer Navigation).
@@ -84,7 +89,7 @@ function Dashboard({ email }: { email: string }) {
           <span className="leading-tight"><span className="block text-sm font-bold uppercase">Yamiin &amp; Jaiyana&rsquo;s</span><span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Admin</span></span>
         </div>
         <nav aria-label="Dashboard" className="mt-8 space-y-1">
-          {TABS.map((entry) => (
+          {tabs.map((entry) => (
             <button key={entry.key} type="button" onClick={() => go({ tab: entry.key })} aria-current={entry.key === tab ? "page" : undefined}
               className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors", entry.key === tab ? "bg-foreground text-background" : "text-foreground/70 hover:bg-muted hover:text-foreground")}>
               <entry.icon className="size-4" aria-hidden="true" />{entry.label}
@@ -93,6 +98,7 @@ function Dashboard({ email }: { email: string }) {
         </nav>
         <div className="mt-auto space-y-1 border-t border-border pt-4 text-sm">
           <OperationsButton variant="nav" />
+          {access.owner && <TeamButton email={email} variant="nav" />}
           <Link to="/kitchen" className="flex items-center gap-3 rounded-xl px-3 py-2 text-foreground/70 hover:bg-muted hover:text-foreground"><ChefHat className="size-4" />Küche</Link>
           <a href="/" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl px-3 py-2 text-foreground/70 hover:bg-muted hover:text-foreground"><ExternalLink className="size-4" />Website</a>
           <p className="truncate px-3 pt-3 text-xs text-muted-foreground" title={email}>{email}</p>
@@ -104,14 +110,16 @@ function Dashboard({ email }: { email: string }) {
       <div className="min-w-0 pb-28 md:pb-10">
         {/* Handy & Tablet: feste Kopfzeile mit Titel, Zeitraum und Aktualisieren */}
         <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md lg:hidden">
-          <div className="flex items-center gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
-            <BrandMark className="size-8 grayscale" />
+          <div className="flex items-center gap-2 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6">
+            {/* Inhaber haben ein Symbol mehr (Team) – auf schmalen Handys dafür ohne Logo, damit der Titel lesbar bleibt. */}
+            <BrandMark className={cn("size-8 grayscale", access.owner && "hidden sm:block")} />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg leading-tight">{active.title}</h1>
               <p className="truncate text-[11px] text-muted-foreground" aria-live="polite">{updated}</p>
             </div>
             <OperationsButton />
             <Link to="/kitchen" aria-label="Küche" className="flex size-10 items-center justify-center rounded-full border border-border bg-card"><ChefHat className="size-4" /></Link>
+            {access.owner && <TeamButton email={email} />}
             <AccountButton email={email} />
             <button type="button" aria-label="Abmelden" onClick={() => void adminAuth.signOut()} className="flex size-10 items-center justify-center rounded-full border border-border bg-card"><LogOut className="size-4" /></button>
           </div>
@@ -120,8 +128,8 @@ function Dashboard({ email }: { email: string }) {
             {refreshButton}
           </div>
           {/* Tablet: Reiter */}
-          <nav aria-label="Dashboard" className="hidden gap-1 overflow-x-auto px-6 pb-3 md:flex">
-            {TABS.map((entry) => (
+          <nav aria-label="Dashboard" className={cn("hidden gap-1 overflow-x-auto px-6 pb-3", tabs.length > 1 && "md:flex")}>
+            {tabs.map((entry) => (
               <button key={entry.key} type="button" onClick={() => go({ tab: entry.key })} aria-current={entry.key === tab ? "page" : undefined}
                 className={cn("flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors", entry.key === tab ? "bg-foreground text-background" : "text-foreground/60 hover:bg-muted hover:text-foreground")}>
                 <entry.icon className="size-4" aria-hidden="true" />{entry.label}
@@ -141,6 +149,7 @@ function Dashboard({ email }: { email: string }) {
           </div>
           <PauseBanner className="mb-4" />
           <InstallHint app="admin" className="mb-4" />
+          {!access.stats && <p className="mb-4 rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">Dein Zugang zeigt die Bestellungen der letzten 7 Tage. Umsatz, Statistiken und Kunden schaltet der Inhaber frei.</p>}
           <p className="mb-3 px-1 text-xs text-muted-foreground lg:hidden">{active.text}</p>
           {data.error && <p role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{data.error}</p>}
 
@@ -162,9 +171,9 @@ function Dashboard({ email }: { email: string }) {
       </div>
 
       {/* Handy: Navigation unten */}
-      <nav aria-label="Dashboard" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-        <div className="grid grid-cols-5 px-1 pt-1.5">
-          {TABS.map((entry) => {
+      <nav aria-label="Dashboard" className={cn("fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden", tabs.length < 2 && "hidden")}>
+        <div className="grid px-1 pt-1.5" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+          {tabs.map((entry) => {
             const isActive = entry.key === tab;
             return (
               <button key={entry.key} type="button" onClick={() => go({ tab: entry.key })} aria-current={isActive ? "page" : undefined}

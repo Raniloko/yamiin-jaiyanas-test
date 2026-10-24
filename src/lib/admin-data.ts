@@ -41,7 +41,8 @@ export type AdminData = {
   setStatus: (id: string, status: OrderStatus) => Promise<void>;
 };
 
-export function useAdminData(range: RangeKey): AdminData {
+/** `stats`: Speisekarten-Auswertung nur laden, wenn die Person das Statistik-Recht hat (sonst lehnt die Datenbank ab). */
+export function useAdminData(range: RangeKey, stats = true): AdminData {
   const [orders, setOrders] = useState<Order[]>([]);
   const [analytics, setAnalytics] = useState<MenuAnalytics>(EMPTY_ANALYTICS);
   const [previousAnalytics, setPrevious] = useState<MenuAnalytics | null>(null);
@@ -63,10 +64,12 @@ export function useAdminData(range: RangeKey): AdminData {
         const nextOrders = await loadOrders();
         const first = nextOrders.length ? new Date(Math.min(...nextOrders.map((order) => order.createdAt))) : undefined;
         const current = rangeBounds(range, new Date(), first);
-        const [now, before] = await Promise.all([
-          loadAnalytics(current.from, current.to),
-          current.prevFrom && current.prevTo ? loadAnalytics(current.prevFrom, current.prevTo) : Promise.resolve(null),
-        ]);
+        const [now, before] = stats
+          ? await Promise.all([
+              loadAnalytics(current.from, current.to),
+              current.prevFrom && current.prevTo ? loadAnalytics(current.prevFrom, current.prevTo) : Promise.resolve(null),
+            ])
+          : [EMPTY_ANALYTICS, null];
         if (!active) return;
         ordersRef.current = nextOrders;
         setOrders(nextOrders);
@@ -87,7 +90,7 @@ export function useAdminData(range: RangeKey): AdminData {
     return () => {
       active = false;
     };
-  }, [range, tick]);
+  }, [range, tick, stats]);
 
   // Live: neue/geänderte Bestellungen sofort, Speisekarten-Statistik jede Minute.
   useEffect(() => {

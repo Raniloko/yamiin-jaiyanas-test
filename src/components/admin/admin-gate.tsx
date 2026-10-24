@@ -7,12 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminAuth, useAdminSession, type AdminState } from "@/lib/admin-auth";
 
-type Mode = "signin" | "signup" | "reset";
+type Mode = "signin" | "reset";
 
 const MESSAGES: Record<string, string> = {
   "Invalid login credentials": "E-Mail oder Passwort stimmt nicht.",
   "Email not confirmed": "Bitte bestätige zuerst deine E-Mail – der Link liegt in deinem Postfach.",
-  "User already registered": "Für diese E-Mail gibt es schon ein Konto. Bitte melde dich an.",
 };
 const translate = (message: string) => MESSAGES[message] ?? message;
 
@@ -35,7 +34,7 @@ export function AdminGate({ children, title }: { children: (state: Extract<Admin
             </p>
           )}
           {state.status === "signed-out" && <LoginForm />}
-          {state.status === "recovery" && <NewPasswordForm />}
+          {state.status === "recovery" && <NewPasswordForm email={state.session.user.email ?? ""} invited={state.invited === true} />}
           {state.status === "no-access" && (
             <div className="text-center">
               <LockKeyhole className="mx-auto size-8" />
@@ -77,10 +76,6 @@ function LoginForm() {
       const { error } = await adminAuth.resetPassword(address);
       if (error) setError(translate(error.message));
       else setInfo("Wenn es ein Konto gibt, ist ein Link zum Zurücksetzen unterwegs. Schau in dein Postfach.");
-    } else if (mode === "signup") {
-      const { data, error } = await adminAuth.signUp(address, password);
-      if (error) setError(translate(error.message));
-      else if (!data.session) setInfo("Fast geschafft: Bitte bestätige deine E-Mail über den Link in deinem Postfach und melde dich dann an.");
     } else {
       const { error } = await adminAuth.signIn(address, password);
       if (error) setError(translate(error.message));
@@ -90,20 +85,7 @@ function LoginForm() {
 
   return (
     <form onSubmit={(event) => void submit(event)} className="space-y-4">
-      <div role="tablist" className="grid grid-cols-2 rounded-full bg-muted p-1 text-sm font-semibold">
-        {(["signin", "signup"] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={mode === value}
-            onClick={() => { setMode(value); setError(""); setInfo(""); }}
-            className={`rounded-full py-2 transition-colors ${mode === value ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            {value === "signin" ? "Anmelden" : "Konto anlegen"}
-          </button>
-        ))}
-      </div>
+      {mode === "reset" && <p className="text-sm text-muted-foreground">Wir schicken dir einen Link, mit dem du ein neues Passwort festlegst.</p>}
       <div className="space-y-1.5">
         <Label htmlFor="admin-email">E-Mail</Label>
         <Input id="admin-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="h-11 bg-background" />
@@ -111,24 +93,24 @@ function LoginForm() {
       {mode !== "reset" && (
         <div className="space-y-1.5">
           <Label htmlFor="admin-password">Passwort</Label>
-          <Input id="admin-password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 8 : undefined} value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 bg-background" />
-          {mode === "signup" && <p className="text-xs text-muted-foreground">Mindestens 8 Zeichen. Zugang gibt es nur für freigeschaltete E-Mails.</p>}
+          <Input id="admin-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 bg-background" />
         </div>
       )}
       {error && <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
       {info && <p role="status" className="rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground">{info}</p>}
       <Button type="submit" disabled={busy} className="h-11 w-full rounded-full">
         {busy && <LoaderCircle className="size-4 animate-spin" />}
-        {mode === "signin" ? "Anmelden" : mode === "signup" ? "Konto anlegen" : "Link senden"}
+        {mode === "signin" ? "Anmelden" : "Link senden"}
       </Button>
       <button type="button" onClick={() => { setMode(mode === "reset" ? "signin" : "reset"); setError(""); setInfo(""); }} className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">
         {mode === "reset" ? "Zurück zur Anmeldung" : "Passwort vergessen?"}
       </button>
+      {mode === "signin" && <p className="border-t border-border pt-4 text-center text-xs text-muted-foreground">Noch kein Zugang? Konten gibt es nur per Einladung vom Inhaber.</p>}
     </form>
   );
 }
 
-function NewPasswordForm() {
+function NewPasswordForm({ email, invited }: { email: string; invited?: boolean }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -141,7 +123,14 @@ function NewPasswordForm() {
   };
   return (
     <form onSubmit={(event) => void submit(event)} className="space-y-4">
-      <p className="text-sm text-muted-foreground">Lege ein neues Passwort fest.</p>
+      {invited ? (
+        <div>
+          <p className="font-semibold">Willkommen im Team!</p>
+          <p className="mt-1 text-sm text-muted-foreground">Lege ein Passwort für <strong className="text-foreground">{email}</strong> fest. Damit meldest du dich künftig im Dashboard und in der Küche an.</p>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Lege ein neues Passwort fest.</p>
+      )}
       <div className="space-y-1.5">
         <Label htmlFor="admin-new-password">Neues Passwort</Label>
         <Input id="admin-new-password" type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 bg-background" />

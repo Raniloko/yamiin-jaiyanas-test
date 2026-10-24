@@ -16,13 +16,22 @@ export type Database = {
     Tables: {
       admin_emails: {
         Row: {
+          added_at: string
+          can_view_stats: boolean
           email: string
+          role: string
         }
         Insert: {
+          added_at?: string
+          can_view_stats?: boolean
           email: string
+          role?: string
         }
         Update: {
+          added_at?: string
+          can_view_stats?: boolean
           email?: string
+          role?: string
         }
         Relationships: []
       }
@@ -175,16 +184,25 @@ export type Database = {
           confirmed: boolean
           created_at: string | null
           email: string
+          can_view_stats: boolean
           has_account: boolean
           is_admin: boolean
           last_sign_in_at: string | null
+          role: string | null
         }[]
       }
       admin_menu_analytics: {
         Args: { p_from: string; p_to: string }
         Returns: Json
       }
+      can_view_stats: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      is_owner: { Args: never; Returns: boolean }
+      my_access: { Args: never; Returns: Json }
+      owner_set_access: {
+        Args: { p_admin: boolean; p_email: string; p_stats: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
