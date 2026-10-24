@@ -116,7 +116,7 @@ function TeamPanel({ email }: { email: string }) {
                     <span className="flex items-center gap-1.5 text-sm font-semibold">
                       <span className="truncate">{entry.email}</span>
                       {entry.email === me && <span className="shrink-0 font-normal text-muted-foreground">(du)</span>}
-                      {owner && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-background"><Crown className="size-3" />Inhaber</span>}
+                      {owner && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground"><Crown className="size-3" />Inhaber</span>}
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       {!entry.has_account ? "Eingeladen – Konto noch nicht angelegt" : !entry.confirmed ? "Eingeladen – Link noch nicht geöffnet" : `Zuletzt angemeldet: ${when(entry.last_sign_in_at)}`}

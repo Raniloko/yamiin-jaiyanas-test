@@ -210,7 +210,7 @@ function SoldOutControls({ state }: { state: AvailabilityState }) {
       <div role="radiogroup" aria-label="Ausverkauft gilt" className="grid grid-cols-2 rounded-full bg-muted p-1 text-sm font-semibold">
         {(["today", "forever"] as const).map((value) => (
           <button key={value} type="button" role="radio" aria-checked={scope === value} onClick={() => setScope(value)}
-            className={cn("h-9 rounded-full transition-colors", scope === value ? "bg-foreground text-background shadow-sm" : "text-foreground/60")}>
+            className={cn("h-9 rounded-full transition-colors", scope === value ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/60")}>
             {value === "today" ? "Für heute" : "Bis auf Weiteres"}
           </button>
         ))}

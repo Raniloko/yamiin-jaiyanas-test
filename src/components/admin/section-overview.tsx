@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, ChefHat } from "lucide-react";
+import { AlertTriangle, ChefHat, Euro, Eye, MousePointerClick, Receipt, Search, ShoppingBag, ShoppingCart, UtensilsCrossed } from "lucide-react";
 
 import type { AdminData } from "@/lib/admin-data";
 import {
@@ -9,7 +9,7 @@ import {
 import { menuCategories } from "@/lib/menu-data";
 import { HourChart, RevenueChart, VisitorsChart } from "./charts";
 import { PAYMENT_LABEL, scopeOrders } from "./scope";
-import { EmptyState, INK, MeterRow, Panel, ShareBar, StatTile } from "./ui";
+import { COUNT, EmptyState, MeterRow, Panel, ShareBar, StatTile } from "./ui";
 
 export function OverviewSection({ data }: { data: AdminData }) {
   const { current, previous } = scopeOrders(data);
@@ -27,22 +27,22 @@ export function OverviewSection({ data }: { data: AdminData }) {
   return (
     <div className="space-y-4">
       {open.length > 0 && (
-        <Link to="/kitchen" className="flex items-center gap-3 rounded-2xl bg-foreground px-4 py-3 text-sm text-background transition-opacity hover:opacity-90">
-          <ChefHat className="size-5 shrink-0" />
+        <Link to="/kitchen" className="flex items-center gap-3 rounded-2xl bg-[linear-gradient(110deg,#1f2022_0%,#3a2a21_100%)] px-4 py-3 text-sm text-white shadow-md shadow-[#1f2022]/15 transition-opacity hover:opacity-95">
+          <span className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-[#5fd068]/20 text-[#7ee08a]"><ChefHat className="size-4" /><span className="live-ping absolute inset-0 rounded-full bg-[#5fd068]/30" aria-hidden="true" /></span>
           <span className="min-w-0 flex-1"><strong>{open.length} offene Bestellung{open.length === 1 ? "" : "en"}</strong> – jetzt in der Küche ansehen</span>
           <span aria-hidden="true">→</span>
         </Link>
       )}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-6">
-        <div className="col-span-2"><StatTile emphasis label="Umsatz" value={formatEuro(now.revenue)} delta={before ? delta(now.revenue, before.revenue) : null} hint={before && delta(now.revenue, before.revenue) !== null ? "vs. Vorzeitraum" : undefined} /></div>
-        <StatTile label="Bestellungen" value={formatNumber(now.orders)} delta={before ? delta(now.orders, before.orders) : null} />
-        <StatTile label="Ø Bestellwert" value={formatEuro(now.average)} delta={before ? delta(now.average, before.average) : null} />
-        <StatTile label="Verkaufte Artikel" value={formatNumber(now.items)} delta={before ? delta(now.items, before.items) : null} />
-        <StatTile label="Besuche Speisekarte" value={formatNumber(visitors)} delta={delta(visitors, prevVisitors)} hint={`${formatPercent(conversion, 1)} bestellen`} />
+        <div className="col-span-2"><StatTile emphasis icon={Euro} label="Umsatz" value={formatEuro(now.revenue)} delta={before ? delta(now.revenue, before.revenue) : null} hint={before && delta(now.revenue, before.revenue) !== null ? "vs. Vorzeitraum" : undefined} /></div>
+        <StatTile icon={Receipt} tone="blue" label="Bestellungen" value={formatNumber(now.orders)} delta={before ? delta(now.orders, before.orders) : null} />
+        <StatTile icon={ShoppingCart} tone="violet" label="Ø Bestellwert" value={formatEuro(now.average)} delta={before ? delta(now.average, before.average) : null} />
+        <StatTile icon={ShoppingBag} tone="amber" label="Verkaufte Artikel" value={formatNumber(now.items)} delta={before ? delta(now.items, before.items) : null} />
+        <StatTile icon={Eye} tone="green" label="Besuche Speisekarte" value={formatNumber(visitors)} delta={delta(visitors, prevVisitors)} hint={`${formatPercent(conversion, 1)} bestellen`} />
       </div>
       {now.unpaidOnline > 0 && (
-        <p className="flex items-start gap-2 rounded-xl border border-foreground/25 bg-card px-3 py-2 text-xs">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <p className="flex items-start gap-2 rounded-xl border border-[#eda100]/40 bg-[#fdf1d6] px-3 py-2 text-xs text-[#5c3d00]">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[#b77c00]" aria-hidden="true" />
           <span><strong>Hinweis:</strong> {now.unpaidOnline} Online-Bestellung{now.unpaidOnline === 1 ? "" : "en"} ohne bestätigte Zahlung (abgebrochen oder offen) – nicht im Umsatz enthalten.</span>
         </p>
       )}
@@ -103,10 +103,10 @@ export function MenuSection({ data }: { data: AdminData }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Besuche" value={formatNumber(sessionsOf(analytics, "page_view"))} delta={delta(sessionsOf(analytics, "page_view"), previousAnalytics ? sessionsOf(previousAnalytics, "page_view") : null)} />
-        <StatTile label="Gerichte angesehen" value={formatNumber(events(analytics, "item_view") ?? 0)} delta={delta(events(analytics, "item_view") ?? 0, events(previousAnalytics, "item_view"))} />
-        <StatTile label="In den Warenkorb" value={formatNumber(events(analytics, "add_to_cart") ?? 0)} delta={delta(events(analytics, "add_to_cart") ?? 0, events(previousAnalytics, "add_to_cart"))} />
-        <StatTile label="Suchen" value={formatNumber(events(analytics, "search") ?? 0)} delta={delta(events(analytics, "search") ?? 0, events(previousAnalytics, "search"))} />
+        <StatTile icon={Eye} tone="green" label="Besuche" value={formatNumber(sessionsOf(analytics, "page_view"))} delta={delta(sessionsOf(analytics, "page_view"), previousAnalytics ? sessionsOf(previousAnalytics, "page_view") : null)} />
+        <StatTile icon={UtensilsCrossed} tone="copper" label="Gerichte angesehen" value={formatNumber(events(analytics, "item_view") ?? 0)} delta={delta(events(analytics, "item_view") ?? 0, events(previousAnalytics, "item_view"))} />
+        <StatTile icon={MousePointerClick} tone="violet" label="In den Warenkorb" value={formatNumber(events(analytics, "add_to_cart") ?? 0)} delta={delta(events(analytics, "add_to_cart") ?? 0, events(previousAnalytics, "add_to_cart"))} />
+        <StatTile icon={Search} tone="blue" label="Suchen" value={formatNumber(events(analytics, "search") ?? 0)} delta={delta(events(analytics, "search") ?? 0, events(previousAnalytics, "search"))} />
       </div>
       {noData && <EmptyState>Noch keine Interaktionen im Zeitraum. Die Erfassung startet, sobald diese Version live ist – sie zählt anonym, ohne Cookies und ohne persönliche Daten.</EmptyState>}
 
@@ -118,7 +118,7 @@ export function MenuSection({ data }: { data: AdminData }) {
                 <span className="min-w-0 truncate text-sm"><span className="mr-2 text-xs tabular-nums text-muted-foreground">{index + 1}</span>{step.label}</span>
                 <span className="text-sm tabular-nums"><strong>{formatNumber(step.sessions)}</strong><span className="ml-2 text-xs text-muted-foreground">{formatPercent(step.ofFirst)}</span></span>
                 <span className="col-span-2 flex items-center gap-2">
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden="true"><span className="block h-full rounded-full" style={{ width: `${step.ofFirst * 100}%`, backgroundColor: INK }} /></span>
+                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden="true"><span className="block h-full rounded-full" style={{ width: `${step.ofFirst * 100}%`, backgroundColor: COUNT }} /></span>
                   {index > 0 && <span className="w-24 text-right text-xs text-muted-foreground">{formatPercent(step.ofPrevious)} weiter</span>}
                 </span>
               </li>
@@ -138,18 +138,18 @@ export function MenuSection({ data }: { data: AdminData }) {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Panel title="Meistgesehene Gerichte" subtitle="Besucher, die das Gericht geöffnet haben">
-          {viewed.length === 0 ? <EmptyState>Noch keine Daten.</EmptyState> : <ol className="space-y-3">{viewed.map((row) => <MeterRow key={row.item} label={row.item} value={row.s} max={viewed[0]!.s} display={formatNumber(row.s)} />)}</ol>}
+          {viewed.length === 0 ? <EmptyState>Noch keine Daten.</EmptyState> : <ol className="space-y-3">{viewed.map((row) => <MeterRow key={row.item} label={row.item} value={row.s} max={viewed[0]!.s} display={formatNumber(row.s)} color={COUNT} />)}</ol>}
         </Panel>
         <Panel title="Kategorien" subtitle="Besucher, die die Kategorie gesehen haben">
-          {categories.length === 0 ? <EmptyState>Noch keine Daten.</EmptyState> : <ol className="space-y-3">{categories.map((row) => <MeterRow key={row.category} label={CATEGORY_LABEL[row.category] ?? row.category} value={row.s} max={categories[0]!.s} display={formatNumber(row.s)} />)}</ol>}
+          {categories.length === 0 ? <EmptyState>Noch keine Daten.</EmptyState> : <ol className="space-y-3">{categories.map((row) => <MeterRow key={row.category} label={CATEGORY_LABEL[row.category] ?? row.category} value={row.s} max={categories[0]!.s} display={formatNumber(row.s)} color={COUNT} />)}</ol>}
         </Panel>
         <Panel title="Beliebte Suchen" subtitle="Was Gäste in die Suche tippen">
-          {analytics.searches.length === 0 ? <EmptyState>Noch keine Suchen.</EmptyState> : <ol className="space-y-3">{analytics.searches.slice(0, 8).map((row) => <MeterRow key={row.query} label={`„${row.query}“`} value={row.n} max={analytics.searches[0]!.n} display={`${formatNumber(row.n)}×`} />)}</ol>}
+          {analytics.searches.length === 0 ? <EmptyState>Noch keine Suchen.</EmptyState> : <ol className="space-y-3">{analytics.searches.slice(0, 8).map((row) => <MeterRow key={row.query} label={`„${row.query}“`} value={row.n} max={analytics.searches[0]!.n} display={`${formatNumber(row.n)}×`} color={COUNT} />)}</ol>}
         </Panel>
       </div>
       {removed.length > 0 && (
         <Panel title="Oft wieder entfernt" subtitle="Aus dem Warenkorb genommen (Stück)">
-          <ol className="grid gap-3 sm:grid-cols-2">{removed.map((row) => <MeterRow key={row.item} label={row.item} value={row.qty} max={removed[0]!.qty} display={`${formatNumber(row.qty)}×`} />)}</ol>
+          <ol className="grid gap-3 sm:grid-cols-2">{removed.map((row) => <MeterRow key={row.item} label={row.item} value={row.qty} max={removed[0]!.qty} display={`${formatNumber(row.qty)}×`} color={COUNT} />)}</ol>
         </Panel>
       )}
     </div>

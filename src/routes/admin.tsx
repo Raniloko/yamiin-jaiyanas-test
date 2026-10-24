@@ -68,7 +68,7 @@ function Dashboard({ email, access }: { email: string; access: AdminAccess }) {
     <div role="radiogroup" aria-label="Zeitraum" className="grid min-w-0 flex-1 grid-cols-5 rounded-full bg-muted p-1 sm:flex sm:flex-none sm:border sm:border-border sm:bg-card">
       {RANGES.map((entry) => (
         <button key={entry.key} type="button" role="radio" aria-checked={entry.key === range} onClick={() => go({ range: entry.key })} title={entry.label}
-          className={cn("h-8 min-w-0 rounded-full px-1.5 text-xs font-semibold transition-colors sm:px-3", entry.key === range ? "bg-foreground text-background shadow-sm" : "text-foreground/60 hover:text-foreground")}>
+          className={cn("h-8 min-w-0 rounded-full px-1.5 text-xs font-semibold transition-colors sm:px-3", entry.key === range ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/60 hover:text-foreground")}>
           <span className="sm:hidden">{entry.short}</span><span className="hidden sm:inline">{entry.label.replace("Letzte ", "")}</span>
         </button>
       ))}
@@ -85,13 +85,13 @@ function Dashboard({ email, access }: { email: string; access: AdminAccess }) {
       {/* Desktop: Seitenleiste */}
       <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-card px-4 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] lg:flex">
         <div className="flex items-center gap-3 px-2">
-          <BrandMark className="size-10 grayscale" />
-          <span className="leading-tight"><span className="block text-sm font-bold uppercase">Yamiin &amp; Jaiyana&rsquo;s</span><span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Admin</span></span>
+          <BrandMark className="size-10" />
+          <span className="leading-tight"><span className="block text-sm font-bold uppercase">Yamiin &amp; Jaiyana&rsquo;s</span><span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Admin</span></span>
         </div>
         <nav aria-label="Dashboard" className="mt-8 space-y-1">
           {tabs.map((entry) => (
             <button key={entry.key} type="button" onClick={() => go({ tab: entry.key })} aria-current={entry.key === tab ? "page" : undefined}
-              className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors", entry.key === tab ? "bg-foreground text-background" : "text-foreground/70 hover:bg-muted hover:text-foreground")}>
+              className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors", entry.key === tab ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25" : "text-foreground/70 hover:bg-muted hover:text-foreground")}>
               <entry.icon className="size-4" aria-hidden="true" />{entry.label}
             </button>
           ))}
@@ -112,7 +112,7 @@ function Dashboard({ email, access }: { email: string; access: AdminAccess }) {
         <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md lg:hidden">
           <div className="flex items-center gap-2 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6">
             {/* Inhaber haben ein Symbol mehr (Team) – auf schmalen Handys dafür ohne Logo, damit der Titel lesbar bleibt. */}
-            <BrandMark className={cn("size-8 grayscale", access.owner && "hidden sm:block")} />
+            <BrandMark className={cn("size-8", access.owner && "hidden sm:block")} />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg leading-tight">{active.title}</h1>
               <p className="truncate text-[11px] text-muted-foreground" aria-live="polite">{updated}</p>
@@ -131,7 +131,7 @@ function Dashboard({ email, access }: { email: string; access: AdminAccess }) {
           <nav aria-label="Dashboard" className={cn("hidden gap-1 overflow-x-auto px-6 pb-3", tabs.length > 1 && "md:flex")}>
             {tabs.map((entry) => (
               <button key={entry.key} type="button" onClick={() => go({ tab: entry.key })} aria-current={entry.key === tab ? "page" : undefined}
-                className={cn("flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors", entry.key === tab ? "bg-foreground text-background" : "text-foreground/60 hover:bg-muted hover:text-foreground")}>
+                className={cn("flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors", entry.key === tab ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25" : "text-foreground/60 hover:bg-muted hover:text-foreground")}>
                 <entry.icon className="size-4" aria-hidden="true" />{entry.label}
               </button>
             ))}
@@ -177,8 +177,8 @@ function Dashboard({ email, access }: { email: string; access: AdminAccess }) {
             const isActive = entry.key === tab;
             return (
               <button key={entry.key} type="button" onClick={() => go({ tab: entry.key })} aria-current={isActive ? "page" : undefined}
-                className={cn("flex flex-col items-center gap-1 pb-2 text-[10px] font-semibold transition-colors", isActive ? "text-foreground" : "text-muted-foreground")}>
-                <span className={cn("flex h-8 w-12 items-center justify-center rounded-full transition-colors", isActive ? "bg-foreground text-background" : "")}>
+                className={cn("flex flex-col items-center gap-1 pb-2 text-[10px] font-semibold transition-colors", isActive ? "text-primary" : "text-muted-foreground")}>
+                <span className={cn("flex h-8 w-12 items-center justify-center rounded-full transition-colors", isActive ? "bg-primary text-primary-foreground" : "")}>
                   <entry.icon className="size-[18px]" aria-hidden="true" />
                 </span>
                 {entry.label}

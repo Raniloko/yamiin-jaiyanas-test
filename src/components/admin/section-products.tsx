@@ -1,4 +1,4 @@
-import { ArrowDown, Search } from "lucide-react";
+import { ArrowDown, CircleSlash, MousePointerClick, Search, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import type { AdminData } from "@/lib/admin-data";
 import { formatEuro, formatNumber, formatPercent, productStats, variantStats, type ProductStat } from "@/lib/admin-metrics";
 import { menuCategories } from "@/lib/menu-data";
 import { scopeOrders } from "./scope";
-import { Chip, EmptyState, INK, MeterRow, MiniStat, Panel } from "./ui";
+import { Chip, COUNT, EmptyState, MeterRow, MiniStat, MONEY, Panel } from "./ui";
 
 type SortKey = "revenue" | "sold" | "views" | "addRate" | "name";
 const SORTS: { key: SortKey; label: string }[] = [
@@ -41,10 +41,10 @@ export function ProductsSection({ data }: { data: AdminData }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MiniStat label="Gerichte auf der Karte" value={formatNumber(stats.filter((stat) => stat.category !== "other").length)} />
-        <MiniStat label="Verkauft (Stück)" value={formatNumber(stats.reduce((sum, stat) => sum + stat.sold, 0))} />
-        <MiniStat label="Ohne Verkauf im Zeitraum" value={formatNumber(neverSold)} />
-        <MiniStat label="Ø Warenkorb-Quote" value={averageRate(stats)} />
+        <MiniStat icon={UtensilsCrossed} tone="copper" label="Gerichte auf der Karte" value={formatNumber(stats.filter((stat) => stat.category !== "other").length)} />
+        <MiniStat icon={ShoppingBag} tone="amber" label="Verkauft (Stück)" value={formatNumber(stats.reduce((sum, stat) => sum + stat.sold, 0))} />
+        <MiniStat icon={CircleSlash} tone="rose" label="Ohne Verkauf im Zeitraum" value={formatNumber(neverSold)} />
+        <MiniStat icon={MousePointerClick} tone="violet" label="Ø Warenkorb-Quote" value={averageRate(stats)} />
       </div>
 
       <Panel title="Alle Produkte" subtitle="Aufrufe & Warenkorb aus der Speisekarte, Verkäufe aus bezahlten Bestellungen">
@@ -93,7 +93,7 @@ export function ProductsSection({ data }: { data: AdminData }) {
                       <td className="px-3 text-right font-semibold">{formatEuro(stat.revenue)}</td>
                       <td className="py-2.5 pl-3">
                         <span className="block h-1.5 overflow-hidden rounded-full bg-muted" title={`${totals.revenue ? Math.round((stat.revenue / totals.revenue) * 100) : 0} % vom Umsatz`}>
-                          <span className="block h-full rounded-full" style={{ width: `${totals.revenue ? (stat.revenue / totals.revenue) * 100 : 0}%`, backgroundColor: INK }} />
+                          <span className="block h-full rounded-full" style={{ width: `${totals.revenue ? (stat.revenue / totals.revenue) * 100 : 0}%`, backgroundColor: MONEY }} />
                         </span>
                       </td>
                     </tr>
@@ -140,7 +140,7 @@ export function ProductsSection({ data }: { data: AdminData }) {
               {variants.map((group) => (
                 <div key={group.group}>
                   <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">{group.group}</p>
-                  <ol className="space-y-2.5">{group.values.map((value) => <MeterRow key={value.label} label={value.label} value={value.qty} max={group.values[0]!.qty} display={`${formatNumber(value.qty)}×`} />)}</ol>
+                  <ol className="space-y-2.5">{group.values.map((value) => <MeterRow key={value.label} label={value.label} value={value.qty} max={group.values[0]!.qty} display={`${formatNumber(value.qty)}×`} color={COUNT} />)}</ol>
                 </div>
               ))}
             </div>
@@ -148,7 +148,7 @@ export function ProductsSection({ data }: { data: AdminData }) {
         </Panel>
         <Panel title="Oft angesehen, selten gewählt" subtitle="Ab 5 Aufrufen, weniger als 20 % in den Warenkorb">
           {hesitant.length === 0 ? <EmptyState>Keine Auffälligkeiten – oder noch zu wenige Aufrufe.</EmptyState> : (
-            <ol className="space-y-3">{hesitant.map((stat) => <MeterRow key={stat.name} label={stat.name} sub={`${formatNumber(stat.views)} Aufrufe`} value={stat.addRate ?? 0} max={1} display={formatPercent(stat.addRate ?? 0)} />)}</ol>
+            <ol className="space-y-3">{hesitant.map((stat) => <MeterRow key={stat.name} label={stat.name} sub={`${formatNumber(stat.views)} Aufrufe`} value={stat.addRate ?? 0} max={1} display={formatPercent(stat.addRate ?? 0)} color={COUNT} />)}</ol>
           )}
         </Panel>
       </div>

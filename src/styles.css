@@ -138,23 +138,24 @@
  */
 .admin-theme {
   color-scheme: light;
-  --background: oklch(0.975 0 0);
-  --foreground: oklch(0.18 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
-  --primary: oklch(0.18 0 0);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.18 0 0);
-  --secondary-foreground: oklch(1 0 0);
-  --accent: oklch(0.94 0 0);
-  --accent-foreground: oklch(0.18 0 0);
-  --muted: oklch(0.955 0 0);
-  --muted-foreground: oklch(0.5 0 0);
-  --border: oklch(0.91 0 0);
-  --input: oklch(0.88 0 0);
-  --ring: oklch(0.18 0 0);
+  /* Warmes Creme statt Grau, Kupfer als Markenfarbe (Knöpfe, aktive Reiter) – wie auf der Website. */
+  --background: #f7f3ec;
+  --foreground: #1f2022;
+  --card: #ffffff;
+  --card-foreground: #1f2022;
+  --popover: #ffffff;
+  --popover-foreground: #1f2022;
+  --primary: #b35b2a;
+  --primary-foreground: #ffffff;
+  --secondary: #1f2022;
+  --secondary-foreground: #ffffff;
+  --accent: #fbe6d8;
+  --accent-foreground: #7a3a19;
+  --muted: #f3ece2;
+  --muted-foreground: #6f675f;
+  --border: #e9dfd2;
+  --input: #ddd0c0;
+  --ring: #c46b38;
   background-color: var(--background);
   color: var(--foreground);
 }
