@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
+import { ActiveOrderPill } from "../components/active-order-pill";
 import { CartDock } from "../components/cart-dock";
 
 function NotFoundComponent() {
@@ -135,6 +136,7 @@ function RootComponent() {
       <Outlet />
       {!internal && <SiteFooter />}
       <CartDock />
+      <ActiveOrderPill />
     </QueryClientProvider>
   );
 }

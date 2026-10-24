@@ -31,6 +31,9 @@ export function SiteFooter() {
           <Link to="/kontakt" className={linkClass}>
             Kontakt &amp; Anfahrt
           </Link>
+          <Link to="/meine-bestellungen" className={linkClass}>
+            Meine Bestellungen
+          </Link>
         </nav>
 
         <div>

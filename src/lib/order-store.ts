@@ -100,6 +100,23 @@ export function guestToken(id: string): string | undefined {
   }
 }
 
+/** Bestellungen, die auf diesem Gerät aufgegeben wurden (neueste zuerst) – "Meine Bestellungen". */
+export function useMyOrders() {
+  const all = useOrders();
+  return all.filter((order) => guestToken(order.id)).sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/** Bestellungen dieses Geräts vergessen (Schlüssel + Kopie). */
+export function forgetMyOrders() {
+  try {
+    const ids = Object.keys(JSON.parse(localStorage.getItem(TOKENS_KEY) || "{}") as Record<string, string>);
+    localStorage.removeItem(TOKENS_KEY);
+    write(read().filter((order) => !ids.includes(order.id)));
+  } catch {
+    /* ignorieren */
+  }
+}
+
 // ============= Cloud-Sync (Lovable Cloud) =============
 
 export type OrderRow = {
@@ -199,6 +216,14 @@ export const orderStore = {
     rememberGuestToken(id, accessToken);
     write([full, ...read()].slice(0, 30));
     return { order: full };
+  },
+  /** Live-Stand vom Server in die Gerätekopie übernehmen (nur Anzeige – die Wahrheit liegt in der Datenbank). */
+  remember(remote: Order) {
+    const current = read();
+    const local = current.find((order) => order.id === remote.id);
+    if (!local) return;
+    if (local.status === remote.status && local.paid === remote.paid && local.pickupAt === remote.pickupAt) return;
+    write(current.map((order) => (order.id === remote.id ? { ...order, status: remote.status, paid: remote.paid === true, pickupAt: remote.pickupAt } : order)));
   },
   setStatus(id: string, status: OrderStatus) {
     write(read().map((order) => (order.id === id ? { ...order, status } : order)));
