@@ -181,14 +181,14 @@ export type Database = {
       admin_accounts: {
         Args: never
         Returns: {
-          confirmed: boolean
-          created_at: string | null
-          email: string
           can_view_stats: boolean
+          confirmed: boolean
+          created_at: string
+          email: string
           has_account: boolean
           is_admin: boolean
-          last_sign_in_at: string | null
-          role: string | null
+          last_sign_in_at: string
+          role: string
         }[]
       }
       admin_menu_analytics: {
@@ -199,6 +199,21 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
       my_access: { Args: never; Returns: Json }
+      my_admin_entry: {
+        Args: never
+        Returns: {
+          added_at: string
+          can_view_stats: boolean
+          email: string
+          role: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "admin_emails"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       owner_set_access: {
         Args: { p_admin: boolean; p_email: string; p_stats: boolean }
         Returns: undefined
