@@ -1,5 +1,5 @@
-import { Eye, EyeOff, KeyRound, LoaderCircle, Mail, UserCog } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { Eye, EyeOff, KeyRound, LoaderCircle, Mail, ShieldCheck, UserCog } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ const MESSAGES: Record<string, string> = {
   "A user with this email address has already been registered": "Für diese E-Mail gibt es schon ein Konto.",
   "Email address is invalid": "Diese E-Mail-Adresse ist ungültig.",
   "Password should be at least 6 characters.": "Das Passwort ist zu kurz.",
+  "Current password required when setting new password.": "Bitte gib dein aktuelles Passwort ein.",
+  "Invalid current password": "Das aktuelle Passwort stimmt nicht.",
 };
 const translate = (message: string) => MESSAGES[message] ?? message;
 
@@ -34,6 +36,7 @@ export function AccountButton({ email, variant = "icon" }: { email: string; vari
             <SheetDescription>Angemeldet als <strong className="text-foreground">{email}</strong></SheetDescription>
           </SheetHeader>
           <div className="space-y-8 px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
+            <AdminList email={email} />
             <PasswordForm email={email} />
             <EmailForm email={email} />
           </div>
@@ -85,7 +88,7 @@ function PasswordForm({ email }: { email: string }) {
       setBusy(false);
       return setNotice({ kind: "error", text: "Das aktuelle Passwort stimmt nicht." });
     }
-    const { error } = await adminAuth.updatePassword(next);
+    const { error } = await adminAuth.changePassword(current, next);
     setBusy(false);
     if (error) return setNotice({ kind: "error", text: translate(error.message) });
     setCurrent("");
@@ -95,7 +98,7 @@ function PasswordForm({ email }: { email: string }) {
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} className="space-y-4">
+    <form onSubmit={(event) => void submit(event)} className="space-y-4 border-t border-border pt-8">
       <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground"><KeyRound className="size-4" />Passwort ändern</h3>
       <PasswordField id="pw-current" label="Aktuelles Passwort" value={current} onChange={setCurrent} autoComplete="current-password" />
       <PasswordField id="pw-new" label="Neues Passwort" value={next} onChange={setNext} autoComplete="new-password" hint="Mindestens 8 Zeichen." />
@@ -144,5 +147,52 @@ function EmailForm({ email }: { email: string }) {
       <NoticeBox notice={notice} />
       <Button type="submit" variant="outline" disabled={busy} className="h-11 w-full rounded-full">{busy && <LoaderCircle className="size-4 animate-spin" />}Bestätigungslink senden</Button>
     </form>
+  );
+}
+
+type Account = { email: string; is_admin: boolean; has_account: boolean; confirmed: boolean; last_sign_in_at: string | null; created_at: string | null };
+const when = (value: string | null) => (value ? new Date(value).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "noch nie");
+
+/** Wer hat Zugang? Admin-Freigaben (E-Mail-Liste) und registrierte Konten ohne Freigabe. */
+function AdminList({ email }: { email: string }) {
+  const [accounts, setAccounts] = useState<Account[] | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    void adminAuth.listAccounts().then(({ data, error }) => {
+      if (error) setError(error.message);
+      else setAccounts((data ?? []) as Account[]);
+    });
+  }, []);
+  const admins = accounts?.filter((entry) => entry.is_admin) ?? [];
+  const others = accounts?.filter((entry) => !entry.is_admin) ?? [];
+  const row = (entry: Account) => (
+    <li key={entry.email} className="flex items-start gap-3 py-2.5">
+      <span className={`mt-1.5 size-2 shrink-0 rounded-full ${entry.is_admin ? (entry.confirmed ? "bg-[#087508]" : "bg-[#fab219]") : "bg-muted-foreground/40"}`} aria-hidden="true" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{entry.email}{entry.email === email.toLowerCase() && <span className="ml-1.5 font-normal text-muted-foreground">(du)</span>}</span>
+        <span className="block text-xs text-muted-foreground">
+          {!entry.has_account ? "Freigegeben, aber noch kein Konto angelegt" : !entry.confirmed ? "Konto angelegt, E-Mail noch nicht bestätigt" : `Zuletzt angemeldet: ${when(entry.last_sign_in_at)}`}
+        </span>
+      </span>
+    </li>
+  );
+  return (
+    <section>
+      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground"><ShieldCheck className="size-4" />Admin-Zugänge</h3>
+      {error && <p role="alert" className="mt-3 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">Konnte nicht geladen werden: {error}</p>}
+      {!accounts && !error && <p className="mt-3 text-sm text-muted-foreground">Wird geladen …</p>}
+      {accounts && (
+        <>
+          <ul className="mt-2 divide-y divide-border">{admins.map(row)}</ul>
+          {others.length > 0 && (
+            <>
+              <p className="mt-4 text-xs font-semibold text-muted-foreground">Registriert, aber ohne Zugang ({others.length})</p>
+              <ul className="mt-1 divide-y divide-border">{others.map(row)}</ul>
+            </>
+          )}
+          <p className="mt-3 text-xs text-muted-foreground">Nur E-Mails auf der Freigabeliste kommen ins Dashboard und in die Küche. Weitere Admins freischalten oder entfernen geht aus Sicherheitsgründen nur direkt in der Datenbank – sag Bescheid, wenn jemand dazukommen soll.</p>
+        </>
+      )}
+    </section>
   );
 }
