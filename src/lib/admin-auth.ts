@@ -49,5 +49,12 @@ export const adminAuth = {
     supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo() } }),
   resetPassword: (email: string) => supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() }),
   updatePassword: (password: string) => supabase.auth.updateUser({ password }),
+  /** Aktuelles Passwort prüfen, bevor E-Mail oder Passwort geändert werden. */
+  verifyPassword: async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return !error;
+  },
+  /** Neue E-Mail: Supabase schickt Bestätigungslinks; erst danach gilt sie (Admin-Freigabe zieht die Datenbank mit). */
+  changeEmail: (email: string) => supabase.auth.updateUser({ email }, { emailRedirectTo: `${window.location.origin}/admin` }),
   signOut: () => supabase.auth.signOut(),
 };
