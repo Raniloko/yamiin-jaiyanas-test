@@ -95,9 +95,23 @@ export function SiteFooter() {
         </address>
       </div>
       <div className="relative border-t border-background/10">
-        <p className="mx-auto max-w-[90rem] px-5 py-5 text-xs opacity-40 sm:px-8">
-          © {new Date().getFullYear()} {SITE.name} Healthy Fastfood, Hanau
-        </p>
+        <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-5 text-xs sm:px-8">
+          <p className="opacity-40">
+            © {new Date().getFullYear()} {SITE.name} Healthy Fastfood, Hanau
+          </p>
+          {/* Rechtstexte: von jeder Seite aus erreichbar (§ 5 Abs. 1 DDG, Art. 13 DSGVO) */}
+          <nav aria-label="Rechtliches" className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link to="/impressum" className="opacity-70 hover:text-secondary hover:opacity-100">
+              Impressum
+            </Link>
+            <Link to="/datenschutz" className="opacity-70 hover:text-secondary hover:opacity-100">
+              Datenschutz
+            </Link>
+            <Link to="/agb" className="opacity-70 hover:text-secondary hover:opacity-100">
+              AGB
+            </Link>
+          </nav>
+        </div>
       </div>
     </footer>
   );
