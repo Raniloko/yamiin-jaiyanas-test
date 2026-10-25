@@ -21,7 +21,7 @@ export function SiteFooter() {
         </div>
 
         <nav aria-label="Footer" className="flex flex-col items-start gap-2.5">
-          <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] opacity-50">Entdecken</p>
+          <p className="mb-1 font-semibold opacity-60">Entdecken</p>
           <Link to="/speisekarte" className={linkClass}>
             Speisekarte &amp; bestellen
           </Link>
@@ -37,9 +37,7 @@ export function SiteFooter() {
         </nav>
 
         <div>
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] opacity-50">
-            Öffnungszeiten
-          </p>
+          <p className="mb-3 font-semibold opacity-60">Öffnungszeiten</p>
           <dl className="space-y-1.5">
             {SITE.hours.map((row) => (
               <div key={row.days} className="flex justify-between gap-6 sm:max-w-60">
@@ -51,7 +49,7 @@ export function SiteFooter() {
         </div>
 
         <address className="not-italic">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] opacity-50">Besuch</p>
+          <p className="mb-3 font-semibold opacity-60">Besuch</p>
           <a
             href={SITE.mapsUrl}
             target="_blank"
@@ -98,7 +96,7 @@ export function SiteFooter() {
       </div>
       <div className="relative border-t border-background/10">
         <p className="mx-auto max-w-[90rem] px-5 py-5 text-xs opacity-40 sm:px-8">
-          © {new Date().getFullYear()} {SITE.name} Healthy Fastfood · Hanau
+          © {new Date().getFullYear()} {SITE.name} Healthy Fastfood, Hanau
         </p>
       </div>
     </footer>

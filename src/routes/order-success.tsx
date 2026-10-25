@@ -73,12 +73,12 @@ function StatusPage() {
     return (
       <main className="bg-[#f8f6f0] text-[#1f2022]">
         <PageHero width="max-w-3xl" className="text-center">
-          <RiseTitle lead="Bestellung" accent="nicht gefunden." className="text-5xl sm:text-7xl" />
+          <RiseTitle lead="Bestellung" accent="nicht gefunden." plain className="text-5xl sm:text-7xl" />
           <p className="hero-rise mx-auto mt-5 max-w-md text-white/75" style={{ animationDelay: "300ms" }}>
             Wir konnten keine Bestellung mit dieser Nummer finden. Den Live-Status siehst du auf dem Gerät, mit dem du bestellt hast.
           </p>
           <div className="hero-rise mt-9 flex flex-wrap justify-center gap-4" style={{ animationDelay: "420ms" }}>
-            <GlowCta>Zur Speisekarte</GlowCta>
+            <GlowCta icon={false}>Zur Speisekarte</GlowCta>
             <a href={SITE.phoneHref} className="inline-flex h-14 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 font-semibold text-[#f5f0e8] backdrop-blur-md hover:bg-white/20 sm:h-16"><Phone className="size-4 text-[#f5c3a6]" />Anrufen</a>
           </div>
         </PageHero>
@@ -108,7 +108,7 @@ function StatusPage() {
 
         <div className="mt-8 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-5">
           <div key={`${order.status}-${awaitingPayment}`} className="min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-[#f5c3a6]">
+            <p className="flex items-center gap-2 font-semibold text-[#f5c3a6]">
               <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#c46b38" /><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="draw-check" /></svg>
               {firstName ? `Danke, ${firstName}!` : "Danke für deine Bestellung!"}
             </p>
@@ -141,7 +141,7 @@ function StatusPage() {
       </PageHero>
 
       <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-8">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid divide-y divide-[#eee5dc] overflow-hidden rounded-3xl border border-[#e2d8ca] bg-white sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <InfoCard icon={<Clock3 />} label={delivery ? "Lieferung" : "Abholung"}>
             <p className="font-display text-3xl tabular-nums">{new Date(order.pickupAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr</p>
             <p className="text-xs text-[#6f675f]">{order.pickupLabel}</p>
@@ -152,17 +152,16 @@ function StatusPage() {
               <p className="text-xs text-[#6f675f]">{order.address.zip} {order.address.city}</p>
             </InfoCard>
           ) : (
-            <a href={SITE.mapsUrl} target="_blank" rel="noreferrer" className="group rounded-3xl border border-[#e2d8ca] bg-white p-5 transition duration-300 hover:-translate-y-0.5 hover:border-[#c46b38] hover:shadow-lg">
-              <span className="flex size-10 items-center justify-center rounded-2xl bg-[#1f2022] text-[#f5c3a6]"><Store className="size-5" /></span>
-              <p className="mt-4 text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">Abholort</p>
+            <a href={SITE.mapsUrl} target="_blank" rel="noreferrer" className="group p-5 transition-colors hover:bg-[#fdfbf7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#c46b38]">
+              <p className="flex items-center gap-2 text-sm text-[#6f675f]"><Store className="size-4 text-[#c46b38]" />Abholort</p>
               <p className="mt-1 font-semibold leading-tight">{SITE.street}</p>
-              <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#c46b38]"><Navigation className="size-3.5" />Route öffnen</p>
+              <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#c46b38] underline-offset-4 group-hover:underline"><Navigation className="size-3.5" />Route öffnen<span className="sr-only"> (öffnet in neuem Tab)</span></p>
             </a>
           )}
           <InfoCard icon={<CreditCard />} label="Zahlung">
             <p className="font-semibold leading-tight">{order.payment === "onsite" ? (delivery ? "Bei Übergabe" : "An der Theke") : order.payment === "paypal" ? "PayPal" : "Karte & Wallet"}</p>
             <span className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${order.payment === "onsite" ? "bg-[#f1e8dc] text-[#6f675f]" : order.paid ? "bg-[#6f9b62]/15 text-[#4c7442]" : "bg-[#c46b38]/10 text-[#a85b39]"}`}>
-              {order.payment === "onsite" ? "Bar oder Karte vor Ort" : order.paid ? "✓ Bezahlt" : "Wird geprüft …"}
+              {order.payment === "onsite" ? "Bar oder Karte vor Ort" : order.paid ? <><Check className="size-3" />Bezahlt</> : "Wird geprüft …"}
             </span>
           </InfoCard>
         </div>
@@ -189,10 +188,10 @@ function StatusPage() {
 
         <div className="mt-8 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
           <a href={SITE.phoneHref} className="flex h-14 items-center justify-center gap-2 rounded-full border border-[#e2d8ca] bg-white px-6 font-semibold transition-colors hover:border-[#c46b38]"><Phone className="size-4 text-[#c46b38]" /> Fragen? {SITE.phone}</a>
-          <div className="flex justify-center"><GlowCta tone="dark">Neue Bestellung</GlowCta></div>
+          <div className="flex justify-center"><GlowCta tone="dark" icon={false}>Neue Bestellung</GlowCta></div>
         </div>
         <p className="mt-6 text-center text-sm"><Link to="/meine-bestellungen" className="font-semibold text-[#c46b38] underline-offset-4 hover:underline">Alle meine Bestellungen auf diesem Gerät</Link></p>
-        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-[#6f675f]"><MapPin className="size-3.5" />{SITE.name} · {SITE.street}, {SITE.zipCity}</p>
+        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-[#6f675f]"><MapPin className="size-3.5" />{SITE.name}, {SITE.street}, {SITE.zipCity}</p>
       </div>
     </main>
   );
@@ -228,9 +227,8 @@ function CountdownRing({ order, now }: { order: Order; now: number }) {
 
 function InfoCard({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
   return (
-    <div className="rounded-3xl border border-[#e2d8ca] bg-white p-5">
-      <span className="flex size-10 items-center justify-center rounded-2xl bg-[#1f2022] text-[#f5c3a6] [&_svg]:size-5">{icon}</span>
-      <p className="mt-4 text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">{label}</p>
+    <div className="p-5">
+      <p className="flex items-center gap-2 text-sm text-[#6f675f] [&_svg]:size-4 [&_svg]:text-[#c46b38]">{icon}{label}</p>
       <div className="mt-1">{children}</div>
     </div>
   );
