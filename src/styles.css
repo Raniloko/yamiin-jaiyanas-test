@@ -110,9 +110,9 @@
   --brick: oklch(0.535 0.151 32); /* Fehler & Hinweise auf der Gäste-Seite */
   --live: oklch(0.768 0.177 145); /* Punkt "geöffnet" / "Live" */
   --success: oklch(0.516 0.088 140); /* "Bezahlt", "Jetzt geöffnet" */
-  /* Partnerfarben – nur für die Bestell-Buttons zu Lieferando (#FF8000) und Wolt (#009DE0). */
+  /* Partnerfarben – nur für die Bestell-Buttons zu Lieferando (#FF8000) und Wolt (#00C2E8, aus dem offiziellen Logo). */
   --lieferando: oklch(0.732 0.186 53);
-  --wolt: oklch(0.66 0.146 237.7);
+  --wolt: oklch(0.752 0.136 218.6);
 }
 
 .dark {
