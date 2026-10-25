@@ -72,7 +72,7 @@ export const bowlSteps = [
   {
     "number": "3",
     "title": "Veggies",
-    "note": "3× inklusive · Frisches Gemüse · teils saisonal",
+    "note": "3× inklusive: frisches Gemüse, teils saisonal",
     "items": [
       "Tomaten",
       "Gurken",
@@ -90,7 +90,7 @@ export const bowlSteps = [
   {
     "number": "4",
     "title": "Specials",
-    "note": "1× inklusive · Das gewisse Extra · teils saisonal",
+    "note": "1× inklusive: das gewisse Extra, teils saisonal",
     "items": [
       "Schafskäse",
       "Avocado",
@@ -104,7 +104,7 @@ export const bowlSteps = [
   {
     "number": "5",
     "title": "Gravies",
-    "note": "1× inklusive · Crunch & Topping",
+    "note": "1× inklusive: Crunch & Topping",
     "items": [
       "Nachos",
       "Crunchy Onions",
@@ -121,7 +121,7 @@ export const bowlSteps = [
   {
     "number": "6",
     "title": "Saucen",
-    "note": "1× inklusive · Zum Abrunden",
+    "note": "1× inklusive, zum Abrunden",
     "items": [
       "Chipotle",
       "Sesam",
@@ -148,14 +148,14 @@ export const matchas: MenuProduct[] = [
 export const coffees = [["Cafe Crema", "3,00 €"], ["Espresso", "2,00 €"], ["Espresso Macchiato", "2,50 €"], ["Cappuccino", "3,60 €"], ["Flat White", "3,60 €"], ["Cafe Latte", "3,60 €"], ["Hot Chocolate", "3,50 €"]];
 export const coffeeExtra = { name: "Extra Flavor", price: "0,60 €" };
 export const acais: MenuProduct[] = [
-{"name": "Lotus Açaí", "description": "Lotus Creme · Lotus Crumbles", "price": "11,90 €", "ingredients": ["Lotus Creme", "Chia oder Granola", "Erdnussbutter", "Erdbeeren", "Heidelbeeren", "Lotus Crumbles"], "optionLabel": "Crunch", image: a_lotusAsset.url, options: acaiOptions},
-{"name": "Pistachio Açaí", "description": "Pistaziencreme · Pistazienflocken", "price": "11,90 €", "ingredients": ["Pistaziencreme", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Pistazienflocken"], "optionLabel": "Crunch", image: a_pistachioAsset.url, options: acaiOptions},
-{"name": "Bueno Açaí", "description": "Bueno Creme · Haselnüsse", "price": "11,90 €", "ingredients": ["Bueno Creme", "Chia oder Granola", "Erdnussbutter", "Erdbeeren", "Heidelbeeren", "Haselnüsse", "Bueno Stücke"], "optionLabel": "Crunch", image: a_buenoAsset.url, options: acaiOptions},
-{"name": "Cookie Açaí", "description": "Oreo Creme · Cookie Crumbles", "price": "11,90 €", "ingredients": ["Oreo Creme", "Chia oder Granola", "Cookie Crumbles", "Erdbeeren", "Heidelbeeren", "Oreos"], "optionLabel": "Crunch", image: a_cookieAsset.url, options: acaiOptions},
-{"name": "Snickers Açaí", "description": "Erdnussbutter · Snickers", "price": "11,90 €", "ingredients": ["Chocolate Sauce", "Erdnussbutter", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Erdnüsse", "Snickers", "Snickers Flakes"], "optionLabel": "Crunch", image: a_snickersAsset.url, options: acaiOptions},
-{"name": "Brownie Açaí", "description": "Chocolate Sauce · Brownie-Stücke", "price": "11,90 €", "ingredients": ["Chocolate Sauce", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Brownie-Stücke", "Haselnüsse"], "optionLabel": "Crunch", image: a_brownieAsset.url, options: acaiOptions},
-{"name": "Tropical Açaí", "description": "Mangopüree · Kokosflocken", "price": "11,90 €", "ingredients": ["Mangopüree", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Mango", "Kokosflocken"], "optionLabel": "Crunch", image: a_tropicalAsset.url, options: acaiOptions},
-{"name": "White Chocolate Açaí", "description": "White Chocolate Creme · Flakes", "price": "11,90 €", "ingredients": ["White Chocolate Creme", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "White Chocolate Flakes"], "optionLabel": "Crunch", image: a_whitechocAsset.url, options: acaiOptions},
+{"name": "Lotus Açaí", "description": "Lotus Creme und Lotus Crumbles", "price": "11,90 €", "ingredients": ["Lotus Creme", "Chia oder Granola", "Erdnussbutter", "Erdbeeren", "Heidelbeeren", "Lotus Crumbles"], "optionLabel": "Crunch", image: a_lotusAsset.url, options: acaiOptions},
+{"name": "Pistachio Açaí", "description": "Pistaziencreme und Pistazienflocken", "price": "11,90 €", "ingredients": ["Pistaziencreme", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Pistazienflocken"], "optionLabel": "Crunch", image: a_pistachioAsset.url, options: acaiOptions},
+{"name": "Bueno Açaí", "description": "Bueno Creme und Haselnüsse", "price": "11,90 €", "ingredients": ["Bueno Creme", "Chia oder Granola", "Erdnussbutter", "Erdbeeren", "Heidelbeeren", "Haselnüsse", "Bueno Stücke"], "optionLabel": "Crunch", image: a_buenoAsset.url, options: acaiOptions},
+{"name": "Cookie Açaí", "description": "Oreo Creme und Cookie Crumbles", "price": "11,90 €", "ingredients": ["Oreo Creme", "Chia oder Granola", "Cookie Crumbles", "Erdbeeren", "Heidelbeeren", "Oreos"], "optionLabel": "Crunch", image: a_cookieAsset.url, options: acaiOptions},
+{"name": "Snickers Açaí", "description": "Erdnussbutter und Snickers", "price": "11,90 €", "ingredients": ["Chocolate Sauce", "Erdnussbutter", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Erdnüsse", "Snickers", "Snickers Flakes"], "optionLabel": "Crunch", image: a_snickersAsset.url, options: acaiOptions},
+{"name": "Brownie Açaí", "description": "Chocolate Sauce und Brownie-Stücke", "price": "11,90 €", "ingredients": ["Chocolate Sauce", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Brownie-Stücke", "Haselnüsse"], "optionLabel": "Crunch", image: a_brownieAsset.url, options: acaiOptions},
+{"name": "Tropical Açaí", "description": "Mangopüree und Kokosflocken", "price": "11,90 €", "ingredients": ["Mangopüree", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "Mango", "Kokosflocken"], "optionLabel": "Crunch", image: a_tropicalAsset.url, options: acaiOptions},
+{"name": "White Chocolate Açaí", "description": "White Chocolate Creme und Flakes", "price": "11,90 €", "ingredients": ["White Chocolate Creme", "Chia oder Granola", "Erdbeeren", "Heidelbeeren", "White Chocolate Flakes"], "optionLabel": "Crunch", image: a_whitechocAsset.url, options: acaiOptions},
  ];
 export const iceBurgerImage = iceAsset.url;
 export const wrapImage = wrapAsset.url;

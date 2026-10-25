@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Bike, Check, RotateCcw, ShieldCheck, Store, Trash2 } from "lucide-react";
+import { Bike, Check, RotateCcw, ShieldCheck, Store, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { GlowCta, PageHero, RiseTitle } from "@/components/site/brand-ui";
@@ -61,7 +61,7 @@ function MyOrdersPage() {
   return (
     <main className="min-h-screen bg-[#f8f6f0] pb-20 text-[#1f2022]">
       <PageHero compact width="max-w-3xl">
-        <RiseTitle lead="Meine" accent="Bestellungen." className="text-5xl sm:text-7xl" />
+        <RiseTitle lead="Meine" accent="Bestellungen." plain className="text-5xl sm:text-7xl" />
         <p className="hero-rise mt-5 flex max-w-lg items-start gap-2 text-white/75" style={{ animationDelay: "300ms" }}>
           <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#f5c3a6]" />
           Ohne Konto: Dieses Gerät merkt sich deine Bestellungen. Nur du siehst sie hier.
@@ -75,7 +75,7 @@ function MyOrdersPage() {
           <div className="rounded-[2rem] border border-[#e2d8ca] bg-white px-6 py-12 text-center">
             <p className="font-display text-3xl">Noch keine Bestellungen</p>
             <p className="mx-auto mt-2 max-w-sm text-[#6f675f]">Sobald du auf diesem Gerät bestellst, findest du deine Bestellungen hier – mit Live-Status.</p>
-            <div className="mt-7 flex justify-center"><GlowCta tone="dark">Zur Speisekarte</GlowCta></div>
+            <div className="mt-7 flex justify-center"><GlowCta tone="dark" icon={false}>Zur Speisekarte</GlowCta></div>
           </div>
         ) : (
           <>
@@ -97,7 +97,7 @@ function MyOrdersPage() {
                             {order.payment !== "onsite" && !order.paid && active ? "Zahlung wird geprüft" : label}
                           </span>
                         </div>
-                        <p className="mt-1.5 font-semibold">{dateText(order.createdAt)} · {order.fulfillment === "delivery" ? "Lieferung" : "Abholung"}</p>
+                        <p className="mt-1.5 font-semibold">{order.fulfillment === "delivery" ? "Lieferung" : "Abholung"}, bestellt {dateText(order.createdAt)}</p>
                         <p className="mt-1 line-clamp-2 text-sm text-[#6f675f]">{order.items.map((item) => `${item.qty}× ${item.name}`).join(", ")}</p>
                       </div>
                       <div className="shrink-0 text-right">
@@ -107,7 +107,7 @@ function MyOrdersPage() {
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 border-t border-[#eee5dc] pt-4">
                       <Link to="/order-success" search={{ id: order.id }} className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors ${active ? "bg-[#1f2022] text-[#f8f6f0] hover:bg-[#c46b38]" : "border border-[#e2d8ca] hover:border-[#c46b38]"}`}>
-                        {active ? "Live-Status ansehen" : "Details"} <ArrowRight className="size-4" />
+                        {active ? "Live-Status ansehen" : "Details"}
                       </Link>
                       <button type="button" onClick={() => orderAgain(order)} className="inline-flex h-10 items-center gap-2 rounded-full border border-[#e2d8ca] px-4 text-sm font-semibold transition-colors hover:border-[#c46b38]">
                         {again === order.id ? <><Check className="size-4 text-[#c46b38]" /> Im Warenkorb</> : <><RotateCcw className="size-4" /> Nochmal bestellen</>}

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
-import { ArrowLeft, ArrowRight, Bike, Check, CirclePause, CircleCheck, Clock3, CreditCard, LoaderCircle, LockKeyhole, Minus, PackageX, Plus, ShieldCheck, ShoppingBag, Store, Trash2, UserRound, Wallet, Zap, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Bike, Check, CirclePause, CircleCheck, Clock3, CreditCard, LoaderCircle, LockKeyhole, Minus, PackageX, Plus, ShieldCheck, ShoppingBag, Store, Trash2, UserRound, Wallet, Zap, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
@@ -137,7 +137,7 @@ function CheckoutPage() {
   const contactDone = !errors.name && !errors.phone && !errors.email && !addressErrors.street && !addressErrors.zip;
   /** Darf man von diesem Schritt weiter? */
   const stepOk = [!belowMin, !pickupError, contactDone, true, valid];
-  const timeLabel = pickup === "asap" ? `Schnellstmöglich · ca. ${prepMinutes} Min` : `${slotDay?.label ?? "Heute"} um ${hhmm(new Date(pickup))} Uhr`;
+  const timeLabel = pickup === "asap" ? `Schnellstmöglich, ca. ${prepMinutes} Min` : `${slotDay?.label ?? "Heute"} um ${hhmm(new Date(pickup))} Uhr`;
 
   /** Zu einem Schritt wechseln und die Karte oben ins Bild holen. */
   const goTo = (next: number) => {
@@ -244,10 +244,10 @@ function CheckoutPage() {
           >
             <ArrowLeft className="size-4" /> Zurück zur Kasse
           </button>
-          <p className="hero-rise text-xs font-bold uppercase tracking-[.2em] text-[#f5c3a6]">Bestellung #{checkoutOrder.id}</p>
-          <RiseTitle lead="Sicher" accent="bezahlen." className="mt-3 text-5xl sm:text-7xl" />
+          <p className="hero-rise text-sm font-semibold text-[#f5c3a6]">Bestellung #{checkoutOrder.id}</p>
+          <RiseTitle lead="Sicher" accent="bezahlen." plain className="mt-3 text-5xl sm:text-7xl" />
           <div className="hero-rise mt-6 flex flex-wrap gap-2" style={{ animationDelay: "320ms" }}>
-            <HeroChip icon={<LockKeyhole />}>{euro(checkoutOrder.total)} · verschlüsselt über Stripe</HeroChip>
+            <HeroChip icon={<LockKeyhole />}>{euro(checkoutOrder.total)}, verschlüsselt über Stripe</HeroChip>
             <HeroChip icon={<ShieldCheck />}>Erst nach der Zahlung in der Küche</HeroChip>
           </div>
         </PageHero>
@@ -272,9 +272,9 @@ function CheckoutPage() {
       <main className="bg-[#f8f6f0] text-[#1f2022]">
         <PageHero width="max-w-3xl" className="text-center">
           <span className="hero-rise mx-auto flex size-20 items-center justify-center rounded-full bg-white/10 text-[#f5c3a6] ring-1 ring-white/15"><ShoppingBag className="size-9" /></span>
-          <RiseTitle lead="Dein Warenkorb" accent="ist noch leer." className="mt-6 text-5xl sm:text-7xl" />
+          <RiseTitle lead="Dein Warenkorb" accent="ist noch leer." plain className="mt-6 text-5xl sm:text-7xl" />
           <p className="hero-rise mx-auto mt-5 max-w-md text-white/75" style={{ animationDelay: "380ms" }}>Such dir zuerst etwas Leckeres aus – Bowls, Matcha, Açaí und mehr.</p>
-          <div className="hero-rise mt-9 flex justify-center" style={{ animationDelay: "480ms" }}><GlowCta>Zur Speisekarte</GlowCta></div>
+          <div className="hero-rise mt-9 flex justify-center" style={{ animationDelay: "480ms" }}><GlowCta icon={false}>Zur Speisekarte</GlowCta></div>
         </PageHero>
       </main>
     );
@@ -315,7 +315,7 @@ function CheckoutPage() {
         <Link to="/speisekarte" className="hero-rise mb-5 inline-flex items-center gap-2 text-sm font-semibold text-white/75 transition-colors hover:text-white">
           <ArrowLeft className="size-4" /> Weiter einkaufen
         </Link>
-        <h1 className="hero-rise font-display text-5xl leading-none sm:text-7xl">Bestellen bei <em className="text-[#f5c3a6]">Yamiin &amp; Jaiyana&rsquo;s</em></h1>
+        <h1 className="hero-rise font-display text-5xl leading-none sm:text-7xl">Bestellen bei Yamiin &amp; Jaiyana&rsquo;s</h1>
         <p className="hero-rise mx-auto mt-4 max-w-lg text-white/75" style={{ animationDelay: "200ms" }}>In fünf kurzen Schritten – ohne Konto. {delivery ? `Lieferung in ${DELIVERY.city}` : `Abholbereit in ca. ${PREP_MINUTES.pickup} Min`}.</p>
       </PageHero>
 
@@ -325,7 +325,7 @@ function CheckoutPage() {
             {paused && (
               <div data-invalid="true" className="flex gap-3 rounded-2xl border border-[#b4432f]/30 bg-[#b4432f]/10 px-4 py-3 text-[#8f3222]">
                 <CirclePause className="mt-0.5 size-5 shrink-0" />
-                <p className="text-sm"><strong className="block">Online-Bestellungen sind gerade pausiert{untilLabel(availability.pausedUntil) === "bis auf Weiteres" ? "" : ` · ${untilLabel(availability.pausedUntil)}`}.</strong>
+                <p className="text-sm"><strong className="block">Online-Bestellungen sind gerade pausiert{untilLabel(availability.pausedUntil) === "bis auf Weiteres" ? "" : ` ${untilLabel(availability.pausedUntil)}`}.</strong>
                   {availability.pauseNote || "Die Küche ist gerade voll – bitte versuch es etwas später noch einmal. Dein Warenkorb bleibt gespeichert."}</p>
               </div>
             )}
@@ -381,8 +381,8 @@ function CheckoutPage() {
               {step === 0 && (
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {([
-                    { key: "pickup", title: "Selbst abholen", text: "Kostenlos · Willy-Brandt-Str. 23", icon: Store },
-                    { key: "delivery", title: "Liefern lassen", text: `${euro(DELIVERY.fee)} · ab ${euro(DELIVERY.minOrder)} · nur ${DELIVERY.city}`, icon: Bike },
+                    { key: "pickup", title: "Selbst abholen", text: "Kostenlos in der Willy-Brandt-Str. 23", icon: Store },
+                    { key: "delivery", title: "Liefern lassen", text: `${euro(DELIVERY.fee)} Liefergebühr, ab ${euro(DELIVERY.minOrder)} Bestellwert, nur in ${DELIVERY.city}`, icon: Bike },
                   ] as const).map(({ key, title, text, icon: Icon }) => (
                     <button key={key} type="button" onClick={() => setFulfillment(key)} aria-pressed={fulfillment === key} className={option(fulfillment === key)}>
                       <span className={`flex size-12 shrink-0 items-center justify-center rounded-full ${fulfillment === key ? "bg-[#c46b38] text-white" : "bg-[#f1e8dc]"}`}><Icon className="size-5" /></span>
@@ -397,7 +397,7 @@ function CheckoutPage() {
               {step === 1 && (
                 <div className="mt-6">
                   <div className="rounded-xl border border-[#e2d8ca] bg-white px-4 py-3 text-sm text-[#6f675f]">
-                    {delivery ? "Lieferung" : "Abholung"} <strong className="text-[#1f2022]">{timeLabel}</strong>{!delivery && <> · {SITE_STREET}</>}
+                    {delivery ? "Lieferung" : "Abholung"} <strong className="text-[#1f2022]">{timeLabel}</strong>{!delivery && <>, {SITE_STREET}</>}
                   </div>
                   {pickupError && <p data-invalid="true" className="mt-3 text-sm text-[#b4432f]">{pickupError}</p>}
                   <button type="button" disabled={!asapOpen} onClick={() => setPickup("asap")} aria-pressed={pickup === "asap"} className={`mt-4 ${option(pickup === "asap")} disabled:cursor-not-allowed disabled:opacity-50`}>
@@ -477,7 +477,7 @@ function CheckoutPage() {
                 <div className="mt-6 space-y-3">
                   <SummaryRow icon={delivery ? <Bike /> : <Store />} label="Bestellart" value={delivery ? "Liefern lassen" : "Selbst abholen"} hint={delivery ? `${euro(DELIVERY.fee)} Liefergebühr` : "Kostenlos"} onEdit={() => goTo(0)} warn={belowMin} />
                   <SummaryRow icon={<Clock3 />} label={delivery ? "Lieferzeit" : "Abholzeit"} value={timeLabel} onEdit={() => goTo(1)} warn={!!pickupError} />
-                  <SummaryRow icon={<UserRound />} label="Kontakt" value={contactDone ? contact.name : "Noch nicht vollständig"} hint={contactDone ? [delivery ? `${address.street}, ${address.zip} ${address.city}` : "", contact.phone, contact.email].filter(Boolean).join(" · ") : undefined} onEdit={() => goTo(2)} warn={!contactDone} />
+                  <SummaryRow icon={<UserRound />} label="Kontakt" value={contactDone ? contact.name : "Noch nicht vollständig"} hint={contactDone ? [delivery ? `${address.street}, ${address.zip} ${address.city}` : "", contact.phone, contact.email].filter(Boolean).join(", ") : undefined} onEdit={() => goTo(2)} warn={!contactDone} />
                   <SummaryRow icon={<CreditCard />} label="Zahlung" value={PAYMENTS.find((entry) => entry.key === payment)?.title ?? ""} hint={payment === "onsite" ? (delivery ? "Bar oder Karte an der Haustür" : "Bar oder Karte an der Theke") : "Im nächsten Schritt über Stripe"} onEdit={() => goTo(3)} />
                   {note.trim() && <p className="rounded-xl border border-[#e2d8ca] bg-white px-4 py-3 text-sm"><span className="text-[#6f675f]">Hinweis an die Küche: </span>{note}</p>}
                   {/* Handy: Positionen hier, am Desktop rechts */}
@@ -497,12 +497,12 @@ function CheckoutPage() {
               {isLast ? (
                 <GlowFrame active={valid && !placing} radius="0.75rem" className="min-w-0 flex-1">
                   <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={!valid || undefined} className={`glow-cta-face group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl font-bold text-white transition-colors ${valid ? "bg-[#c46b38] hover:bg-[#b05e30]" : "bg-[#c46b38]/50"}`}>
-                    {placing ? <><LoaderCircle className="size-4 animate-spin" /> Wird gesendet …</> : paused ? <><CirclePause className="size-4" /> Gerade pausiert</> : <>{payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"} · {euro(grandTotal)}</>}
+                    {placing ? <><LoaderCircle className="size-4 animate-spin" /> Wird gesendet …</> : paused ? <><CirclePause className="size-4" /> Gerade pausiert</> : <>{payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"}<span className="ml-1 tabular-nums opacity-80">{euro(grandTotal)}</span></>}
                   </button>
                 </GlowFrame>
               ) : (
                 <button type="button" onClick={next} className={`group flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl font-bold transition-colors ${stepOk[step] ? "bg-[#1f2022] text-[#f8f6f0] hover:bg-[#c46b38]" : "bg-[#1f2022]/40 text-[#f8f6f0]"}`}>
-                  {reached === 4 ? "Übernehmen" : "Weiter"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                  {reached === 4 ? "Übernehmen" : "Weiter"}
                 </button>
               )}
             </div>
@@ -510,8 +510,7 @@ function CheckoutPage() {
 
           {/* Desktop: Warenkorb immer sichtbar */}
           <aside className="hidden lg:sticky lg:top-28 lg:block">
-            <div className="relative isolate overflow-hidden rounded-[2rem] bg-[#1f2022] text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/20">
-              <div className="absolute -right-32 -top-32 -z-10 size-[24rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.4),transparent_65%)]" aria-hidden="true" />
+            <div className="overflow-hidden rounded-[2rem] bg-[#1f2022] text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/20">
               <div className="flex items-center justify-between px-6 pt-6">
                 <h2 className="font-display text-2xl">Dein Warenkorb</h2>
                 <span className="rounded-full bg-[#c46b38] px-3 py-1 text-xs font-bold">{count} Artikel</span>
@@ -537,7 +536,7 @@ function SummaryRow({ icon, label, value, hint, onEdit, warn }: { icon: React.Re
     <div className={`flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 ${warn ? "border-[#b4432f]/40" : "border-[#e2d8ca]"}`}>
       <span className={`flex size-10 shrink-0 items-center justify-center rounded-full [&_svg]:size-5 ${warn ? "bg-[#b4432f]/10 text-[#b4432f]" : "bg-[#f1e8dc] text-[#c46b38]"}`}>{icon}</span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-bold uppercase tracking-[.14em] text-[#6f675f]">{label}</span>
+        <span className="block text-sm text-[#6f675f]">{label}</span>
         <span className={`block font-semibold leading-snug ${warn ? "text-[#b4432f]" : ""}`}>{value}</span>
         {hint && <span className="line-clamp-2 block text-sm text-[#6f675f]">{hint}</span>}
       </span>
