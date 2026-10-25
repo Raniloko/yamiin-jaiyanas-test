@@ -207,8 +207,8 @@ function OrderWays() {
         </div>
         <div className="flex flex-col gap-4">
           <p className="px-1 text-sm text-muted-foreground">Lieber über eine App?</p>
-          <OrderLink href={SITE.lieferando} icon={<ShoppingBag />} label="Lieferando" />
-          <OrderLink href={SITE.wolt} icon={<Bike />} label="Wolt" />
+          <OrderLink href={SITE.lieferando} icon={<ShoppingBag />} label="Lieferando" className="bg-lieferando" />
+          <OrderLink href={SITE.wolt} icon={<Bike />} label="Wolt" className="bg-wolt" />
         </div>
       </div>
     </section>
@@ -224,8 +224,9 @@ function OrderFact({ icon, title, text }: { icon: ReactNode; title: string; text
   );
 }
 
-function OrderLink({ href, icon, label }: { href: string; icon: ReactNode; label: string }) {
-  return <a href={href} target="_blank" rel="noreferrer" className="flex flex-1 items-center gap-4 rounded-3xl border border-border bg-card p-6 transition-colors hover:border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="text-secondary [&_svg]:size-6">{icon}</span><span><span className="block text-xs text-muted-foreground">Bestellen bei</span><span className="text-2xl font-semibold">{label}</span><span className="sr-only"> (öffnet in neuem Tab)</span></span></a>;
+/** Bestell-Button zu einem Lieferdienst in dessen Markenfarbe (dunkle Schrift – Weiß wäre darauf zu kontrastarm). */
+function OrderLink({ href, icon, label, className }: { href: string; icon: ReactNode; label: string; className: string }) {
+  return <a href={href} target="_blank" rel="noreferrer" className={`flex flex-1 items-center gap-4 rounded-3xl p-6 text-foreground transition-[filter] hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-muted ${className}`}><span className="[&_svg]:size-6">{icon}</span><span><span className="block text-xs font-medium">Bestellen bei</span><span className="text-2xl font-semibold">{label}</span><span className="sr-only"> (öffnet in neuem Tab)</span></span></a>;
 }
 
 function Story() {
