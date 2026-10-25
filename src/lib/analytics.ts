@@ -1,6 +1,7 @@
 // Anonyme Speisekarten-Statistik für das Admin-Dashboard.
-// Keine Cookies, keine IP, keine Namen: nur eine zufällige Sitzungs-ID pro Browser-Tab
-// (sessionStorage, endet mit dem Tab) und was auf der Speisekarte angesehen/bestellt wurde.
+// Keine Cookies, keine IP, keine Namen: nur eine zufällige Besuchs-ID und was auf der Speisekarte
+// angesehen/bestellt wurde. Die ID liegt nur im Arbeitsspeicher der Seite und wird nicht auf dem
+// Gerät gespeichert (§ 25 TDDDG) – neues Laden der Seite ergibt eine neue ID.
 import { supabase } from "@/integrations/supabase/client";
 
 export type MenuEvent =
@@ -35,23 +36,16 @@ type Row = {
   value: number | null;
 };
 
-const SESSION_KEY = "yj-session";
 const FLUSH_MS = 4000;
 let queue: Row[] = [];
 let timer: ReturnType<typeof setTimeout> | undefined;
 const once = new Set<string>();
 
+let visitId: string | undefined;
+
 function sessionId() {
-  try {
-    let id = sessionStorage.getItem(SESSION_KEY);
-    if (!id) {
-      id = crypto.randomUUID().replace(/-/g, "").slice(0, 24);
-      sessionStorage.setItem(SESSION_KEY, id);
-    }
-    return id;
-  } catch {
-    return "nostorage0000";
-  }
+  visitId ??= crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+  return visitId;
 }
 
 function device() {
