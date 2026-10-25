@@ -3,6 +3,7 @@ import { Bike, Clock3, MapPin, ShoppingBag, Sparkles, Store, Wallet } from "luci
 import type { ReactNode } from "react";
 
 import heroBowlImage from "@/assets/hero-bowl.jpg";
+import lieferandoMark from "@/assets/partners/lieferando-mark.png";
 import woltLogo from "@/assets/partners/wolt-logo.svg";
 import { CtaBanner, GlowCta, OpenBadge, SectionHead } from "@/components/site/brand-ui";
 import { euro } from "@/lib/cart-store";
@@ -208,7 +209,7 @@ function OrderWays() {
         </div>
         <div className="flex flex-col gap-4">
           <p className="px-1 text-sm text-muted-foreground">Lieber über eine App?</p>
-          <OrderLink href={SITE.lieferando} icon={<ShoppingBag />} label="Lieferando" className="bg-lieferando" />
+          <OrderLink href={SITE.lieferando} logo={lieferandoMark} logoClassName="rounded-full border-[3px] border-card" icon={<ShoppingBag />} label="Lieferando" className="bg-lieferando" />
           <OrderLink href={SITE.wolt} logo={woltLogo} icon={<Bike />} label="Wolt" className="bg-wolt" />
         </div>
       </div>
@@ -227,13 +228,14 @@ function OrderFact({ icon, title, text }: { icon: ReactNode; title: string; text
 
 /**
  * Bestell-Button zu einem Lieferdienst in dessen Markenfarbe (dunkle Schrift – Weiß wäre darauf zu kontrastarm).
- * Mit offiziellem Logo (unverändert, nur skaliert); ohne Logo steht das Symbol in einem weißen Kreis.
+ * Mit offiziellem Logo (unverändert, nur skaliert; `logoClassName` z. B. für einen Rahmen ums Bild);
+ * ohne Logo steht das Symbol in einem weißen Kreis.
  */
-function OrderLink({ href, logo, icon, label, className }: { href: string; logo?: string; icon: ReactNode; label: string; className: string }) {
+function OrderLink({ href, logo, logoClassName = "", icon, label, className }: { href: string; logo?: string; logoClassName?: string; icon: ReactNode; label: string; className: string }) {
   const mark = "size-16 shrink-0 transition-transform duration-300 group-hover:scale-105 group-active:scale-95";
   return (
     <a href={href} target="_blank" rel="noreferrer" className={`group flex flex-1 items-center gap-5 rounded-3xl p-5 text-foreground transition-[filter] hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-muted sm:p-6 ${className}`}>
-      {logo ? <img src={logo} alt="" className={mark} /> : <span className={`${mark} flex items-center justify-center rounded-full bg-card [&_svg]:size-7`}>{icon}</span>}
+      {logo ? <img src={logo} alt="" className={`${mark} ${logoClassName}`} /> : <span className={`${mark} flex items-center justify-center rounded-full bg-card [&_svg]:size-7`}>{icon}</span>}
       <span><span className="block text-sm font-medium">Bestellen bei</span><span className="text-2xl font-semibold">{label}</span><span className="sr-only"> (öffnet in neuem Tab)</span></span>
     </a>
   );
