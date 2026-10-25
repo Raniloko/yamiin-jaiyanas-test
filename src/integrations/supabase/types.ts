@@ -14,27 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      auth_mail_log: {
-        Row: {
-          email: string
-          id: number
-          kind: string
-          sent_at: string
-        }
-        Insert: {
-          email: string
-          id?: never
-          kind: string
-          sent_at?: string
-        }
-        Update: {
-          email?: string
-          id?: never
-          kind?: string
-          sent_at?: string
-        }
-        Relationships: []
-      }
       admin_emails: {
         Row: {
           added_at: string
@@ -53,6 +32,27 @@ export type Database = {
           can_view_stats?: boolean
           email?: string
           role?: string
+        }
+        Relationships: []
+      }
+      auth_mail_log: {
+        Row: {
+          email: string
+          id: number
+          kind: string
+          sent_at: string
+        }
+        Insert: {
+          email: string
+          id?: never
+          kind: string
+          sent_at?: string
+        }
+        Update: {
+          email?: string
+          id?: never
+          kind?: string
+          sent_at?: string
         }
         Relationships: []
       }
@@ -120,8 +120,8 @@ export type Database = {
         Row: {
           access_token: string
           address: Json | null
-          contact: Json
           confirmation_sent_at: string | null
+          contact: Json
           created_at: string
           delivery_fee: number
           fulfillment: string
@@ -139,8 +139,8 @@ export type Database = {
         Insert: {
           access_token?: string
           address?: Json | null
-          contact: Json
           confirmation_sent_at?: string | null
+          contact: Json
           created_at?: string
           delivery_fee?: number
           fulfillment?: string
@@ -158,8 +158,8 @@ export type Database = {
         Update: {
           access_token?: string
           address?: Json | null
-          contact?: Json
           confirmation_sent_at?: string | null
+          contact?: Json
           created_at?: string
           delivery_fee?: number
           fulfillment?: string
