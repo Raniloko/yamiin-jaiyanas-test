@@ -43,17 +43,17 @@ export function ActiveOrderPill() {
       to="/order-success"
       search={{ id: active.id }}
       aria-label={`Deine Bestellung ${active.id}: ${label}, ${detail}. Status öffnen`}
-      className={`fixed left-3 z-40 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#1f2022]/95 px-4 py-3 text-[#f8f6f0] shadow-2xl shadow-[#1f2022]/30 backdrop-blur-md transition-transform animate-in slide-in-from-bottom-4 hover:-translate-y-0.5 md:bottom-6 md:left-6 md:right-auto md:w-[22rem] ${lift} ${roomRight}`}
+      className={`fixed left-3 z-40 flex items-center gap-3 rounded-2xl border border-white/10 bg-primary/95 px-4 py-3 text-primary-foreground shadow-2xl shadow-primary/30 backdrop-blur-md transition-transform animate-in slide-in-from-bottom-4 hover:-translate-y-0.5 md:bottom-6 md:left-6 md:right-auto md:w-[22rem] ${lift} ${roomRight}`}
     >
       <span className="relative flex size-2.5 shrink-0" aria-hidden="true">
-        <span className="live-ping absolute inset-0 rounded-full bg-[#5fd068]" />
-        <span className={`relative size-2.5 rounded-full ${ready ? "bg-[#5fd068]" : "bg-[#f5c3a6]"}`} />
+        <span className="live-ping absolute inset-0 rounded-full bg-live" />
+        <span className={`relative size-2.5 rounded-full ${ready ? "bg-live" : "bg-peach"}`} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs text-[#cfc2b5]">Deine Bestellung #{active.id}</span>
+        <span className="block truncate text-xs text-primary-foreground/75">Deine Bestellung #{active.id}</span>
         <span className="block truncate text-sm font-semibold">{label} · {detail}</span>
       </span>
-      <ChevronRight className="size-4 shrink-0 text-[#f5c3a6]" />
+      <ChevronRight className="size-4 shrink-0 text-peach" />
     </Link>
   );
 }

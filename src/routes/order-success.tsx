@@ -64,22 +64,22 @@ function StatusPage() {
 
   if (!hydrated || loading) {
     return (
-      <main className="min-h-[70vh] bg-[#f8f6f0]">
+      <main className="min-h-[70vh] bg-background">
         <PageHero compact width="max-w-3xl"><div className="h-48 animate-pulse rounded-3xl bg-white/5" aria-label="Bestellung wird geladen" /></PageHero>
       </main>
     );
   }
   if (!order) {
     return (
-      <main className="bg-[#f8f6f0] text-[#1f2022]">
+      <main className="bg-background text-foreground">
         <PageHero width="max-w-3xl" className="text-center">
-          <RiseTitle lead="Bestellung" accent="nicht gefunden." className="text-5xl sm:text-7xl" />
+          <RiseTitle lead="Bestellung" accent="nicht gefunden." plain className="text-5xl sm:text-7xl" />
           <p className="hero-rise mx-auto mt-5 max-w-md text-white/75" style={{ animationDelay: "300ms" }}>
             Wir konnten keine Bestellung mit dieser Nummer finden. Den Live-Status siehst du auf dem Gerät, mit dem du bestellt hast.
           </p>
           <div className="hero-rise mt-9 flex flex-wrap justify-center gap-4" style={{ animationDelay: "420ms" }}>
-            <GlowCta>Zur Speisekarte</GlowCta>
-            <a href={SITE.phoneHref} className="inline-flex h-14 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 font-semibold text-[#f5f0e8] backdrop-blur-md hover:bg-white/20 sm:h-16"><Phone className="size-4 text-[#f5c3a6]" />Anrufen</a>
+            <GlowCta icon={false}>Zur Speisekarte</GlowCta>
+            <a href={SITE.phoneHref} className="inline-flex h-14 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 font-semibold text-primary-foreground backdrop-blur-md hover:bg-white/20 sm:h-16"><Phone className="size-4 text-peach" />Anrufen</a>
           </div>
         </PageHero>
       </main>
@@ -96,20 +96,20 @@ function StatusPage() {
   const progress = (current / (ORDER_STEPS.length - 1)) * 100;
 
   return (
-    <main className="min-h-screen bg-[#f8f6f0] pb-16 text-[#1f2022]">
+    <main className="min-h-screen bg-background pb-16 text-foreground">
       <PageHero compact width="max-w-3xl">
         <div className="hero-rise flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
-            <span className="relative flex size-2"><span className="live-ping absolute inset-0 rounded-full bg-[#5fd068]" /><span className="relative size-2 rounded-full bg-[#5fd068]" /></span>
+            <span className="relative flex size-2"><span className="live-ping absolute inset-0 rounded-full bg-live" /><span className="relative size-2 rounded-full bg-live" /></span>
             Live
           </span>
-          <span className="font-mono text-sm text-[#cfc2b5]">#{order.id}</span>
+          <span className="font-mono text-sm text-primary-foreground/75">#{order.id}</span>
         </div>
 
         <div className="mt-8 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-5">
           <div key={`${order.status}-${awaitingPayment}`} className="min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-[#f5c3a6]">
-              <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#c46b38" /><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="draw-check" /></svg>
+            <p className="flex items-center gap-2 font-semibold text-peach">
+              <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true"><circle cx="12" cy="12" r="11" className="fill-clay" /><path d="M7 12.5l3.2 3.2L17 9" fill="none" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="draw-check stroke-primary-foreground" /></svg>
               {firstName ? `Danke, ${firstName}!` : "Danke für deine Bestellung!"}
             </p>
             <h1 className="mt-3 font-display text-4xl leading-[0.95] sm:text-6xl">{text.label}</h1>
@@ -120,7 +120,7 @@ function StatusPage() {
 
         <div className="mt-9">
           <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full rounded-full bg-[linear-gradient(90deg,#c46b38,#f5c3a6)] transition-[width] duration-700 ease-[cubic-bezier(.32,.72,0,1)]" style={{ width: `${progress}%` }} />
+            <div className="h-full rounded-full bg-linear-90 from-clay to-peach transition-[width] duration-700 ease-[cubic-bezier(.32,.72,0,1)]" style={{ width: `${progress}%` }} />
           </div>
           <ol className="mt-4 grid grid-cols-4 gap-2">
             {ORDER_STEPS.map((item, index) => {
@@ -128,10 +128,10 @@ function StatusPage() {
               const done = index <= current;
               return (
                 <li key={item.key} className="flex flex-col items-center gap-2 text-center">
-                  <span className={`flex size-10 items-center justify-center rounded-full transition-all duration-500 sm:size-11 ${index === current ? "scale-110 bg-[#c46b38] text-white shadow-lg shadow-[#c46b38]/40 ring-4 ring-[#c46b38]/25" : done ? "bg-[#f8f6f0] text-[#1f2022]" : "bg-white/10 text-[#8f877f]"}`}>
+                  <span className={`flex size-10 items-center justify-center rounded-full transition-all duration-500 sm:size-11 ${index === current ? "scale-110 bg-clay text-white shadow-lg shadow-clay/40 ring-4 ring-clay/25" : done ? "bg-background text-foreground" : "bg-white/10 text-primary-foreground/50"}`}>
                     <Icon className="size-4" />
                   </span>
-                  <span className={`text-[11px] font-semibold leading-tight sm:text-xs ${done ? "text-[#f8f6f0]" : "text-[#8f877f]"}`}>{stepText(order, item.key).label}</span>
+                  <span className={`text-[11px] font-semibold leading-tight sm:text-xs ${done ? "text-primary-foreground" : "text-primary-foreground/50"}`}>{stepText(order, item.key).label}</span>
                 </li>
               );
             })}
@@ -141,58 +141,57 @@ function StatusPage() {
       </PageHero>
 
       <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-8">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid divide-y divide-muted overflow-hidden rounded-3xl border border-border bg-white sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <InfoCard icon={<Clock3 />} label={delivery ? "Lieferung" : "Abholung"}>
             <p className="font-display text-3xl tabular-nums">{new Date(order.pickupAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr</p>
-            <p className="text-xs text-[#6f675f]">{order.pickupLabel}</p>
+            <p className="text-xs text-muted-foreground">{order.pickupLabel}</p>
           </InfoCard>
           {delivery && order.address ? (
             <InfoCard icon={<Bike />} label="Lieferadresse">
               <p className="font-semibold leading-tight">{order.address.street}</p>
-              <p className="text-xs text-[#6f675f]">{order.address.zip} {order.address.city}</p>
+              <p className="text-xs text-muted-foreground">{order.address.zip} {order.address.city}</p>
             </InfoCard>
           ) : (
-            <a href={SITE.mapsUrl} target="_blank" rel="noreferrer" className="group rounded-3xl border border-[#e2d8ca] bg-white p-5 transition duration-300 hover:-translate-y-0.5 hover:border-[#c46b38] hover:shadow-lg">
-              <span className="flex size-10 items-center justify-center rounded-2xl bg-[#1f2022] text-[#f5c3a6]"><Store className="size-5" /></span>
-              <p className="mt-4 text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">Abholort</p>
+            <a href={SITE.mapsUrl} target="_blank" rel="noreferrer" className="group p-5 transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-clay">
+              <p className="flex items-center gap-2 text-sm text-muted-foreground"><Store className="size-4 text-clay" />Abholort</p>
               <p className="mt-1 font-semibold leading-tight">{SITE.street}</p>
-              <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#c46b38]"><Navigation className="size-3.5" />Route öffnen</p>
+              <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-clay underline-offset-4 group-hover:underline"><Navigation className="size-3.5" />Route öffnen<span className="sr-only"> (öffnet in neuem Tab)</span></p>
             </a>
           )}
           <InfoCard icon={<CreditCard />} label="Zahlung">
             <p className="font-semibold leading-tight">{order.payment === "onsite" ? (delivery ? "Bei Übergabe" : "An der Theke") : order.payment === "paypal" ? "PayPal" : "Karte & Wallet"}</p>
-            <span className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${order.payment === "onsite" ? "bg-[#f1e8dc] text-[#6f675f]" : order.paid ? "bg-[#6f9b62]/15 text-[#4c7442]" : "bg-[#c46b38]/10 text-[#a85b39]"}`}>
-              {order.payment === "onsite" ? "Bar oder Karte vor Ort" : order.paid ? "✓ Bezahlt" : "Wird geprüft …"}
+            <span className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${order.payment === "onsite" ? "bg-muted text-muted-foreground" : order.paid ? "bg-success/15 text-success" : "bg-clay/10 text-secondary"}`}>
+              {order.payment === "onsite" ? "Bar oder Karte vor Ort" : order.paid ? <><Check className="size-3" />Bezahlt</> : "Wird geprüft …"}
             </span>
           </InfoCard>
         </div>
 
-        <section className="mt-4 rounded-[1.75rem] border border-[#e2d8ca] bg-white p-5 sm:p-7">
+        <section className="mt-4 rounded-[1.75rem] border border-border bg-white p-5 sm:p-7">
           <h2 className="font-display text-3xl">Deine Bestellung</h2>
-          <ul className="mt-3 divide-y divide-[#eee5dc]">
+          <ul className="mt-3 divide-y divide-muted">
             {order.items.map((item) => (
               <li key={item.id} className="flex items-center gap-3 py-3">
-                <img src={item.image} alt="" className="size-14 rounded-xl bg-[#f1e8dc] object-contain p-1" />
+                <img src={item.image} alt="" className="size-14 rounded-xl bg-muted object-contain p-1" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{item.qty}× {item.name}</p>
-                  <p className="truncate text-xs text-[#6f675f]">{item.detail}</p>
+                  <p className="truncate text-xs text-muted-foreground">{item.detail}</p>
                 </div>
                 <span className="text-sm font-semibold tabular-nums">{euro(item.price * item.qty)}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-2 flex items-end justify-between border-t border-[#eee5dc] pt-4">
-            <span className="text-sm text-[#6f675f]">Gesamt{order.deliveryFee ? ` (inkl. ${euro(order.deliveryFee)} Lieferung)` : ""}</span>
+          <div className="mt-2 flex items-end justify-between border-t border-muted pt-4">
+            <span className="text-sm text-muted-foreground">Gesamt{order.deliveryFee ? ` (inkl. ${euro(order.deliveryFee)} Lieferung)` : ""}</span>
             <span className="font-display text-3xl tabular-nums">{euro(order.total)}</span>
           </div>
         </section>
 
         <div className="mt-8 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <a href={SITE.phoneHref} className="flex h-14 items-center justify-center gap-2 rounded-full border border-[#e2d8ca] bg-white px-6 font-semibold transition-colors hover:border-[#c46b38]"><Phone className="size-4 text-[#c46b38]" /> Fragen? {SITE.phone}</a>
-          <div className="flex justify-center"><GlowCta tone="dark">Neue Bestellung</GlowCta></div>
+          <a href={SITE.phoneHref} className="flex h-14 items-center justify-center gap-2 rounded-full border border-border bg-white px-6 font-semibold transition-colors hover:border-clay"><Phone className="size-4 text-clay" /> Fragen? {SITE.phone}</a>
+          <div className="flex justify-center"><GlowCta tone="dark" icon={false}>Neue Bestellung</GlowCta></div>
         </div>
-        <p className="mt-6 text-center text-sm"><Link to="/meine-bestellungen" className="font-semibold text-[#c46b38] underline-offset-4 hover:underline">Alle meine Bestellungen auf diesem Gerät</Link></p>
-        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-[#6f675f]"><MapPin className="size-3.5" />{SITE.name} · {SITE.street}, {SITE.zipCity}</p>
+        <p className="mt-6 text-center text-sm"><Link to="/meine-bestellungen" className="font-semibold text-clay underline-offset-4 hover:underline">Alle meine Bestellungen auf diesem Gerät</Link></p>
+        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground"><MapPin className="size-3.5" />{SITE.name}, {SITE.street}, {SITE.zipCity}</p>
       </div>
     </main>
   );
@@ -211,13 +210,13 @@ function CountdownRing({ order, now }: { order: Order; now: number }) {
   return (
     <div className="relative size-28 shrink-0 sm:size-36" role="img" aria-label={ready ? "Fertig" : minutes > 0 ? `Noch etwa ${minutes} Minuten` : "Gleich fertig"}>
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-        <circle cx="50" cy="50" r={radius} fill="none" stroke="rgb(255 255 255 / 0.1)" strokeWidth="7" />
+        <circle cx="50" cy="50" r={radius} fill="none" className="stroke-primary-foreground/10" strokeWidth="7" />
         <circle cx="50" cy="50" r={radius} fill="none" stroke="url(#ring)" strokeWidth="7" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - share)} className="transition-[stroke-dashoffset] duration-1000 ease-[cubic-bezier(.32,.72,0,1)]" />
-        <defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#c46b38" /><stop offset="100%" stopColor="#f5c3a6" /></linearGradient></defs>
+        <defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style={{ stopColor: "var(--clay)" }} /><stop offset="100%" style={{ stopColor: "var(--peach)" }} /></linearGradient></defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center" aria-hidden="true">
         {ready ? (
-          <><Check className="size-7 text-[#f5c3a6] sm:size-9" /><span className="mt-1 text-[11px] font-semibold text-white/70">fertig</span></>
+          <><Check className="size-7 text-peach sm:size-9" /><span className="mt-1 text-[11px] font-semibold text-white/70">fertig</span></>
         ) : (
           <><span className="font-display text-3xl leading-none tabular-nums sm:text-4xl">{minutes > 0 ? minutes : "–"}</span><span className="mt-1 text-[11px] font-semibold text-white/70">{minutes > 0 ? "Min" : "gleich"}</span></>
         )}
@@ -228,9 +227,8 @@ function CountdownRing({ order, now }: { order: Order; now: number }) {
 
 function InfoCard({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
   return (
-    <div className="rounded-3xl border border-[#e2d8ca] bg-white p-5">
-      <span className="flex size-10 items-center justify-center rounded-2xl bg-[#1f2022] text-[#f5c3a6] [&_svg]:size-5">{icon}</span>
-      <p className="mt-4 text-xs font-bold uppercase tracking-[.14em] text-[#6f675f]">{label}</p>
+    <div className="p-5">
+      <p className="flex items-center gap-2 text-sm text-muted-foreground [&_svg]:size-4 [&_svg]:text-clay">{icon}{label}</p>
       <div className="mt-1">{children}</div>
     </div>
   );

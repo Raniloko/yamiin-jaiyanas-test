@@ -59,6 +59,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-clay: var(--clay);
+  --color-peach: var(--peach);
+  --color-peach-foreground: var(--peach-foreground);
+  --color-brick: var(--brick);
+  --color-live: var(--live);
+  --color-success: var(--success);
 }
 
 :root {
@@ -95,6 +101,13 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  /* Markenfarben aus der gedruckten Karte – gelten auch unter .dark unverändert. */
+  --clay: oklch(0.62 0.131 48); /* Terrakotta-Akzent */
+  --peach: oklch(0.854 0.07 52); /* Pfirsich, v. a. auf dunklem Grund */
+  --peach-foreground: oklch(0.479 0.102 50); /* Text auf Pfirsich */
+  --brick: oklch(0.535 0.151 32); /* Fehler & Hinweise auf der Gäste-Seite */
+  --live: oklch(0.768 0.177 145); /* Punkt "geöffnet" / "Live" */
+  --success: oklch(0.516 0.088 140); /* "Bezahlt", "Jetzt geöffnet" */
 }
 
 .dark {
@@ -240,15 +253,10 @@ nav > .menu-link-open:nth-child(3) { transition-delay: 240ms; }
 nav > .menu-link-open:nth-child(4) { transition-delay: 300ms; }
 aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 
-@keyframes ticker {
-  to { transform: translateX(-50%); }
-}
-
-.animate-ticker { animation: ticker 28s linear infinite; }
-
 /* ============= Startseite ============= */
 
-/* Bestell-Button: ein Lichtstreifen läuft endlos um den Rand, dahinter ein weicher Schein. */
+/* Bestell-Button: Lichtstreifen am Rand mit weichem Schein. Steht still und läuft nur bei Hover/Fokus
+   oder wenn GlowFrame `data-live` setzt (z. B. Kasse, sobald die Bestellung abschickbar ist). */
 @property --glow-angle {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -260,9 +268,9 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 }
 
 .glow-cta {
-  --glow-light: #fff3ea;
-  --glow-warm: #f5c3a6;
-  --glow-deep: #c46b38;
+  --glow-light: var(--card);
+  --glow-warm: var(--peach);
+  --glow-deep: var(--clay);
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -289,6 +297,9 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   animation: glow-orbit 3.2s linear infinite;
+  /* Ruhestellung bei 300° (wie bei reduzierter Bewegung) */
+  animation-delay: -2.667s;
+  animation-play-state: paused;
 }
 
 .glow-cta::before { inset: -3px; padding: 3px; }
@@ -306,8 +317,8 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 }
 .glow-cta-halo > span { position: absolute; inset: 7px; padding: 6px; }
 
-.glow-cta:hover::before,
-.glow-cta:hover .glow-cta-halo > span { animation-duration: 1.6s; }
+.glow-cta:is(:hover, :focus-within, [data-live])::before,
+.glow-cta:is(:hover, :focus-within, [data-live]) .glow-cta-halo > span { animation-play-state: running; }
 
 /* Glanz, der beim Darüberfahren einmal über die Fläche streicht */
 .glow-cta-face { position: relative; overflow: hidden; }
@@ -330,20 +341,6 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 }
 .hero-rise { animation: hero-rise 900ms cubic-bezier(.2,.7,0,1) both; }
 
-/* Langsamer Zoom auf dem Hero-Foto */
-@keyframes hero-drift {
-  from { transform: scale(1.02); }
-  to { transform: scale(1.1) translate(-1%, -1%); }
-}
-.hero-drift { animation: hero-drift 24s ease-in-out infinite alternate; }
-
-/* Schwebende Karten */
-@keyframes float-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-.float-bob { animation: float-bob 6s ease-in-out infinite; }
-
 /* Grüner Punkt "geöffnet" */
 @keyframes live-ping {
   0% { transform: scale(1); opacity: 0.7; }
@@ -358,28 +355,12 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 }
 .draw-check { stroke-dasharray: 30; animation: draw-check 700ms 300ms cubic-bezier(.65,0,.35,1) both; }
 
-/* Beim Scrollen sanft einblenden – nur wo der Browser es kann, sonst sofort sichtbar. */
-@supports (animation-timeline: view()) {
-  @keyframes reveal-up {
-    from { opacity: 0; transform: translateY(2.5rem) scale(0.98); }
-    to { opacity: 1; transform: none; }
-  }
-  .reveal {
-    animation: reveal-up linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 40%;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .glow-cta::before,
   .glow-cta-halo > span { animation: none; --glow-angle: 300deg; }
   .hero-rise,
-  .hero-drift,
-  .float-bob,
   .live-ping,
-  .draw-check,
-  .reveal { animation: none !important; }
+  .draw-check { animation: none !important; }
 }
 
 ::selection { background: var(--secondary); color: var(--secondary-foreground); }
