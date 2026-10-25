@@ -50,10 +50,10 @@ export function OpenBadge({ className, fallback = "Willy-Brandt-Straße 23 · Ha
   );
 }
 
-/** Umlaufendes Licht um beliebige Bedienelemente (z. B. den Bestell-Button der Kasse) – nur wenn `active`. */
+/** Umlaufendes Licht um beliebige Bedienelemente (z. B. den Bestell-Button der Kasse) – nur wenn `active`, dann läuft es auch ohne Hover. */
 export function GlowFrame({ active, radius = "9999px", className, children }: { active: boolean; radius?: string; className?: string; children: ReactNode }) {
   return (
-    <span className={cn(active ? "glow-cta" : "relative inline-flex", className)} style={{ borderRadius: radius }}>
+    <span className={cn(active ? "glow-cta" : "relative inline-flex", className)} style={{ borderRadius: radius }} data-live={active || undefined}>
       {active && <span className="glow-cta-halo" aria-hidden="true"><span /></span>}
       {children}
     </span>
@@ -95,27 +95,10 @@ export function RiseTitle({ lead, accent, plain, className }: { lead: string; ac
   );
 }
 
-export function Ticker({ words }: { words: string[] }) {
-  const row = (hidden: boolean) => (
-    <ul className="flex shrink-0 items-center" aria-hidden={hidden || undefined}>
-      {words.map((word) => (
-        <li key={word} className="flex items-center gap-8 pr-8 font-display text-2xl italic sm:text-3xl">
-          {word}<span className="text-base not-italic text-[#f5c3a6]" aria-hidden="true">✦</span>
-        </li>
-      ))}
-    </ul>
-  );
-  return (
-    <div className="overflow-hidden bg-[#c46b38] py-4 text-[#fff7f1] sm:py-5">
-      <div className="animate-ticker flex w-max">{row(false)}{row(true)}</div>
-    </div>
-  );
-}
-
 /** Abschnittskopf: Überschrift links, Einleitung rechts. Startseite nutzt nur `title` – Eyebrow und Akzentzeile sind optional. */
 export function SectionHead({ eyebrow, title, accent, children }: { eyebrow?: string; title: string; accent?: string; children?: ReactNode }) {
   return (
-    <div className="reveal grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
       <div>
         {eyebrow && <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-secondary">{eyebrow}</p>}
         <h2 className="text-5xl leading-[0.95] sm:text-7xl">{title}{accent && <><br /><em className="text-secondary">{accent}</em></>}</h2>
@@ -127,14 +110,14 @@ export function SectionHead({ eyebrow, title, accent, children }: { eyebrow?: st
 
 const BANNER_IMAGES = [bowlImage, matchaImage, acaiImage];
 
-/** Dunkles Abschluss-Banner mit Button; links und rechts schweben echte Produktfotos. */
+/** Dunkles Abschluss-Banner mit Button; links und rechts echte Produktfotos. */
 export function CtaBanner({ eyebrow, title, cta, children, images = BANNER_IMAGES, className }: { eyebrow?: string; title: ReactNode; cta: ReactNode; children?: ReactNode; images?: string[]; className?: string }) {
   return (
     <section className={cn("px-5 pb-24 sm:px-8 sm:pb-28", className)}>
-      <div className="reveal relative isolate mx-auto max-w-[90rem] overflow-hidden rounded-[2.5rem] bg-[#292725] px-6 py-16 text-center text-[#f5f0e8] sm:px-10 sm:py-24">
-        {images[0] && <img src={images[0]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute -left-10 top-1/2 -z-10 hidden w-64 -translate-y-1/2 drop-shadow-2xl md:block lg:w-80" />}
-        {images[1] && <img src={images[1]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute -right-6 bottom-6 -z-10 hidden w-40 drop-shadow-2xl md:block lg:w-52" style={{ animationDelay: "-2s" }} />}
-        {images[2] && <img src={images[2]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute right-24 -top-6 -z-10 hidden w-32 drop-shadow-2xl lg:block" style={{ animationDelay: "-4s" }} />}
+      <div className="relative isolate mx-auto max-w-[90rem] overflow-hidden rounded-[2.5rem] bg-[#292725] px-6 py-16 text-center text-[#f5f0e8] sm:px-10 sm:py-24">
+        {images[0] && <img src={images[0]} alt="" aria-hidden="true" loading="lazy" className="absolute -left-10 top-1/2 -z-10 hidden w-64 -translate-y-1/2 drop-shadow-2xl md:block lg:w-80" />}
+        {images[1] && <img src={images[1]} alt="" aria-hidden="true" loading="lazy" className="absolute -right-6 bottom-6 -z-10 hidden w-40 drop-shadow-2xl md:block lg:w-52" />}
+        {images[2] && <img src={images[2]} alt="" aria-hidden="true" loading="lazy" className="absolute right-24 -top-6 -z-10 hidden w-32 drop-shadow-2xl lg:block" />}
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_120%,rgba(196,107,56,.55),transparent_60%)]" aria-hidden="true" />
         {eyebrow && <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#f5c3a6]">{eyebrow}</p>}
         <h2 className="mx-auto max-w-3xl text-5xl leading-[0.95] sm:text-7xl">{title}</h2>

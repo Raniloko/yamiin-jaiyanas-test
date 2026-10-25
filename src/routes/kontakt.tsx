@@ -62,7 +62,7 @@ function ContactPage() {
       <section className="border-y border-border bg-muted py-20 sm:py-24">
         <div className="mx-auto grid max-w-[90rem] gap-6 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <OpeningHours />
-          <div className="reveal flex flex-col rounded-[2rem] bg-primary p-7 text-primary-foreground sm:p-10">
+          <div className="flex flex-col rounded-[2rem] bg-primary p-7 text-primary-foreground sm:p-10">
             <h2 className="text-5xl leading-none sm:text-6xl">Vorab bestellen</h2>
             <p className="mt-4 max-w-md text-white/70">Keine Zeit zu warten? Bestell online und hol deine Bowl fertig ab.</p>
             <ul className="mt-8 space-y-3">
@@ -120,7 +120,7 @@ function TodayCard() {
 
 function ContactCard({ icon, label, href, action, external, children }: { icon: ReactNode; label: string; href: string; action: string; external?: boolean; children: ReactNode }) {
   return (
-    <a href={href} {...(external ? { target: "_blank", rel: "noreferrer" } : {})} className="reveal group flex flex-col border-t-2 border-foreground pt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background">
+    <a href={href} {...(external ? { target: "_blank", rel: "noreferrer" } : {})} className="group flex flex-col border-t-2 border-foreground pt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background">
       <span className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><span className="text-secondary [&_svg]:size-4" aria-hidden="true">{icon}</span>{label}</span>
       <span className="mt-3 break-words text-2xl font-semibold leading-snug">{children}</span>
       <span className="mt-4 text-sm font-semibold text-secondary underline-offset-4 group-hover:underline">{action}{external && <span className="sr-only"> (öffnet in neuem Tab)</span>}</span>
@@ -132,7 +132,7 @@ function OpeningHours() {
   const today = useToday();
   const status = useOpenStatus();
   return (
-    <div className="reveal rounded-[2rem] border border-border bg-card p-7 sm:p-10">
+    <div className="rounded-[2rem] border border-border bg-card p-7 sm:p-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-5xl leading-none sm:text-6xl">Öffnungs&shy;zeiten</h2>
         {status && (

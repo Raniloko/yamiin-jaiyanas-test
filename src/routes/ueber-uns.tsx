@@ -7,7 +7,7 @@ import ysBowlAsset from "@/assets/menu/bowl-ys.webp.asset.json";
 import falafelImage from "@/assets/brand/bowl-falafel.webp";
 import bowl7Image from "@/assets/brand/bowl-7.webp";
 import matchaImage from "@/assets/brand/matcha-1.webp";
-import { CtaBanner, GlowCta, PageHero, RiseTitle, SectionHead, Ticker } from "@/components/site/brand-ui";
+import { CtaBanner, GlowCta, PageHero, RiseTitle, SectionHead } from "@/components/site/brand-ui";
 import { bowls, bowlSteps, matchas } from "@/lib/menu-data";
 
 export const Route = createFileRoute("/ueber-uns")({
@@ -45,10 +45,8 @@ function AboutPage() {
         </div>
       </PageHero>
 
-      <Ticker words={["Frisch bei Bestellung", "Ausgewogen", "Voller Geschmack", "Vegan & mit Fleisch", "Made in Hanau"]} />
-
       <section className="mx-auto grid max-w-[90rem] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-2 lg:items-center">
-        <div className="reveal">
+        <div>
           <h2 className="text-5xl leading-[0.95] sm:text-7xl">Fastfood,<br />aber frisch.</h2>
           <p className="mt-7 max-w-xl text-lg leading-8 text-muted-foreground">
             {baseText} treffen auf knackiges Gemüse, ausgewählte Proteine und Saucen, die alles zusammenbringen. Vegane Optionen gehören selbstverständlich dazu.
@@ -57,7 +55,7 @@ function AboutPage() {
             Dazu Matcha in {matchas.length} Sorten, Açaí Specials und Coffee – für die Mittagspause genauso wie für den süßen Moment zwischendurch.
           </p>
         </div>
-        <div className="reveal relative min-h-[24rem] overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_50%_55%,#fff_0%,#f1e8dc_70%)] sm:min-h-[32rem]">
+        <div className="relative min-h-[24rem] overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_50%_55%,#fff_0%,#f1e8dc_70%)] sm:min-h-[32rem]">
           <img src={falafelBowlAsset.url} alt="Falafel Exotica Bowl" loading="lazy" className="absolute bottom-6 left-2 w-[52%] drop-shadow-2xl" />
           <img src={ysBowlAsset.url} alt="Y's Bowl" loading="lazy" className="absolute right-2 top-6 w-[62%] drop-shadow-2xl" />
         </div>
@@ -104,7 +102,7 @@ function HeroBowls() {
 
 function Value({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <li className="reveal border-t-2 border-foreground pt-6">
+    <li className="border-t-2 border-foreground pt-6">
       <h3 className="flex items-center gap-2.5 text-2xl"><span className="text-secondary [&_svg]:size-5" aria-hidden="true">{icon}</span>{title}</h3>
       <p className="mt-3 leading-7 text-muted-foreground">{children}</p>
     </li>
