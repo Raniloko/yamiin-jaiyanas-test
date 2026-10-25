@@ -34,14 +34,14 @@ function AboutPage() {
   return (
     <main className="overflow-hidden bg-background text-foreground">
       <PageHero aside={<HeroBowls />}>
-        <p className="hero-rise mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-[#f5c3a6] backdrop-blur-md sm:text-sm">Seit 2023 in Hanau</p>
+        <p className="hero-rise mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-peach backdrop-blur-md sm:text-sm">Seit 2023 in Hanau</p>
         <RiseTitle lead="Schnell essen." accent="Gut fühlen." plain />
         <p className="hero-rise mt-6 max-w-xl text-base leading-7 text-white/80 sm:text-lg" style={{ animationDelay: "380ms" }}>
           Yamiin &amp; Jaiyana&rsquo;s zeigt, dass Fastfood frisch, ausgewogen und voller Geschmack sein kann. Jede Bowl wird erst bei deiner Bestellung zusammengestellt.
         </p>
         <div className="hero-rise mt-8 flex flex-wrap items-center gap-x-6 gap-y-4" style={{ animationDelay: "480ms" }}>
           <GlowCta icon={false}>Zur Speisekarte</GlowCta>
-          <Link to="/kontakt" className="inline-flex h-12 items-center gap-2 px-2 text-sm font-semibold text-[#f5f0e8]/85 underline-offset-4 hover:text-white hover:underline sm:text-base"><MapPin className="size-4 text-[#f5c3a6]" />Besuch uns</Link>
+          <Link to="/kontakt" className="inline-flex h-12 items-center gap-2 px-2 text-sm font-semibold text-primary-foreground/85 underline-offset-4 hover:text-white hover:underline sm:text-base"><MapPin className="size-4 text-peach" />Besuch uns</Link>
         </div>
       </PageHero>
 
@@ -55,7 +55,7 @@ function AboutPage() {
             Dazu Matcha in {matchas.length} Sorten, Açaí Specials und Coffee – für die Mittagspause genauso wie für den süßen Moment zwischendurch.
           </p>
         </div>
-        <div className="relative min-h-[24rem] overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_50%_55%,#fff_0%,#f1e8dc_70%)] sm:min-h-[32rem]">
+        <div className="relative min-h-[24rem] overflow-hidden rounded-[2rem] bg-radial-[circle_at_50%_55%] from-card to-muted to-70% sm:min-h-[32rem]">
           <img src={falafelBowlAsset.url} alt="Falafel Exotica Bowl" loading="lazy" className="absolute bottom-6 left-2 w-[52%] drop-shadow-2xl" />
           <img src={ysBowlAsset.url} alt="Y's Bowl" loading="lazy" className="absolute right-2 top-6 w-[62%] drop-shadow-2xl" />
         </div>
@@ -90,10 +90,10 @@ function AboutPage() {
 function HeroBowls() {
   return (
     <div className="relative hidden h-[26rem] lg:block" aria-hidden="true">
-      <div className="absolute right-8 top-0 size-72 rounded-full bg-[radial-gradient(circle_at_50%_40%,#fff_0%,#f1e8dc_72%)] p-6 shadow-2xl shadow-black/40 ring-1 ring-white/20">
+      <div className="absolute right-8 top-0 size-72 rounded-full bg-radial-[circle_at_50%_40%] from-card to-muted to-72% p-6 shadow-2xl shadow-black/40 ring-1 ring-white/20">
         <img src={ysBowlAsset.url} alt="" className="size-full object-contain drop-shadow-xl" />
       </div>
-      <div className="absolute bottom-0 left-6 size-52 rounded-full bg-[radial-gradient(circle_at_50%_40%,#fff_0%,#f1e8dc_72%)] p-5 shadow-2xl shadow-black/40 ring-1 ring-white/20">
+      <div className="absolute bottom-0 left-6 size-52 rounded-full bg-radial-[circle_at_50%_40%] from-card to-muted to-72% p-5 shadow-2xl shadow-black/40 ring-1 ring-white/20">
         <img src={falafelBowlAsset.url} alt="" className="size-full object-contain drop-shadow-xl" />
       </div>
     </div>

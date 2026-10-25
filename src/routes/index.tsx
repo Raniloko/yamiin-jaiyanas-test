@@ -47,9 +47,9 @@ function Hero() {
     { text: "good", delay: 160 },
   ];
   return (
-    <section className="relative isolate overflow-hidden border-b border-border bg-[#292725] text-[#f5f0e8]">
+    <section className="relative isolate overflow-hidden border-b border-border bg-primary text-primary-foreground">
       <img src={heroBowlImage} alt="" aria-hidden="true" className="absolute inset-0 -z-20 size-full object-cover object-center opacity-80" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(30,28,25,.95)_0%,rgba(30,28,25,.72)_48%,rgba(30,28,25,.2)_100%)] max-lg:bg-[linear-gradient(180deg,rgba(30,28,25,.55)_0%,rgba(30,28,25,.85)_55%,rgba(30,28,25,.96)_100%)]" />
+      <div className="absolute inset-0 -z-10 bg-linear-90 from-primary/95 via-primary/72 via-48% to-primary/20 max-lg:bg-linear-180 max-lg:from-primary/55 max-lg:via-primary/85 max-lg:via-55% max-lg:to-primary/96" />
 
       <div className="mx-auto grid min-h-[44rem] max-w-[90rem] items-center gap-12 px-5 pb-16 pt-16 sm:min-h-[50rem] sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:py-24">
         <div className="relative z-10 max-w-3xl">
@@ -66,8 +66,8 @@ function Hero() {
 
           <div className="hero-rise mt-9 flex flex-wrap items-center gap-x-6 gap-y-4" style={{ animationDelay: "600ms" }}>
             <GlowCta icon={false}>Jetzt Bowl bestellen</GlowCta>
-            <Link to="/speisekarte" hash="create" className="inline-flex h-12 items-center gap-2 rounded-full px-2 text-sm font-semibold text-[#f5f0e8]/85 underline-offset-4 transition-colors hover:text-white hover:underline sm:text-base">
-              <Sparkles className="size-4 text-[#f5c3a6]" /> oder Bowl selbst bauen
+            <Link to="/speisekarte" hash="create" className="inline-flex h-12 items-center gap-2 rounded-full px-2 text-sm font-semibold text-primary-foreground/85 underline-offset-4 transition-colors hover:text-white hover:underline sm:text-base">
+              <Sparkles className="size-4 text-peach" /> oder Bowl selbst bauen
             </Link>
           </div>
 
@@ -82,7 +82,7 @@ function Hero() {
         {featured && (
           <div className="hidden justify-center lg:flex" aria-hidden="true">
             <div className="w-80 rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl xl:w-96">
-              <div className="relative aspect-square overflow-hidden rounded-[1.5rem] bg-[#f5f0e8]">
+              <div className="relative aspect-square overflow-hidden rounded-[1.5rem] bg-background">
                 <img src={featured.image} alt="" className="absolute inset-0 m-auto size-[85%] object-contain drop-shadow-2xl" />
               </div>
               <div className="mt-4 flex items-end justify-between gap-3">
@@ -103,7 +103,7 @@ function Hero() {
 function HeroFact({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <li className="flex items-center gap-2.5">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#f5c3a6] [&_svg]:size-4">{icon}</span>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-peach [&_svg]:size-4">{icon}</span>
       {children}
     </li>
   );
@@ -146,7 +146,7 @@ function BowlShowcase() {
         {bowls.map((bowl) => (
           <li key={bowl.name} className="w-[82%] shrink-0 snap-center sm:w-[60%] md:w-auto">
             <Link to="/speisekarte" hash="bowls" className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card outline-none transition-colors hover:border-secondary focus-visible:ring-2 focus-visible:ring-ring">
-              <div className="relative aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_50%_60%,#fff_0%,#f1e8dc_70%)]">
+              <div className="relative aspect-[4/3] overflow-hidden bg-radial-[circle_at_50%_60%] from-card to-muted to-70%">
                 <span className="absolute left-4 top-4 z-10 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">{bowl.tag}</span>
                 <img src={bowl.image} alt={bowl.name} loading="lazy" className="absolute inset-0 m-auto size-[82%] object-contain drop-shadow-xl transition duration-500 group-hover:scale-105" />
               </div>

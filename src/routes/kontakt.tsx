@@ -40,8 +40,8 @@ function ContactPage() {
         </p>
         <div className="hero-rise mt-8 flex flex-wrap items-center gap-x-5 gap-y-4" style={{ animationDelay: "440ms" }}>
           <GlowCta href={SITE.mapsUrl} icon={false}>Route planen</GlowCta>
-          <a href={SITE.phoneHref} className="inline-flex h-12 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 text-sm font-semibold text-[#f5f0e8] backdrop-blur-md transition-colors hover:bg-white/20 sm:text-base">
-            <Phone className="size-4 text-[#f5c3a6]" /> Anrufen
+          <a href={SITE.phoneHref} className="inline-flex h-12 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 text-sm font-semibold text-primary-foreground backdrop-blur-md transition-colors hover:bg-white/20 sm:text-base">
+            <Phone className="size-4 text-peach" /> Anrufen
           </a>
         </div>
       </PageHero>
@@ -106,12 +106,12 @@ function TodayCard() {
     <div className="hero-rise relative hidden lg:block" style={{ animationDelay: "520ms" }}>
       {/* Echtes Foto aus dem Laden, auf Querformat zugeschnitten */}
       <img src={shopPhoto} alt="Lotus Ice Burger und Latte bei Yamiin & Jaiyana's" className="ml-auto aspect-[4/3] w-[88%] rounded-[2rem] object-cover object-[50%_60%] shadow-2xl shadow-black/50 ring-1 ring-white/10" />
-      <div className="absolute -bottom-8 left-0 max-w-xs rounded-[2rem] border border-white/15 bg-[#1f1d1b]/80 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
-        <p className="flex items-center gap-2 text-sm font-semibold text-[#f5c3a6]"><Clock3 className="size-4" />Heute{row ? `, ${row.label}` : ""}</p>
+      <div className="absolute -bottom-8 left-0 max-w-xs rounded-[2rem] border border-white/15 bg-primary/80 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+        <p className="flex items-center gap-2 text-sm font-semibold text-peach"><Clock3 className="size-4" />Heute{row ? `, ${row.label}` : ""}</p>
         <p className="mt-3 whitespace-nowrap font-display text-4xl leading-none">{row ? (row.hours?.replace(" Uhr", "") ?? "Ruhetag") : "–"}</p>
         <p className="mt-3 text-sm text-white/70">{status?.text ?? "Öffnungszeiten werden geladen …"}</p>
         <div className="mt-6 border-t border-white/10 pt-5 text-sm text-white/80">
-          <p className="flex items-start gap-2"><MapPin className="mt-0.5 size-4 shrink-0 text-[#f5c3a6]" />{SITE.street}, {SITE.zipCity}</p>
+          <p className="flex items-start gap-2"><MapPin className="mt-0.5 size-4 shrink-0 text-peach" />{SITE.street}, {SITE.zipCity}</p>
         </div>
       </div>
     </div>
@@ -136,8 +136,8 @@ function OpeningHours() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-5xl leading-none sm:text-6xl">Öffnungs&shy;zeiten</h2>
         {status && (
-          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${status.open ? "bg-[#5fd068]/15 text-[#1f6b26]" : "bg-muted text-muted-foreground"}`}>
-            <span className={`size-2 rounded-full ${status.open ? "bg-[#2f9e3a]" : "bg-muted-foreground"}`} aria-hidden="true" />{status.open ? "Jetzt geöffnet" : "Gerade geschlossen"}
+          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${status.open ? "bg-live/15 text-success" : "bg-muted text-muted-foreground"}`}>
+            <span className={`size-2 rounded-full ${status.open ? "bg-live" : "bg-muted-foreground"}`} aria-hidden="true" />{status.open ? "Jetzt geöffnet" : "Gerade geschlossen"}
           </span>
         )}
       </div>
@@ -145,7 +145,7 @@ function OpeningHours() {
         {WEEK.map((entry) => {
           const isToday = entry.day === today;
           return (
-            <div key={entry.day} className={`-mx-3 flex items-center justify-between gap-6 rounded-xl px-3 py-3.5 ${isToday ? "bg-[#f5c3a6]/30 font-semibold" : ""}`}>
+            <div key={entry.day} className={`-mx-3 flex items-center justify-between gap-6 rounded-xl px-3 py-3.5 ${isToday ? "bg-peach/30 font-semibold" : ""}`}>
               <dt className="flex items-center gap-2">{entry.label}{isToday && <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">Heute</span>}</dt>
               <dd className={entry.hours ? "tabular-nums" : "text-muted-foreground"}>{entry.hours ?? "Ruhetag"}</dd>
             </div>
