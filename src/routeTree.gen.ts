@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AgbRouteImport } from './routes/agb'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as DatenschutzRouteImport } from './routes/datenschutz'
+import { Route as ImpressumRouteImport } from './routes/impressum'
 import { Route as KitchenRouteImport } from './routes/kitchen'
 import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as MeineBestellungenRouteImport } from './routes/meine-bestellungen'
@@ -30,9 +33,24 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgbRoute = AgbRouteImport.update({
+  id: '/agb',
+  path: '/agb',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DatenschutzRoute = DatenschutzRouteImport.update({
+  id: '/datenschutz',
+  path: '/datenschutz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpressumRoute = ImpressumRouteImport.update({
+  id: '/impressum',
+  path: '/impressum',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KitchenRoute = KitchenRouteImport.update({
@@ -75,7 +93,10 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agb': typeof AgbRoute
   '/checkout': typeof CheckoutRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/impressum': typeof ImpressumRoute
   '/kitchen': typeof KitchenRoute
   '/kontakt': typeof KontaktRoute
   '/meine-bestellungen': typeof MeineBestellungenRoute
@@ -87,7 +108,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agb': typeof AgbRoute
   '/checkout': typeof CheckoutRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/impressum': typeof ImpressumRoute
   '/kitchen': typeof KitchenRoute
   '/kontakt': typeof KontaktRoute
   '/meine-bestellungen': typeof MeineBestellungenRoute
@@ -100,7 +124,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agb': typeof AgbRoute
   '/checkout': typeof CheckoutRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/impressum': typeof ImpressumRoute
   '/kitchen': typeof KitchenRoute
   '/kontakt': typeof KontaktRoute
   '/meine-bestellungen': typeof MeineBestellungenRoute
@@ -114,7 +141,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/agb'
     | '/checkout'
+    | '/datenschutz'
+    | '/impressum'
     | '/kitchen'
     | '/kontakt'
     | '/meine-bestellungen'
@@ -126,7 +156,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/agb'
     | '/checkout'
+    | '/datenschutz'
+    | '/impressum'
     | '/kitchen'
     | '/kontakt'
     | '/meine-bestellungen'
@@ -138,7 +171,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/agb'
     | '/checkout'
+    | '/datenschutz'
+    | '/impressum'
     | '/kitchen'
     | '/kontakt'
     | '/meine-bestellungen'
@@ -151,7 +187,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AgbRoute: typeof AgbRoute
   CheckoutRoute: typeof CheckoutRoute
+  DatenschutzRoute: typeof DatenschutzRoute
+  ImpressumRoute: typeof ImpressumRoute
   KitchenRoute: typeof KitchenRoute
   KontaktRoute: typeof KontaktRoute
   MeineBestellungenRoute: typeof MeineBestellungenRoute
@@ -177,11 +216,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agb': {
+      id: '/agb'
+      path: '/agb'
+      fullPath: '/agb'
+      preLoaderRoute: typeof AgbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checkout': {
       id: '/checkout'
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/datenschutz': {
+      id: '/datenschutz'
+      path: '/datenschutz'
+      fullPath: '/datenschutz'
+      preLoaderRoute: typeof DatenschutzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impressum': {
+      id: '/impressum'
+      path: '/impressum'
+      fullPath: '/impressum'
+      preLoaderRoute: typeof ImpressumRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kitchen': {
@@ -239,7 +299,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AgbRoute: AgbRoute,
   CheckoutRoute: CheckoutRoute,
+  DatenschutzRoute: DatenschutzRoute,
+  ImpressumRoute: ImpressumRoute,
   KitchenRoute: KitchenRoute,
   KontaktRoute: KontaktRoute,
   MeineBestellungenRoute: MeineBestellungenRoute,
