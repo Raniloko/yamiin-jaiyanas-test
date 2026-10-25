@@ -50,10 +50,10 @@ export function OpenBadge({ className, fallback = "Willy-Brandt-Straße 23 · Ha
   );
 }
 
-/** Umlaufendes Licht um beliebige Bedienelemente (z. B. den Bestell-Button der Kasse) – nur wenn `active`, dann läuft es auch ohne Hover. */
+/** Umlaufendes Licht um beliebige Bedienelemente (z. B. den Bestell-Button der Kasse) – nur wenn `active`. */
 export function GlowFrame({ active, radius = "9999px", className, children }: { active: boolean; radius?: string; className?: string; children: ReactNode }) {
   return (
-    <span className={cn(active ? "glow-cta" : "relative inline-flex", className)} style={{ borderRadius: radius }} data-live={active || undefined}>
+    <span className={cn(active ? "glow-cta" : "relative inline-flex", className)} style={{ borderRadius: radius }}>
       {active && <span className="glow-cta-halo" aria-hidden="true"><span /></span>}
       {children}
     </span>

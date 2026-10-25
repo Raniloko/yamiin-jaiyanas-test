@@ -255,8 +255,7 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 
 /* ============= Startseite ============= */
 
-/* Bestell-Button: Lichtstreifen am Rand mit weichem Schein. Steht still und läuft nur bei Hover/Fokus
-   oder wenn GlowFrame `data-live` setzt (z. B. Kasse, sobald die Bestellung abschickbar ist). */
+/* Bestell-Button: ein Lichtstreifen läuft endlos um den Rand, dahinter ein weicher Schein. */
 @property --glow-angle {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -297,9 +296,6 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   animation: glow-orbit 3.2s linear infinite;
-  /* Ruhestellung bei 300° (wie bei reduzierter Bewegung) */
-  animation-delay: -2.667s;
-  animation-play-state: paused;
 }
 
 .glow-cta::before { inset: -3px; padding: 3px; }
@@ -317,8 +313,8 @@ aside .menu-link-open:not(nav *) { transition-delay: 340ms; }
 }
 .glow-cta-halo > span { position: absolute; inset: 7px; padding: 6px; }
 
-.glow-cta:is(:hover, :focus-within, [data-live])::before,
-.glow-cta:is(:hover, :focus-within, [data-live]) .glow-cta-halo > span { animation-play-state: running; }
+.glow-cta:hover::before,
+.glow-cta:hover .glow-cta-halo > span { animation-duration: 1.6s; }
 
 /* Glanz, der beim Darüberfahren einmal über die Fläche streicht */
 .glow-cta-face { position: relative; overflow: hidden; }
