@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CirclePause, Clock3, Coffee, Flame, Leaf, Minus, Plus, Search, ShoppingBag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { BowlBuilder } from "@/components/menu/bowl-builder";
 import { OpenBadge, PageHero, RiseTitle } from "@/components/site/brand-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { acais, bowlFilters, bowls, bowlSteps, coffeeExtra, coffees, iceBurgers, matchas, menuCategories, menuNotes, wraps, type Bowl, type BowlFilter, type MenuProduct } from "@/lib/menu-data";
+import { acais, bowlFilters, bowls, bowlSteps, coffeeExtra, coffees, customBowl, iceBurgers, matchas, menuCategories, menuNotes, wraps, type Bowl, type BowlFilter, type MenuProduct } from "@/lib/menu-data";
 import { COFFEE_OPTIONS, priceOf, type CoffeeOption, type MenuRef } from "@/lib/menu-pricing";
 import { track, trackOnce } from "@/lib/analytics";
 import { blockedReason, isPaused, isSoldOut, itemKey, optionKey, untilLabel, useAvailability } from "@/lib/availability";
@@ -51,6 +52,7 @@ function OrderPage() {
   const [filter, setFilter] = useState<BowlFilter>("Alle");
   const [query, setQuery] = useState("");
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [building, setBuilding] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
   const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null);
   // Während des Scrollens nach einem Klick bleibt die Markierung beim Ziel (kein Flackern über Zwischenbereiche).
@@ -156,7 +158,8 @@ function OrderPage() {
     bowls: () => <><SectionTitle title="Wähle deine Bowl" /><p className="mt-3 text-muted-foreground">Jede Bowl mit Base nach Wahl: Bulgur, Somalireis oder Salat.</p><div className="my-6 flex flex-wrap gap-2" aria-label="Bowl-Filter">{bowlFilters.map(item => <Button key={item} size="sm" variant={filter === item ? "default" : "outline"} aria-pressed={filter === item} onClick={() => setFilter(item)} className="h-9 rounded-full px-4">{item}</Button>)}</div><div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">{visibleBowls.map(item => <article key={item.name} className={`${CARD} ${soldOut(item.name) ? SOLD_OUT_CARD : ""}`}><div className={CARD_MEDIA}><Badge className="absolute left-2 top-2 z-10 rounded-full bg-primary px-2 text-[10px] text-primary-foreground hover:bg-primary sm:left-4 sm:top-4 sm:px-3 sm:text-xs">{item.tag}</Badge><img loading="lazy" src={item.image} alt={item.name} className={CARD_IMG} />{soldOut(item.name) && <SoldOutBadge />}</div><div className={CARD_BODY}><h3 className={CARD_TITLE}>{item.name}</h3><p className={CARD_TEXT}>{item.description}</p><p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-peach/35 px-2.5 py-1 text-xs font-semibold text-peach-foreground sm:mt-4"><Flame className="size-3.5" />Protein {item.protein}</p><div className={CARD_FOOT}><div className="text-sm"><p className="sm:hidden">ab <strong>{item.small}</strong></p><div className="hidden sm:block"><p>Klein <strong>{item.small}</strong></p><p className="mt-1">Groß <strong>{item.large}</strong></p></div></div>{soldOut(item.name) ? <Button size="sm" variant="outline" disabled className="rounded-full sm:h-10 sm:px-4">Ausverkauft</Button> : <Button size="sm" className="rounded-full transition-colors group-hover:bg-clay sm:h-10 sm:px-5" onClick={() => setSelection({ kind: "bowl", item, category: "bowls" })}>Auswählen</Button>}</div></div></article>)}</div>{visibleBowls.length === 0 && <EmptySearch />}</>,
     create: () => <div className="rounded-[2rem] bg-primary p-6 text-primary-foreground sm:p-10">
       <div><h2 className="text-5xl leading-[0.95] sm:text-6xl">Bowl selbst bauen</h2></div>
-      <p className="mt-4 max-w-2xl leading-7 text-white/75">{menuNotes.create}</p>
+      <p className="mt-4 max-w-2xl leading-7 text-white/75">{menuNotes.create} Klein {customBowl.small}, Groß {customBowl.large}.</p>
+      <Button onClick={() => setBuilding(true)} className="mt-6 h-12 rounded-full bg-primary-foreground px-6 text-base font-semibold text-primary hover:bg-peach focus-visible:ring-peach">Eigene Bowl zusammenstellen</Button>
       <ol className="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">{bowlSteps.map(step => <li key={step.number} className="rounded-2xl border border-white/10 bg-white/5 p-5 transition-colors duration-300 hover:border-peach/40 hover:bg-white/10"><div className="flex items-baseline gap-3"><span className="font-display text-4xl text-peach">{step.number}</span><h3 className="text-2xl">{step.title}</h3></div><p className="mt-1 text-sm text-white/60">{step.note}</p><ul className="mt-4 flex flex-wrap gap-1.5">{step.items.map(item => <li key={item} className="rounded-full bg-white/10 px-3 py-1 text-sm">{item}</li>)}</ul></li>)}</ol>
     </div>,
     coffee: () => <><SectionTitle title="Coffee" /><div className="mt-8 max-w-3xl divide-y divide-border rounded-3xl border border-border bg-card px-4 sm:px-7">{visibleCoffees.map(([name, price]) => <div key={name} className="flex items-center gap-3 py-4 sm:py-5"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-peach/35 text-peach-foreground"><Coffee className="size-5" /></span><h3 className={`min-w-0 flex-1 text-xl ${soldOut(name ?? "") ? "text-muted-foreground line-through" : ""}`}>{name}</h3>{soldOut(name ?? "") && <span className={SOLD_OUT_PILL}>Ausverkauft</span>}<strong className="shrink-0 text-sm">{price}</strong><Button variant="outline" size="icon" className="rounded-full hover:border-clay hover:bg-clay hover:text-white" disabled={soldOut(name ?? "")} aria-label={soldOut(name ?? "") ? `${name} ausverkauft` : `${name} hinzufügen`} onClick={() => setSelection({ kind: "product", coffee: true, category: "coffee", item: { name: name ?? "", description: "Heißgetränk", price: price ?? "", image: "", options: COFFEE_OPTIONS, optionLabel: "Geschmack" } })}><Plus className="size-4" /></Button></div>)}</div><p className="mt-5 text-sm font-medium text-secondary">+ {coffeeExtra.name} für deinen Kaffee: {coffeeExtra.price}</p></>,
@@ -200,6 +203,7 @@ function OrderPage() {
       <div className="mt-16 rounded-3xl border border-border bg-muted px-5 py-5 text-xs leading-6 text-muted-foreground sm:px-7"><p>{menuNotes.pricing} {menuNotes.nutrition}</p><p>{menuNotes.allergens}</p></div>
     </div>
     {selection && <ItemDialog key={selection.item.name} selection={selection} onClose={() => setSelection(null)} />}
+    {building && <BowlBuilder onClose={() => setBuilding(false)} />}
   </main>;
 }
 function SectionTitle({ title, id }: { title: string; id?: string }) { return <div><h2 id={id} className="text-5xl leading-[0.95] sm:text-6xl">{title}</h2></div>; }

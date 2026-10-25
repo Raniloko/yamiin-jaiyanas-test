@@ -44,6 +44,7 @@ export const bowls: Bowl[] = [
 export const bowlSteps = [
   {
     "number": "1",
+    "id": "base",
     "title": "Base",
     "note": "Deine Grundlage",
     "items": [
@@ -52,10 +53,12 @@ export const bowlSteps = [
       "Salat"
     ],
     "included": null,
+    "extraPrice": null,
     "seasonal": false
   },
   {
     "number": "2",
+    "id": "protein",
     "title": "Protein",
     "note": "Wähle dein Protein",
     "items": [
@@ -66,11 +69,13 @@ export const bowlSteps = [
       "Planted Base Chicken",
       "Falafel"
     ],
-    "included": null,
+    "included": 1,
+    "extraPrice": "3,50 €",
     "seasonal": false
   },
   {
     "number": "3",
+    "id": "veggies",
     "title": "Veggies",
     "note": "3× inklusive: frisches Gemüse, teils saisonal",
     "items": [
@@ -85,10 +90,12 @@ export const bowlSteps = [
       "Babyspinat"
     ],
     "included": 3,
+    "extraPrice": "0,80 €",
     "seasonal": true
   },
   {
     "number": "4",
+    "id": "specials",
     "title": "Specials",
     "note": "1× inklusive: das gewisse Extra, teils saisonal",
     "items": [
@@ -99,10 +106,12 @@ export const bowlSteps = [
       "Granatapfelkerne"
     ],
     "included": 1,
+    "extraPrice": "1,50 €",
     "seasonal": true
   },
   {
     "number": "5",
+    "id": "toppings",
     "title": "Gravies",
     "note": "1× inklusive: Crunch & Topping",
     "items": [
@@ -116,10 +125,12 @@ export const bowlSteps = [
       "Walnüsse"
     ],
     "included": 1,
+    "extraPrice": "0,80 €",
     "seasonal": false
   },
   {
     "number": "6",
+    "id": "sauces",
     "title": "Saucen",
     "note": "1× inklusive, zum Abrunden",
     "items": [
@@ -134,9 +145,12 @@ export const bowlSteps = [
       "Balsamico"
     ],
     "included": 1,
+    "extraPrice": "0,50 €",
     "seasonal": false
   }
 ];
+/** Eigene Bowl ("Bowl selbst bauen"): Grundpreis je Größe; Aufpreise pro Schritt stehen in bowlSteps.extraPrice. */
+export const customBowl = { name: "Eigene Bowl", small: "10,90 €", large: "13,90 €" };
 export const matchas: MenuProduct[] = [
 {"name": "Iced Strawberry", "description": "Fruchtige Erdbeere trifft cremigen Matcha", "price": "6,90 €", "size": "0,3 l", "signature": false, "hot": false, "optionLabel": "Milch", "image": m_strawAsset, options: milkOptions},
 {"name": "Iced Coconut", "description": "Matcha trifft Kokos – cremig & erfrischend", "price": "6,90 €", "size": "0,3 l", "signature": false, "hot": false, "optionLabel": "Milch", "image": m_coconutAsset, options: milkOptions},
@@ -161,4 +175,4 @@ export const iceBurgerImage = iceAsset;
 export const wrapImage = wrapAsset;
 export const iceBurgers: MenuProduct[] = ["Peeka Pistachio", "Peeka Lotus", "Peeka Bueno"].map(name => ({ name, description: "Gefüllt mit Ice Cream", price: "4,00 €", image: iceBurgerImage }));
 export const wraps: MenuProduct[] = [{ name: "Chicken Wrap", description: "Zarter Chicken, frisches Gemüse, knackige Salate und leckere Saucen – du entscheidest, was reinkommt.", price: "8,90 €", image: wrapImage }];
-export const menuNotes = { pricing: "Alle Preise in Euro inkl. MwSt.", nutrition: "Nährwertangaben sind Richtwerte und können je nach Zubereitung leicht abweichen.", allergens: "Fragen zu Zutaten oder Allergenen? Sprich uns gerne an.", create: "In 6 Schritten zu deiner Lieblings-Bowl. Einfach an der Theke Schritt für Schritt auswählen." };
+export const menuNotes = { pricing: "Alle Preise in Euro inkl. MwSt.", nutrition: "Nährwertangaben sind Richtwerte und können je nach Zubereitung leicht abweichen.", allergens: "Fragen zu Zutaten oder Allergenen? Sprich uns gerne an.", create: "In 6 Schritten zu deiner Lieblings-Bowl – an der Theke oder direkt hier online." };

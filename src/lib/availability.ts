@@ -10,9 +10,10 @@ import type { MenuRef } from "@/lib/menu-pricing";
 export const itemKey = (name: string) => `item:${name}`;
 export const optionKey = (value: string) => `option:${value}`;
 
-/** Auswahlmöglichkeiten, die einzeln ausgehen können (Basis, Milch, Topping, Extra). */
+/** Auswahlmöglichkeiten, die einzeln ausgehen können (Basis, Zutaten der eigenen Bowl, Milch, Topping, Extra). */
 export const OPTION_GROUPS: { label: string; values: readonly string[] }[] = [
   { label: "Bowl-Basis", values: bowlSteps[0]?.items ?? [] },
+  ...bowlSteps.slice(1).map((step) => ({ label: `Eigene Bowl: ${step.title}`, values: step.items })),
   { label: "Milch", values: milkOptions },
   { label: "Açaí-Topping", values: acaiOptions },
   { label: "Coffee", values: [coffeeExtra.name] },
@@ -106,6 +107,10 @@ export function isSoldOut(s: AvailabilityState, key: string) {
 export function blockedReason(s: AvailabilityState, ref: MenuRef | undefined): string | null {
   if (!ref) return null;
   if (isSoldOut(s, itemKey(ref.name))) return "ausverkauft";
+  if (ref.kind === "custom") {
+    const out = [ref.base, ...Object.values(ref.picks).flat()].filter((value) => isSoldOut(s, optionKey(value)));
+    return out.length ? `${out.join(", ")} ausverkauft` : null;
+  }
   const option = ref.kind === "bowl" ? ref.base : ref.option;
   if (option && isSoldOut(s, optionKey(option))) return `${option} ausverkauft`;
   return null;
