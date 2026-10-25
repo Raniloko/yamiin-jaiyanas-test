@@ -16,7 +16,7 @@ const TONES = {
   dark: "bg-[#292725] text-[#f5f0e8] shadow-[#292725]/25 hover:bg-[#1f1d1b]",
 };
 
-/** Haupt-Button mit umlaufendem Licht (siehe .glow-cta in styles.css). Standard: zu den Bowls. */
+/** Haupt-Button mit umlaufendem Licht (siehe .glow-cta in styles.css). Standard: zu den Bowls; `icon={false}` blendet den Pfeil aus. */
 export function GlowCta({ children, hash = "bowls", href, tone = "light", icon }: { children: ReactNode; hash?: string; href?: string; tone?: "light" | "dark"; icon?: ReactNode }) {
   const inner = (
     <>
@@ -108,12 +108,13 @@ export function Ticker({ words }: { words: string[] }) {
   );
 }
 
-export function SectionHead({ eyebrow, title, accent, children }: { eyebrow: string; title: string; accent: string; children?: ReactNode }) {
+/** Abschnittskopf: Überschrift links, Einleitung rechts. Startseite nutzt nur `title` – Eyebrow und Akzentzeile sind optional. */
+export function SectionHead({ eyebrow, title, accent, children }: { eyebrow?: string; title: string; accent?: string; children?: ReactNode }) {
   return (
     <div className="reveal grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">{eyebrow}</p>
-        <h2 className="mt-4 text-5xl leading-[0.95] sm:text-7xl">{title}<br /><em className="text-secondary">{accent}</em></h2>
+        {eyebrow && <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-secondary">{eyebrow}</p>}
+        <h2 className="text-5xl leading-[0.95] sm:text-7xl">{title}{accent && <><br /><em className="text-secondary">{accent}</em></>}</h2>
       </div>
       {children && <div className="max-w-xl text-lg leading-8 text-muted-foreground lg:justify-self-end">{children}</div>}
     </div>
@@ -123,7 +124,7 @@ export function SectionHead({ eyebrow, title, accent, children }: { eyebrow: str
 const BANNER_IMAGES = [bowlImage, matchaImage, acaiImage];
 
 /** Dunkles Abschluss-Banner mit Button; links und rechts schweben echte Produktfotos. */
-export function CtaBanner({ eyebrow, title, cta, children, images = BANNER_IMAGES }: { eyebrow: string; title: ReactNode; cta: ReactNode; children?: ReactNode; images?: string[] }) {
+export function CtaBanner({ eyebrow, title, cta, children, images = BANNER_IMAGES }: { eyebrow?: string; title: ReactNode; cta: ReactNode; children?: ReactNode; images?: string[] }) {
   return (
     <section className="px-5 pb-24 sm:px-8 sm:pb-28">
       <div className="reveal relative isolate mx-auto max-w-[90rem] overflow-hidden rounded-[2.5rem] bg-[#292725] px-6 py-16 text-center text-[#f5f0e8] sm:px-10 sm:py-24">
@@ -131,8 +132,8 @@ export function CtaBanner({ eyebrow, title, cta, children, images = BANNER_IMAGE
         {images[1] && <img src={images[1]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute -right-6 bottom-6 -z-10 hidden w-40 drop-shadow-2xl md:block lg:w-52" style={{ animationDelay: "-2s" }} />}
         {images[2] && <img src={images[2]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute right-24 -top-6 -z-10 hidden w-32 drop-shadow-2xl lg:block" style={{ animationDelay: "-4s" }} />}
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_120%,rgba(196,107,56,.55),transparent_60%)]" aria-hidden="true" />
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f5c3a6]">{eyebrow}</p>
-        <h2 className="mx-auto mt-4 max-w-3xl text-5xl leading-[0.95] sm:text-7xl">{title}</h2>
+        {eyebrow && <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#f5c3a6]">{eyebrow}</p>}
+        <h2 className="mx-auto max-w-3xl text-5xl leading-[0.95] sm:text-7xl">{title}</h2>
         <div className="mt-10 flex flex-wrap justify-center gap-4">{cta}</div>
         {children && <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/70">{children}</div>}
       </div>

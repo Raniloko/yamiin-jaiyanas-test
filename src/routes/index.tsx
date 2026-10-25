@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Bike, Clock3, Flame, Leaf, MapPin, Salad, ShoppingBag, Sparkles, Store, Wallet } from "lucide-react";
+import { Bike, Clock3, MapPin, ShoppingBag, Sparkles, Store, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 
 import heroBowlImage from "@/assets/hero-bowl.jpg";
@@ -25,7 +25,6 @@ export const Route = createFileRoute("/")({
 });
 
 const featured = bowls[0];
-const maxProtein = String(Math.max(...bowls.map((bowl) => bowl.nutrition.large.p))).replace(".", ",");
 const fromPrice = euro(Math.min(...bowls.map((bowl) => parseMenuPrice(bowl.small))));
 const TICKER = ["Signature Bowls", "Iced Matcha", "Açaí Specials", "High Protein", "Vegane Bowls", "Frisch zubereitet", "Made in Hanau"];
 
@@ -53,7 +52,6 @@ function Hero() {
     <section className="relative isolate overflow-hidden border-b border-border bg-[#292725] text-[#f5f0e8]">
       <img src={heroBowlImage} alt="" aria-hidden="true" className="hero-drift absolute inset-0 -z-20 size-full object-cover object-center opacity-80" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(30,28,25,.95)_0%,rgba(30,28,25,.72)_48%,rgba(30,28,25,.2)_100%)] max-lg:bg-[linear-gradient(180deg,rgba(30,28,25,.55)_0%,rgba(30,28,25,.85)_55%,rgba(30,28,25,.96)_100%)]" />
-      <div className="absolute -left-48 top-1/4 -z-10 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.3),transparent_65%)]" aria-hidden="true" />
 
       <div className="mx-auto grid min-h-[44rem] max-w-[90rem] items-center gap-12 px-5 pb-16 pt-16 sm:min-h-[50rem] sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:py-24">
         <div className="relative z-10 max-w-3xl">
@@ -62,14 +60,14 @@ function Hero() {
             {words.map((word, index) => <span key={word.text}>{index > 0 && " "}<span className="hero-rise inline-block" style={{ animationDelay: `${word.delay}ms` }}>{word.text}</span></span>)}
             <br />
             <span className="hero-rise inline-block" style={{ animationDelay: "240ms" }}>people</span>{" "}
-            <em className="hero-rise inline-block text-[#f5c3a6]" style={{ animationDelay: "340ms" }}>eat well.</em>
+            <span className="hero-rise inline-block" style={{ animationDelay: "340ms" }}>eat well.</span>
           </h1>
           <p className="hero-rise mt-7 max-w-lg text-base leading-7 text-white/80 sm:text-lg" style={{ animationDelay: "480ms" }}>
             Frische Bowls, Matcha und Açaí aus Hanau – mit allen Nährwerten im Blick. Online bestellen, abholen oder liefern lassen.
           </p>
 
           <div className="hero-rise mt-9 flex flex-wrap items-center gap-x-6 gap-y-4" style={{ animationDelay: "600ms" }}>
-            <GlowCta>Jetzt Bowl bestellen</GlowCta>
+            <GlowCta icon={false}>Jetzt Bowl bestellen</GlowCta>
             <Link to="/speisekarte" hash="create" className="inline-flex h-12 items-center gap-2 rounded-full px-2 text-sm font-semibold text-[#f5f0e8]/85 underline-offset-4 transition-colors hover:text-white hover:underline sm:text-base">
               <Sparkles className="size-4 text-[#f5c3a6]" /> oder Bowl selbst bauen
             </Link>
@@ -82,28 +80,20 @@ function Hero() {
           </ul>
         </div>
 
-        {/* Schwebende Karten – nur auf großen Bildschirmen, damit es am Handy aufgeräumt bleibt */}
+        {/* Die Bowl selbst steht im Mittelpunkt – nur auf großen Bildschirmen, damit es am Handy aufgeräumt bleibt */}
         {featured && (
-          <div className="relative hidden h-[34rem] lg:block" aria-hidden="true">
-            <div className="float-bob absolute right-4 top-6 w-80 rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl">
+          <div className="hidden justify-center lg:flex" aria-hidden="true">
+            <div className="w-80 rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl xl:w-96">
               <div className="relative aspect-square overflow-hidden rounded-[1.5rem] bg-[#f5f0e8]">
                 <img src={featured.image} alt="" className="absolute inset-0 m-auto size-[85%] object-contain drop-shadow-2xl" />
               </div>
               <div className="mt-4 flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f5c3a6]">{featured.tag}</p>
+                  <p className="text-sm text-white/70">{featured.tag}</p>
                   <p className="mt-1 font-display text-3xl leading-none">{featured.name}</p>
                 </div>
                 <p className="shrink-0 text-right text-sm text-white/70">ab <strong className="block text-xl text-white">{featured.small}</strong></p>
               </div>
-            </div>
-            <div className="float-bob absolute left-0 top-[52%] flex items-center gap-3 rounded-2xl border border-white/15 bg-[#f5f0e8] px-4 py-3 text-[#292725] shadow-2xl shadow-black/40" style={{ animationDelay: "-2s" }}>
-              <span className="flex size-10 items-center justify-center rounded-full bg-[#c46b38] text-white"><Flame className="size-5" /></span>
-              <span><strong className="block font-display text-2xl leading-none">bis {maxProtein} g</strong><span className="text-xs text-[#6f675f]">Protein pro Bowl</span></span>
-            </div>
-            <div className="float-bob absolute bottom-6 right-16 flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 shadow-2xl shadow-black/40 backdrop-blur-xl" style={{ animationDelay: "-4s" }}>
-              <span className="flex size-10 items-center justify-center rounded-full bg-[#5fd068]/20 text-[#9be39f]"><Leaf className="size-5" /></span>
-              <span><strong className="block text-sm">Vegan & Fisch</strong><span className="text-xs text-white/70">für jeden Geschmack</span></span>
             </div>
           </div>
         )}
@@ -123,22 +113,21 @@ function HeroFact({ icon, children }: { icon: ReactNode; children: ReactNode }) 
 
 function Steps() {
   const steps = [
-    { icon: <Salad />, title: "Aussuchen", text: "Signature Bowl wählen oder selbst bauen – Größe, Base und Notiz an die Küche inklusive." },
-    { icon: <Store />, title: "Abholen oder liefern", text: `Abholung kostenlos in der Willy-Brandt-Straße, Lieferung in ${DELIVERY.city} für ${euro(DELIVERY.fee)}.` },
-    { icon: <Wallet />, title: "Bezahlen & genießen", text: "Bar oder Karte vor Ort – oder direkt online. Den Status deiner Bestellung siehst du live." },
+    { title: "Aussuchen", text: "Signature Bowl wählen oder selbst bauen – Größe, Base und Notiz an die Küche inklusive." },
+    { title: "Abholen oder liefern", text: `Abholung kostenlos in der Willy-Brandt-Straße, Lieferung in ${DELIVERY.city} für ${euro(DELIVERY.fee)}.` },
+    { title: "Bezahlen & genießen", text: "Bar oder Karte vor Ort – oder direkt online. Den Status deiner Bestellung siehst du live." },
   ];
   return (
     <section className="mx-auto max-w-[90rem] px-5 py-20 sm:px-8 sm:py-28">
-      <SectionHead eyebrow="So einfach geht's" title="In 3 Schritten" accent="zu deiner Bowl.">
+      <SectionHead title="So bestellst du">
         Ohne Konto, ohne App, in unter einer Minute bestellt. Wir fangen an, sobald deine Bestellung da ist.
       </SectionHead>
-      <ol className="mt-12 grid gap-4 md:grid-cols-3">
+      <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
         {steps.map((step, index) => (
-          <li key={step.title} className="reveal group relative overflow-hidden rounded-3xl border border-border bg-card p-7 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <span className="pointer-events-none absolute -right-3 -top-6 font-display text-[8rem] leading-none text-muted transition-colors duration-300 group-hover:text-[#f5c3a6]/50" aria-hidden="true">{index + 1}</span>
-            <span className="relative flex size-12 items-center justify-center rounded-2xl bg-[#292725] text-[#f5c3a6] [&_svg]:size-6">{step.icon}</span>
-            <h3 className="relative mt-6 text-3xl">{step.title}</h3>
-            <p className="relative mt-3 leading-7 text-muted-foreground">{step.text}</p>
+          <li key={step.title} className="reveal border-t-2 border-foreground pt-6">
+            <p className="text-sm font-semibold text-secondary">Schritt {index + 1}</p>
+            <h3 className="mt-2 text-3xl">{step.title}</h3>
+            <p className="mt-3 max-w-sm leading-7 text-muted-foreground">{step.text}</p>
           </li>
         ))}
       </ol>
@@ -150,7 +139,7 @@ function BowlShowcase() {
   return (
     <section className="border-y border-border bg-muted py-20 sm:py-28">
       <div className="mx-auto max-w-[90rem] px-5 sm:px-8">
-        <SectionHead eyebrow="Signature Bowls" title="Jede Bowl" accent="ein Highlight.">
+        <SectionHead title="Unsere Signature Bowls">
           Klein ab {fromPrice}, groß für den richtigen Hunger. Mit Bulgur, Somalireis oder Salat als Base.
         </SectionHead>
       </div>
@@ -158,25 +147,25 @@ function BowlShowcase() {
       <ul className="mx-auto mt-12 flex max-w-[90rem] snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none] sm:px-8 md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-3 [&::-webkit-scrollbar]:hidden">
         {bowls.map((bowl) => (
           <li key={bowl.name} className="reveal w-[82%] shrink-0 snap-center sm:w-[60%] md:w-auto">
-            <Link to="/speisekarte" hash="bowls" className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card outline-none transition duration-300 hover:-translate-y-1.5 hover:shadow-2xl focus-visible:ring-2 focus-visible:ring-ring">
+            <Link to="/speisekarte" hash="bowls" className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card outline-none transition-colors hover:border-secondary focus-visible:ring-2 focus-visible:ring-ring">
               <div className="relative aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_50%_60%,#fff_0%,#f1e8dc_70%)]">
-                <span className="absolute left-4 top-4 z-10 rounded-full bg-[#292725] px-3 py-1 text-xs font-semibold text-[#f5f0e8]">{bowl.tag}</span>
-                <img src={bowl.image} alt={bowl.name} loading="lazy" className="absolute inset-0 m-auto size-[82%] object-contain drop-shadow-xl transition duration-500 group-hover:-rotate-3 group-hover:scale-110" />
+                <span className="absolute left-4 top-4 z-10 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">{bowl.tag}</span>
+                <img src={bowl.image} alt={bowl.name} loading="lazy" className="absolute inset-0 m-auto size-[82%] object-contain drop-shadow-xl transition duration-500 group-hover:scale-105" />
               </div>
               <div className="flex flex-1 flex-col p-6">
                 <h3 className="text-3xl leading-tight">{bowl.name}</h3>
                 <p className="mt-2 line-clamp-2 flex-1 text-sm leading-6 text-muted-foreground">{bowl.description.replace(/^Base \+ /, "")}</p>
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
-                  <p className="text-sm leading-tight"><span className="text-muted-foreground">ab </span><strong className="text-lg">{bowl.small}</strong><span className="block text-xs text-muted-foreground">bis {String(bowl.nutrition.large.p).replace(".", ",")} g Protein</span></p>
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#292725] text-[#f5f0e8] transition-colors duration-300 group-hover:bg-[#c46b38]"><ArrowRight className="size-4" /></span>
-                </div>
+                <p className="mt-5 flex items-baseline justify-between gap-3 border-t border-border pt-4 text-sm">
+                  <span><span className="text-muted-foreground">ab </span><strong className="text-lg">{bowl.small}</strong></span>
+                  <span className="text-muted-foreground">bis {String(bowl.nutrition.large.p).replace(".", ",")} g Protein</span>
+                </p>
               </div>
             </Link>
           </li>
         ))}
       </ul>
       <div className="mt-10 flex justify-center px-5">
-        <GlowCta tone="dark">Alle Bowls & bestellen</GlowCta>
+        <GlowCta tone="dark" icon={false}>Zur Speisekarte</GlowCta>
       </div>
     </section>
   );
@@ -184,20 +173,21 @@ function BowlShowcase() {
 
 function MoreThanBowls() {
   const tiles = [
-    { label: "Taste the Matcha", note: `${matchas.length} Sorten · Milch nach Wahl`, image: matchas.at(0)?.image ?? heroBowlImage, hash: "matcha" },
+    { label: "Matcha", note: `${matchas.length} Sorten, Milch nach Wahl`, image: matchas.at(0)?.image ?? heroBowlImage, hash: "matcha" },
     { label: "Açaí Specials", note: `Jedes Special ${acais.at(0)?.price ?? ""}`, image: acais.at(0)?.image ?? heroBowlImage, hash: "acai" },
-    { label: "Coffee & mehr", note: `${coffees.length} Hot Drinks · Ice Burger · Wraps`, image: iceBurgerImage, hash: "coffee" },
+    { label: "Coffee & mehr", note: `${coffees.length} Kaffeegetränke, dazu Ice Burger und Wraps`, image: iceBurgerImage, hash: "coffee" },
   ];
   return (
     <section className="mx-auto max-w-[90rem] px-5 py-20 sm:px-8 sm:py-28">
-      <SectionHead eyebrow="Mehr als Bowls" title="Dein Geschmack," accent="deine Wahl.">
+      <SectionHead title="Mehr als Bowls">
         Matcha in vielen Sorten, Açaí Specials, die genauso gut aussehen, wie sie schmecken – und Coffee für zwischendurch.
       </SectionHead>
-      <div className="mt-12 grid gap-5 md:grid-cols-3">
+      <div className="mt-12 grid gap-10 md:grid-cols-3 md:gap-6">
         {tiles.map((item) => (
-          <Link key={item.label} to="/speisekarte" hash={item.hash} className="reveal group overflow-hidden rounded-3xl border border-border bg-card outline-none transition duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-ring">
-            <div className="overflow-hidden bg-muted"><img src={item.image} alt={item.label} loading="lazy" className="aspect-[4/3] w-full object-contain p-6 transition duration-500 group-hover:scale-105" /></div>
-            <div className="flex items-end justify-between gap-4 p-6"><div><h3 className="text-2xl">{item.label}</h3><p className="mt-2 text-sm text-muted-foreground">{item.note}</p></div><ArrowRight className="size-5 shrink-0 transition-transform group-hover:translate-x-1" /></div>
+          <Link key={item.label} to="/speisekarte" hash={item.hash} className="reveal group rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background">
+            <div className="overflow-hidden rounded-3xl bg-muted"><img src={item.image} alt={item.label} loading="lazy" className="aspect-[4/3] w-full object-contain p-6 transition duration-500 group-hover:scale-105" /></div>
+            <h3 className="mt-5 text-2xl underline-offset-4 group-hover:underline">{item.label}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{item.note}</p>
           </Link>
         ))}
       </div>
@@ -209,15 +199,13 @@ function OrderWays() {
   return (
     <section className="border-y border-border bg-muted py-20 sm:py-24">
       <div className="mx-auto grid max-w-[90rem] gap-6 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.65fr)]">
-        <div className="reveal relative isolate overflow-hidden rounded-[2rem] bg-[#292725] p-7 text-[#f5f0e8] sm:p-10">
-          <div className="absolute -right-32 -top-32 -z-10 size-[26rem] rounded-full bg-[radial-gradient(circle,rgba(196,107,56,.45),transparent_65%)]" aria-hidden="true" />
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f5c3a6]">Direkt bei uns bestellen</p>
-          <h2 className="mt-4 text-5xl leading-none sm:text-6xl">Pick it.<br /><em className="text-[#f5c3a6]">Enjoy it.</em></h2>
+        <div className="reveal rounded-[2rem] bg-primary p-7 text-primary-foreground sm:p-10">
+          <h2 className="text-5xl leading-none sm:text-6xl">Direkt bei uns bestellen</h2>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            <OrderFact icon={<Store />} title="Selbst abholen" text={`Kostenlos · fertig in ca. ${PREP_MINUTES.pickup} Min`} />
-            <OrderFact icon={<Bike />} title="Liefern lassen" text={`${euro(DELIVERY.fee)} · ab ${euro(DELIVERY.minOrder)} · nur ${DELIVERY.city}`} />
+            <OrderFact icon={<Store />} title="Selbst abholen" text={`Kostenlos, fertig in ca. ${PREP_MINUTES.pickup} Min`} />
+            <OrderFact icon={<Bike />} title="Liefern lassen" text={`${euro(DELIVERY.fee)} Liefergebühr, ab ${euro(DELIVERY.minOrder)} Bestellwert, nur in ${DELIVERY.city}`} />
           </div>
-          <div className="mt-9"><GlowCta>Jetzt bestellen</GlowCta></div>
+          <div className="mt-9"><GlowCta icon={false}>Jetzt bestellen</GlowCta></div>
         </div>
         <div className="reveal flex flex-col gap-4">
           <p className="px-1 text-sm text-muted-foreground">Lieber über eine App?</p>
@@ -232,21 +220,21 @@ function OrderWays() {
 function OrderFact({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#c46b38] text-white [&_svg]:size-5">{icon}</span>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground [&_svg]:size-5">{icon}</span>
       <span><strong className="block">{title}</strong><span className="text-sm text-white/70">{text}</span></span>
     </div>
   );
 }
 
 function OrderLink({ href, icon, label }: { href: string; icon: ReactNode; label: string }) {
-  return <a href={href} target="_blank" rel="noreferrer" className="group flex flex-1 items-center justify-between gap-4 rounded-3xl border border-border bg-card p-6 transition duration-300 hover:-translate-y-1 hover:border-secondary hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="flex items-center gap-4"><span className="text-secondary [&_svg]:size-6">{icon}</span><span><span className="block text-xs text-muted-foreground">Bestellen bei</span><span className="text-2xl font-semibold">{label}</span></span></span><ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /></a>;
+  return <a href={href} target="_blank" rel="noreferrer" className="flex flex-1 items-center gap-4 rounded-3xl border border-border bg-card p-6 transition-colors hover:border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="text-secondary [&_svg]:size-6">{icon}</span><span><span className="block text-xs text-muted-foreground">Bestellen bei</span><span className="text-2xl font-semibold">{label}</span><span className="sr-only"> (öffnet in neuem Tab)</span></span></a>;
 }
 
 function Story() {
   return (
     <section className="mx-auto grid max-w-[90rem] gap-10 px-5 py-20 sm:px-8 sm:py-24 lg:grid-cols-2 lg:items-center">
-      <div className="reveal"><p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">Seit 2023 in Hanau</p><h2 className="mt-4 text-5xl leading-none sm:text-7xl">Fastfood,<br /><em className="text-secondary">aber frisch.</em></h2></div>
-      <div className="reveal"><p className="max-w-xl text-lg leading-8 text-muted-foreground">Jede Bowl wird erst bei deiner Bestellung zusammengestellt – mit frischem Gemüse, ausgewählten Proteinen und Saucen, die alles zusammenbringen.</p><div className="mt-7 flex flex-wrap gap-5"><Link to="/ueber-uns" className="inline-flex items-center gap-2 font-semibold text-secondary hover:underline">Mehr über uns <ArrowRight className="size-4" /></Link><Link to="/kontakt" className="inline-flex items-center gap-2 font-semibold hover:text-secondary"><MapPin className="size-4" /> Besuch uns in Hanau</Link></div></div>
+      <div className="reveal"><h2 className="text-5xl leading-none sm:text-7xl">Fastfood,<br />aber frisch.</h2></div>
+      <div className="reveal"><p className="max-w-xl text-lg leading-8 text-muted-foreground">Seit 2023 in Hanau. Jede Bowl wird erst bei deiner Bestellung zusammengestellt – mit frischem Gemüse, ausgewählten Proteinen und Saucen, die alles zusammenbringen.</p><div className="mt-7 flex flex-wrap gap-5"><Link to="/ueber-uns" className="font-semibold text-secondary underline-offset-4 hover:underline">Mehr über uns</Link><Link to="/kontakt" className="inline-flex items-center gap-2 font-semibold hover:text-secondary"><MapPin className="size-4" /> Besuch uns in Hanau</Link></div></div>
     </section>
   );
 }
@@ -254,9 +242,8 @@ function Story() {
 function FinalCta() {
   return (
     <CtaBanner
-      eyebrow="Hunger bekommen?"
-      title={<>Deine Bowl ist in <em className="text-[#f5c3a6]">ca. {PREP_MINUTES.pickup} Minuten</em> fertig.</>}
-      cta={<GlowCta>Jetzt Bowl bestellen</GlowCta>}
+      title={<>Deine Bowl ist in ca. {PREP_MINUTES.pickup} Minuten fertig.</>}
+      cta={<GlowCta icon={false}>Jetzt Bowl bestellen</GlowCta>}
     >
       <span className="inline-flex items-center gap-2"><MapPin className="size-4" />{SITE.street}, {SITE.zipCity}</span>
       {SITE.hours.map((entry) => <span key={entry.days}>{entry.days}: {entry.time}</span>)}
