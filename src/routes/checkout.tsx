@@ -497,7 +497,7 @@ function CheckoutPage() {
               {isLast ? (
                 <GlowFrame active={valid && !placing} radius="0.75rem" className="min-w-0 flex-1">
                   <button type="button" onClick={() => void submit()} disabled={placing} aria-disabled={!valid || undefined} className={`glow-cta-face group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl font-bold text-white transition-colors ${valid ? "bg-clay hover:bg-secondary" : "bg-clay/50"}`}>
-                    {placing ? <><LoaderCircle className="size-4 animate-spin" /> Wird gesendet …</> : paused ? <><CirclePause className="size-4" /> Gerade pausiert</> : <>{payment === "onsite" ? "Jetzt bestellen" : "Zahlungspflichtig bestellen"}<span className="ml-1 tabular-nums opacity-80">{euro(grandTotal)}</span></>}
+                    {placing ? <><LoaderCircle className="size-4 animate-spin" /> Wird gesendet …</> : paused ? <><CirclePause className="size-4" /> Gerade pausiert</> : <>Zahlungspflichtig bestellen</>}
                   </button>
                 </GlowFrame>
               ) : (
