@@ -78,15 +78,19 @@ export function PageHero({ children, aside, className, compact, width = "max-w-[
   );
 }
 
-/** Überschrift mit Wörtern, die nacheinander aufsteigen: zweite Zeile kursiv in Pfirsich. */
-export function RiseTitle({ lead, accent, className }: { lead: string; accent: string; className?: string }) {
+/** Überschrift mit Wörtern, die nacheinander aufsteigen: zweite Zeile kursiv in Pfirsich, mit `plain` ohne Hervorhebung. */
+export function RiseTitle({ lead, accent, plain, className }: { lead: string; accent: string; plain?: boolean; className?: string }) {
   const words = lead.split(" ");
   return (
     <h1 className={cn("text-[3.4rem] leading-[0.9] sm:text-8xl", className)}>
       {/* Echte Leerzeichen zwischen den Wörtern, damit Vorlesen und Kopieren stimmen. */}
       {words.map((word, index) => <span key={`${word}-${index}`}>{index > 0 && " "}<span className="hero-rise inline-block" style={{ animationDelay: `${80 + index * 80}ms` }}>{word}</span></span>)}
       <br />
-      <em className="hero-rise inline-block text-[#f5c3a6]" style={{ animationDelay: `${80 + words.length * 80 + 60}ms` }}>{accent}</em>
+      {plain ? (
+        <span className="hero-rise inline-block" style={{ animationDelay: `${80 + words.length * 80 + 60}ms` }}>{accent}</span>
+      ) : (
+        <em className="hero-rise inline-block text-[#f5c3a6]" style={{ animationDelay: `${80 + words.length * 80 + 60}ms` }}>{accent}</em>
+      )}
     </h1>
   );
 }
@@ -124,9 +128,9 @@ export function SectionHead({ eyebrow, title, accent, children }: { eyebrow?: st
 const BANNER_IMAGES = [bowlImage, matchaImage, acaiImage];
 
 /** Dunkles Abschluss-Banner mit Button; links und rechts schweben echte Produktfotos. */
-export function CtaBanner({ eyebrow, title, cta, children, images = BANNER_IMAGES }: { eyebrow?: string; title: ReactNode; cta: ReactNode; children?: ReactNode; images?: string[] }) {
+export function CtaBanner({ eyebrow, title, cta, children, images = BANNER_IMAGES, className }: { eyebrow?: string; title: ReactNode; cta: ReactNode; children?: ReactNode; images?: string[]; className?: string }) {
   return (
-    <section className="px-5 pb-24 sm:px-8 sm:pb-28">
+    <section className={cn("px-5 pb-24 sm:px-8 sm:pb-28", className)}>
       <div className="reveal relative isolate mx-auto max-w-[90rem] overflow-hidden rounded-[2.5rem] bg-[#292725] px-6 py-16 text-center text-[#f5f0e8] sm:px-10 sm:py-24">
         {images[0] && <img src={images[0]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute -left-10 top-1/2 -z-10 hidden w-64 -translate-y-1/2 drop-shadow-2xl md:block lg:w-80" />}
         {images[1] && <img src={images[1]} alt="" aria-hidden="true" loading="lazy" className="float-bob absolute -right-6 bottom-6 -z-10 hidden w-40 drop-shadow-2xl md:block lg:w-52" style={{ animationDelay: "-2s" }} />}
