@@ -59,12 +59,12 @@ export const LEGAL = {
   // ===== AGB =====
   /**
    * Stornierung und Erstattung – geschäftliche Entscheidung des Inhabers (Lovable prüft vor dem Go-Live,
-   * ob eine Erstattungsregel vorhanden ist). Vorschlag, bitte bestätigen oder ändern:
+   * ob eine Erstattungsregel vorhanden ist). Vom Inhaber am 25.10.2026 bestätigt.
    */
   cancellationPolicy:
     "Solange wir mit der Zubereitung noch nicht begonnen haben, kannst du deine Bestellung telefonisch stornieren. Bereits online bezahlte Beträge erstatten wir dann vollständig über die ursprüngliche Zahlungsart. Können wir eine Bestellung nicht ausführen, zum Beispiel weil etwas ausverkauft ist, informieren wir dich und erstatten bereits gezahlte Beträge vollständig." as LegalField,
   /** Inhaber hat den Vorschlag zur Stornierung/Erstattung geprüft und freigegeben. */
-  cancellationPolicyConfirmed: false,
+  cancellationPolicyConfirmed: true,
 };
 
 /** Alle Pflichtangaben gesetzt und der Erstattungsvorschlag freigegeben? Erst dann veröffentlichen. */
