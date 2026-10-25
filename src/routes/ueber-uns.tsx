@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Flame, Leaf, MapPin, Salad } from "lucide-react";
 import type { ReactNode } from "react";
 
-import falafelBowlAsset from "@/assets/menu/bowl-falafel-exotica.webp.asset.json";
-import ysBowlAsset from "@/assets/menu/bowl-ys.webp.asset.json";
+import falafelBowlAsset from "@/assets/menu/bowl-falafel-exotica.webp";
+import ysBowlAsset from "@/assets/menu/bowl-ys.webp";
 import falafelImage from "@/assets/brand/bowl-falafel.webp";
 import bowl7Image from "@/assets/brand/bowl-7.webp";
 import matchaImage from "@/assets/brand/matcha-1.webp";
@@ -56,8 +56,8 @@ function AboutPage() {
           </p>
         </div>
         <div className="relative min-h-[24rem] overflow-hidden rounded-[2rem] bg-radial-[circle_at_50%_55%] from-card to-muted to-70% sm:min-h-[32rem]">
-          <img src={falafelBowlAsset.url} alt="Falafel Exotica Bowl" loading="lazy" className="absolute bottom-6 left-2 w-[52%] drop-shadow-2xl" />
-          <img src={ysBowlAsset.url} alt="Y's Bowl" loading="lazy" className="absolute right-2 top-6 w-[62%] drop-shadow-2xl" />
+          <img src={falafelBowlAsset} alt="Falafel Exotica Bowl" loading="lazy" className="absolute bottom-6 left-2 w-[52%] drop-shadow-2xl" />
+          <img src={ysBowlAsset} alt="Y's Bowl" loading="lazy" className="absolute right-2 top-6 w-[62%] drop-shadow-2xl" />
         </div>
       </section>
 
@@ -91,10 +91,10 @@ function HeroBowls() {
   return (
     <div className="relative hidden h-[26rem] lg:block" aria-hidden="true">
       <div className="absolute right-8 top-0 size-72 rounded-full bg-radial-[circle_at_50%_40%] from-card to-muted to-72% p-6 shadow-2xl shadow-black/40 ring-1 ring-white/20">
-        <img src={ysBowlAsset.url} alt="" className="size-full object-contain drop-shadow-xl" />
+        <img src={ysBowlAsset} alt="" className="size-full object-contain drop-shadow-xl" />
       </div>
       <div className="absolute bottom-0 left-6 size-52 rounded-full bg-radial-[circle_at_50%_40%] from-card to-muted to-72% p-5 shadow-2xl shadow-black/40 ring-1 ring-white/20">
-        <img src={falafelBowlAsset.url} alt="" className="size-full object-contain drop-shadow-xl" />
+        <img src={falafelBowlAsset} alt="" className="size-full object-contain drop-shadow-xl" />
       </div>
     </div>
   );
