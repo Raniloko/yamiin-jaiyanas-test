@@ -1,12 +1,14 @@
 import Stripe from "stripe";
 
+import type { StripeEnv } from "@/lib/payments-env";
+
 const getEnv = (key: string): string => {
   const value = process.env[key];
   if (!value) throw new Error(`${key} is not configured`);
   return value;
 };
 
-export type StripeEnv = "sandbox" | "live";
+export type { StripeEnv };
 
 const GATEWAY_STRIPE_BASE = "https://connector-gateway.lovable.dev/stripe";
 
@@ -74,7 +76,20 @@ export function getStripeErrorMessage(error: unknown): string {
   return "Stripe request failed";
 }
 
-export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ type: string; data: { object: any } }> {
+const toHex = (bytes: Uint8Array) => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+/** Vergleich ohne frühen Abbruch – die Dauer verrät nicht, wie viele Stellen der Signatur stimmen. */
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let index = 0; index < a.length; index++) diff |= a.charCodeAt(index) ^ b.charCodeAt(index);
+  return diff === 0;
+}
+
+export type WebhookEvent = { id?: string; type: string; livemode?: boolean; data: { object: unknown } };
+
+/** Wirft, wenn die Signatur fehlt, nicht stimmt oder zu alt ist – dann darf das Ereignis nicht verarbeitet werden. */
+export async function verifyWebhook(req: Request, env: StripeEnv): Promise<WebhookEvent> {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
   const secret = env === "sandbox" ? getEnv("PAYMENTS_SANDBOX_WEBHOOK_SECRET") : getEnv("PAYMENTS_LIVE_WEBHOOK_SECRET");
@@ -96,7 +111,7 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
   }
 
   const age = Math.abs(Date.now() / 1000 - Number(timestamp));
-  if (age > 300) {
+  if (!Number.isFinite(age) || age > 300) {
     throw new Error("Webhook timestamp too old");
   }
 
@@ -108,11 +123,16 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
     ["sign"],
   );
   const signed = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${timestamp}.${body}`));
-  const expected = Buffer.from(new Uint8Array(signed)).toString("hex");
+  const expected = toHex(new Uint8Array(signed));
 
-  if (!v1Signatures.includes(expected)) {
+  if (!v1Signatures.some((candidate) => safeEqual(candidate, expected))) {
     throw new Error("Invalid webhook signature");
   }
 
-  return JSON.parse(body);
+  const event = JSON.parse(body) as WebhookEvent;
+  // Ein Test-Ereignis darf nie über den Live-Zugang ankommen und umgekehrt.
+  if (typeof event.livemode === "boolean" && event.livemode !== (env === "live")) {
+    throw new Error("Webhook environment mismatch");
+  }
+  return event;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { sendOrderConfirmation } from "@/utils/email.functions";
+import { isLiveBuild, isTestSession } from "@/lib/payments-env";
 
 import type { CartItem } from "@/lib/cart-store";
 
@@ -135,28 +135,13 @@ export type OrderRow = {
   total: number | string;
   status: OrderStatus;
   paid: boolean | null;
+  stripe_session_id?: string | null;
 };
 
-function toRow(order: Order) {
-  return {
-    id: order.id,
-    created_at: new Date(order.createdAt).toISOString(),
-    pickup_at: new Date(order.pickupAt).toISOString(),
-    pickup_label: order.pickupLabel,
-    fulfillment: order.fulfillment ?? "pickup",
-    address: order.address ?? null,
-    delivery_fee: order.deliveryFee ?? 0,
-    payment: order.payment,
-    contact: order.contact,
-    note: order.note,
-    items: order.items,
-    total: order.total,
-    status: order.status,
-    paid: order.paid ?? false,
-  };
-}
-
 export function fromRow(row: OrderRow): Order {
+  // Im Live-Betrieb gilt eine Zahlung aus dem Stripe-Test-Modus (Testkarte, kein echtes Geld) nicht als bezahlt –
+  // so kann eine Test-Umgebung, die dieselbe Datenbank nutzt, nichts in die echte Küche schicken.
+  const paid = row.paid === true && !(isLiveBuild() && isTestSession(row.stripe_session_id));
   return {
     id: row.id,
     createdAt: Date.parse(row.created_at),
@@ -171,7 +156,7 @@ export function fromRow(row: OrderRow): Order {
     address: row.address ?? undefined,
     deliveryFee: row.delivery_fee == null ? 0 : Number(row.delivery_fee),
     status: row.status,
-    paid: row.paid ?? false,
+    paid,
   };
 }
 
@@ -202,23 +187,14 @@ export function subscribeToOrderChanges(onChange?: () => void): () => void {
 }
 
 export const orderStore = {
-  /** Speichert die Bestellung – erst danach gilt sie. Lehnt die Datenbank ab (pausiert, ausverkauft), kommt die Meldung zurück. */
-  async create(order: Omit<Order, "id" | "createdAt" | "status">): Promise<{ order: Order } | { error: string }> {
-    // 6 Ziffern: bei 4 Ziffern wären doppelte Nummern schon nach ~100 Bestellungen wahrscheinlich.
-    const id = `YJ-${Math.floor(100000 + Math.random() * 900000)}`;
-    const full: Order = { ...order, id, createdAt: Date.now(), status: "bestaetigt" };
-    // Geheimer Gast-Schlüssel: nur dieses Gerät darf den Status ohne Login abfragen.
-    const accessToken = crypto.randomUUID();
-    const { error } = await supabase.from("orders").insert({ ...toRow(full), access_token: accessToken });
-    if (error) {
-      console.error("Bestellung konnte nicht gespeichert werden:", error.message);
-      return { error: error.message };
-    }
-    rememberGuestToken(id, accessToken);
-    write([full, ...read()].slice(0, 30));
-    // Bestätigung per E-Mail: vor Ort sofort, Online/PayPal sendet der Server erst nach der Zahlung.
-    if (full.payment === "onsite") void sendOrderConfirmation({ data: { id, token: accessToken } }).catch(() => undefined);
-    return { order: full };
+  /**
+   * Eine gerade aufgegebene Bestellung auf diesem Gerät merken (Kopie + Gast-Schlüssel für die Statusseite).
+   * Angelegt wird sie ausschließlich vom Server (`placeOrder` in src/utils/orders.functions.ts) – der Browser
+   * schreibt nie selbst in die Bestellungen.
+   */
+  add(order: Order, accessToken: string) {
+    rememberGuestToken(order.id, accessToken);
+    write([order, ...read().filter((entry) => entry.id !== order.id)].slice(0, 30));
   },
   /** Live-Stand vom Server in die Gerätekopie übernehmen (nur Anzeige – die Wahrheit liegt in der Datenbank). */
   remember(remote: Order) {

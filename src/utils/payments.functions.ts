@@ -1,130 +1,93 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 
-import { DELIVERY, isMenuRef, labelOf, priceOf, type MenuRef } from "@/lib/menu-pricing";
-import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
+import { checkoutLines } from "@/lib/order-rules";
+import { paymentsEnvironment, type StripeEnv } from "@/lib/payments-env";
+import { createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 
 type CheckoutSessionResult = { clientSecret: string } | { error: string };
 
-type OrderCheckoutInput = {
-  orderId: string;
-  /** Nur Referenz + Menge – Preise berechnet ausschließlich der Server aus der Speisekarte. */
-  items: { ref: MenuRef; qty: number }[];
-  fulfillment: "pickup" | "delivery";
-  customerEmail?: string;
-  returnUrl: string;
-  environment: StripeEnv;
-};
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/** So lange nach dem Bestellen lässt sich die Zahlung starten; danach bitte neu bestellen (Abholzeit wäre sonst vorbei). */
+const PAYABLE_MINUTES = 30;
+/** Stripe verlangt mindestens 30 Minuten Laufzeit – danach verfällt die offene Zahlung von selbst. */
+const SESSION_MINUTES = 31;
 
-// Erstellt eine eingebettete Bezahl-Session für eine Restaurant-Bestellung.
-// Positionen werden dynamisch als price_data angelegt; die Beträge stammen aus menu-data.ts
-// (inkl. MwSt.), nie aus dem Browser – so lässt sich der Preis nicht manipulieren.
+const FAILED = "Die Zahlung konnte nicht gestartet werden. Bitte versuch es noch einmal oder zahle vor Ort.";
+
+// Erstellt die eingebettete Bezahl-Session für eine gespeicherte Bestellung.
+// Der Browser schickt nur Bestellnummer + Gast-Schlüssel. Positionen, Beträge, Rücksprung-Adresse und
+// Test-/Live-Umgebung bestimmt der Server – so lässt sich weder der Preis noch die Umgebung manipulieren
+// und niemand kann für eine fremde Bestellung eine Zahlung starten.
 export const createOrderCheckout = createServerFn({ method: "POST" })
-  .inputValidator((data: OrderCheckoutInput) => {
-    if (!/^YJ-\d{4,6}$/.test(data.orderId)) throw new Error("Ungültige Bestellnummer");
-    if (!Array.isArray(data.items) || data.items.length < 1 || data.items.length > 50) {
-      throw new Error("Ungültige Positionen");
-    }
-    for (const item of data.items) {
-      if (!isMenuRef(item.ref)) throw new Error("Ungültige Position");
-      if (!Number.isInteger(item.qty) || item.qty < 1 || item.qty > 20)
-        throw new Error("Ungültige Menge");
-    }
-    if (data.fulfillment !== "pickup" && data.fulfillment !== "delivery")
-      throw new Error("Ungültige Lieferart");
-    if (data.customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.customerEmail)) {
-      throw new Error("Ungültige E-Mail");
-    }
-    if (typeof data.returnUrl !== "string" || !data.returnUrl.startsWith("http")) {
-      throw new Error("Ungültige Rücksprung-Adresse");
-    }
-    if (data.environment !== "sandbox" && data.environment !== "live")
-      throw new Error("Ungültige Umgebung");
-    return data;
+  .inputValidator((data: { orderId: string; token: string }) => {
+    if (typeof data?.orderId !== "string" || !/^YJ-\d{4,6}$/.test(data.orderId)) throw new Error("Ungültige Bestellnummer");
+    if (typeof data.token !== "string" || !UUID.test(data.token)) throw new Error("Ungültiger Schlüssel");
+    return { orderId: data.orderId, token: data.token };
   })
   .handler(async ({ data }): Promise<CheckoutSessionResult> => {
-    // Preise serverseitig aus der Speisekarte.
-    const lines: { name: string; unitAmount: number; qty: number }[] = [];
-    for (const item of data.items) {
-      const unitAmount = priceOf(item.ref);
-      if (unitAmount === null) {
-        return {
-          error: `„${item.ref.name}“ gibt es so nicht auf der Speisekarte. Bitte entferne es aus dem Warenkorb.`,
-        };
-      }
-      lines.push({ name: labelOf(item.ref), unitAmount, qty: item.qty });
+    let environment: StripeEnv;
+    try {
+      environment = paymentsEnvironment();
+    } catch {
+      return { error: "Die Online-Zahlung ist noch nicht eingerichtet. Bitte wähle „Vor Ort zahlen“." };
     }
-    const subtotal = lines.reduce((sum, line) => sum + line.unitAmount * line.qty, 0);
-    const delivery = data.fulfillment === "delivery";
-    const deliveryFeeCents = delivery ? Math.round(DELIVERY.fee * 100) : 0;
-    if (delivery && subtotal < Math.round(DELIVERY.minOrder * 100)) {
-      return { error: "Der Mindestbestellwert für die Lieferung ist nicht erreicht." };
-    }
-    const totalCents = subtotal + deliveryFeeCents;
 
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-      // Die Bestellung wird im Browser angelegt – kurz warten, falls sie noch gespeichert wird.
-      let order: { paid: boolean | null; payment: string } | null = null;
-      for (let attempt = 0; attempt < 5 && !order; attempt++) {
-        if (attempt > 0) await sleep(400);
-        const { data: row } = await supabaseAdmin
-          .from("orders")
-          .select("paid, payment")
-          .eq("id", data.orderId)
-          .maybeSingle();
-        order = row;
+      const { data: order, error } = await supabaseAdmin
+        .from("orders")
+        .select("id, created_at, paid, payment, fulfillment, items, total, contact")
+        .eq("id", data.orderId)
+        .eq("access_token", data.token)
+        .maybeSingle();
+      if (error) {
+        console.error("[Zahlung] Bestellung nicht lesbar:", error.message);
+        return { error: FAILED };
       }
-      if (!order)
-        return { error: "Die Bestellung wurde nicht gefunden. Bitte versuche es erneut." };
+      if (!order) return { error: "Die Bestellung wurde nicht gefunden. Bitte versuche es erneut." };
       if (order.paid) return { error: "Diese Bestellung ist bereits bezahlt." };
       if (order.payment === "onsite") return { error: "Diese Bestellung wird vor Ort bezahlt." };
-
-      const stripe = createStripeClient(data.environment);
-      const lineItems = lines.map((line) => ({
-        price_data: {
-          currency: "eur",
-          product_data: { name: line.name },
-          unit_amount: line.unitAmount,
-        },
-        quantity: line.qty,
-      }));
-      if (deliveryFeeCents > 0) {
-        lineItems.push({
-          price_data: {
-            currency: "eur",
-            product_data: { name: "Lieferung" },
-            unit_amount: deliveryFeeCents,
-          },
-          quantity: 1,
-        });
+      if (Date.now() - Date.parse(order.created_at) > PAYABLE_MINUTES * 60000) {
+        return { error: "Diese Bestellung ist abgelaufen. Bitte bestelle noch einmal neu." };
       }
 
+      // Positionen und Summe aus der gespeicherten Bestellung, Preise noch einmal aus der Speisekarte.
+      const checked = checkoutLines(order);
+      if ("error" in checked) return checked;
+
+      const email = (order.contact as { email?: unknown } | null)?.email;
+      const { appOrigin } = await import("@/lib/mailer.server");
+      const stripe = createStripeClient(environment);
       const session = await stripe.checkout.sessions.create({
-        line_items: lineItems,
+        line_items: checked.lines.map((line) => ({
+          price_data: { currency: "eur", product_data: { name: line.name }, unit_amount: line.unitAmount },
+          quantity: line.qty,
+        })),
         mode: "payment",
         ui_mode: "embedded_page",
-        return_url: data.returnUrl,
-        ...(data.customerEmail && { customer_email: data.customerEmail }),
-        payment_intent_data: { description: `Yamiin & Jaiyana's Bestellung ${data.orderId}` },
-        metadata: { orderId: data.orderId },
+        return_url: `${appOrigin(getRequest())}/order-success?id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
+        expires_at: Math.floor(Date.now() / 1000) + SESSION_MINUTES * 60,
+        ...(typeof email === "string" && EMAIL.test(email) && { customer_email: email }),
+        payment_intent_data: { description: `Yamiin & Jaiyana's Bestellung ${order.id}` },
+        client_reference_id: order.id,
+        metadata: { orderId: order.id },
       });
+      if (typeof session.amount_total === "number" && session.amount_total !== checked.totalCents) {
+        console.error(`[Zahlung] Betrag der Session ${session.id} (${session.amount_total}) passt nicht zur Bestellung ${order.id} (${checked.totalCents})`);
+        return { error: FAILED };
+      }
 
-      // Session verknüpfen (für den Webhook) und den geprüften Betrag speichern,
-      // damit Küche und Beleg genau das zeigen, was abgebucht wird.
-      await supabaseAdmin
-        .from("orders")
-        .update({
-          stripe_session_id: session.id,
-          total: totalCents / 100,
-          delivery_fee: deliveryFeeCents / 100,
-        })
-        .eq("id", data.orderId);
+      // Session verknüpfen – bezahlt markiert erst der Webhook.
+      const { error: linkError } = await supabaseAdmin.from("orders").update({ stripe_session_id: session.id }).eq("id", order.id).eq("paid", false);
+      if (linkError) console.error("[Zahlung] Session nicht verknüpft:", linkError.message);
 
-      return { clientSecret: session.client_secret ?? "" };
+      return session.client_secret ? { clientSecret: session.client_secret } : { error: FAILED };
     } catch (error) {
-      return { error: getStripeErrorMessage(error) };
+      // Einzelheiten nur ins Server-Protokoll – der Gast bekommt eine verständliche Meldung.
+      console.error("[Zahlung] Stripe-Fehler:", getStripeErrorMessage(error));
+      return { error: FAILED };
     }
   });
