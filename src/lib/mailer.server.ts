@@ -5,12 +5,22 @@ import { orderConfirmationEmail } from "@/lib/email-templates";
 import { fromRow, type OrderRow } from "@/lib/order-store";
 import { SITE } from "@/lib/site-info";
 
-const OWN_HOST = /^https:\/\/([a-z0-9-]+\.)*(yamiin-jaiyanas\.de|lovable\.app)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+// Eigene Adressen: die Domain des Ladens, die Lovable-Vorschau DIESES Projekts (Projekt-ID im Hostnamen)
+// und der lokale Entwicklungsserver. Bewusst kein "*.lovable.app" oder "*.vercel.app": dort kann jeder
+// eine eigene Seite betreiben, und Login-Links würden sonst dorthin zurückführen.
+const OWN_HOST = /^https:\/\/([a-z0-9-]+\.)*yamiin-jaiyanas\.de$|^https:\/\/[a-z0-9-]*a267365a-66f8-4a54-bc15-d63972c4c8de[a-z0-9-]*\.lovable\.app$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-/** Basis für Links in Mails: die Seite, von der die Anfrage kam – nur eigene Domains, sonst die Hauptadresse. */
+/** Weitere eigene Adressen (z. B. nach einem Hosting-Wechsel) als kommagetrennte Liste in APP_ALLOWED_ORIGINS. */
+const extraOrigins = () =>
+  (process.env["APP_ALLOWED_ORIGINS"] ?? "")
+    .split(",")
+    .map((entry) => entry.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+
+/** Basis für Links in Mails und für die Rückkehr von der Zahlung: die Seite, von der die Anfrage kam – nur eigene Adressen, sonst die Hauptadresse. */
 export function appOrigin(request: Request | undefined) {
   const origin = request?.headers.get("origin") ?? "";
-  return OWN_HOST.test(origin) ? origin : SITE.url;
+  return OWN_HOST.test(origin) || extraOrigins().includes(origin) ? origin : SITE.url;
 }
 
 /**

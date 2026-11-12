@@ -12,7 +12,8 @@ import { DELIVERY, orderStore, type Fulfillment, type Order } from "@/lib/order-
 import { track, trackOnce } from "@/lib/analytics";
 import { blockedReason, isPaused, orderBlockMessage, untilLabel, useAvailability } from "@/lib/availability";
 import { isOpenForAsap, nextSlotDay, PREP_MINUTES } from "@/lib/pickup-slots";
-import { getStripe, getStripeEnvironment } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
+import { placeOrder } from "@/utils/orders.functions";
 import { createOrderCheckout } from "@/utils/payments.functions";
 
 export const Route = createFileRoute("/checkout")({
@@ -73,6 +74,8 @@ function CheckoutPage() {
   const [remember, setRemember] = useState(true);
   const [touched, setTouched] = useState(false);
   const [checkoutOrder, setCheckoutOrder] = useState<Order | null>(null);
+  // Gast-Schlüssel der Bestellung – nur damit lässt sich ihre Zahlung starten.
+  const [checkoutToken, setCheckoutToken] = useState("");
   const [payError, setPayError] = useState("");
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState("");
@@ -169,7 +172,6 @@ function CheckoutPage() {
       else requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-invalid="true"]')?.scrollIntoView({ behavior: "smooth", block: "center" }));
       return;
     }
-    const pickupAt = pickup === "asap" ? Date.now() + prepMinutes * 60000 : pickup;
     if (remember) {
       localStorage.setItem("yj-contact", JSON.stringify(contact));
       if (delivery) localStorage.setItem("yj-address", JSON.stringify(address));
@@ -178,26 +180,28 @@ function CheckoutPage() {
       localStorage.removeItem("yj-address");
     }
     setPlacing(true);
-    const result = await orderStore.create({
-      pickupAt,
-      pickupLabel: pickup === "asap" ? "Schnellstmöglich" : `${slotDay?.label ?? "Heute"} ${hhmm(new Date(pickup))} Uhr`,
-      fulfillment,
-      address: delivery ? address : undefined,
-      deliveryFee,
-      payment,
-      contact,
-      note,
-      items,
-      total: grandTotal,
-    });
+    // Der Server legt die Bestellung an: Er bekommt nur Auswahl, Zeit und Kontakt und berechnet
+    // Preise, Summe und Abholzeit selbst. Lehnt er ab (pausiert, ausverkauft, Zeit vorbei), kommt die Meldung zurück.
+    const result = await placeOrder({
+      data: {
+        items: items.flatMap((item) => (item.ref ? [{ ref: item.ref, qty: item.qty, ...(item.note ? { note: item.note } : {}) }] : [])),
+        fulfillment,
+        pickup,
+        payment,
+        contact,
+        ...(delivery ? { address } : {}),
+        note,
+      },
+    }).catch(() => ({ error: "Deine Bestellung konnte nicht gesendet werden. Bitte prüfe deine Internetverbindung und versuch es noch einmal." }));
     setPlacing(false);
     if ("error" in result) {
-      setOrderError(orderBlockMessage(result.error) ?? "Deine Bestellung konnte nicht gesendet werden. Bitte prüfe deine Internetverbindung und versuch es noch einmal.");
+      setOrderError(orderBlockMessage(result.error) ?? result.error);
       requestAnimationFrame(() => document.getElementById("order-error")?.scrollIntoView({ behavior: "smooth", block: "center" }));
       return;
     }
     const { order } = result;
-    track("order_placed", { qty: count, value: grandTotal, variant: `${payment} · ${fulfillment}` });
+    orderStore.add(order, result.token);
+    track("order_placed", { qty: count, value: order.total, variant: `${payment} · ${fulfillment}` });
     if (payment === "onsite") {
       cartStore.clear();
       navigate({ to: "/order-success", search: { id: order.id } });
@@ -205,23 +209,15 @@ function CheckoutPage() {
       // Online-Zahlung: Bestellung ist angelegt, aber erst nach erfolgreicher
       // Zahlung für die Küche sichtbar (Webhook markiert sie als bezahlt).
       // Der Warenkorb bleibt bis zur Rückkehr von der Zahlung erhalten (geleert auf /order-success).
+      setCheckoutToken(result.token);
       setCheckoutOrder(order);
     }
   };
 
   if (checkoutOrder) {
     const fetchClientSecret = async (): Promise<string> => {
-      const result = await createOrderCheckout({
-        data: {
-          orderId: checkoutOrder.id,
-          // Nur Referenz + Menge – den Preis berechnet der Server aus der Speisekarte.
-          items: checkoutOrder.items.flatMap((item) => (item.ref ? [{ ref: item.ref, qty: item.qty }] : [])),
-          fulfillment: checkoutOrder.fulfillment ?? "pickup",
-          customerEmail: checkoutOrder.contact.email,
-          returnUrl: `${window.location.origin}/order-success?id=${checkoutOrder.id}&session_id={CHECKOUT_SESSION_ID}`,
-          environment: getStripeEnvironment(),
-        },
-      });
+      // Nur Bestellnummer + Gast-Schlüssel: Positionen, Betrag und Rücksprung-Adresse nimmt der Server aus der gespeicherten Bestellung.
+      const result = await createOrderCheckout({ data: { orderId: checkoutOrder.id, token: checkoutToken } });
       const message = "error" in result ? result.error : !result.clientSecret ? "Keine Zahlungs-Session erhalten." : "";
       if (message) {
         setPayError(message);
