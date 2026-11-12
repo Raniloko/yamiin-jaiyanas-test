@@ -1,7 +1,10 @@
-// E-Mail-Versand über Resend (Lovable Connector-Gateway). Nur auf dem Server verwenden –
-// die Schlüssel (LOVABLE_API_KEY, RESEND_API_KEY) liegen ausschließlich in process.env.
+// E-Mail-Versand über Resend. Nur auf dem Server verwenden – die Schlüssel liegen ausschließlich in process.env.
+//  * Eigenes Hosting (Vercel): RESEND_API_KEY ist ein echter Resend-Schlüssel (re_…) → direkt an api.resend.com.
+//  * Lovable: RESEND_API_KEY ist ein Verbindungsschlüssel des Lovable-Connectors → über das Connector-Gateway
+//    (braucht zusätzlich LOVABLE_API_KEY).
 import { SITE } from "@/lib/site-info";
 
+const RESEND_API = "https://api.resend.com";
 const GATEWAY = "https://connector-gateway.lovable.dev/resend";
 
 /** Absender auf der in Resend bestätigten Domain. */
@@ -15,18 +18,17 @@ export type EmailMessage = { to: string; subject: string; html: string; text: st
 export async function sendEmail(from: keyof typeof SENDERS, message: EmailMessage): Promise<{ ok: true } | { ok: false; error: string }> {
   const lovableKey = process.env["LOVABLE_API_KEY"];
   const resendKey = process.env["RESEND_API_KEY"];
-  if (!lovableKey || !resendKey) {
-    console.error("[E-Mail] LOVABLE_API_KEY oder RESEND_API_KEY fehlt – ist Resend mit dem Projekt verknüpft?");
+  const direct = resendKey?.startsWith("re_") === true;
+  if (!resendKey || (!direct && !lovableKey)) {
+    console.error("[E-Mail] RESEND_API_KEY fehlt (oder LOVABLE_API_KEY für den Lovable-Connector) – E-Mail-Versand ist nicht eingerichtet.");
     return { ok: false, error: "E-Mail-Versand ist nicht eingerichtet." };
   }
   try {
-    const response = await fetch(`${GATEWAY}/emails`, {
+    const response = await fetch(direct ? `${RESEND_API}/emails` : `${GATEWAY}/emails`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": resendKey,
-        "Content-Type": "application/json",
-      },
+      headers: direct
+        ? { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" }
+        : { Authorization: `Bearer ${lovableKey}`, "X-Connection-Api-Key": resendKey, "Content-Type": "application/json" },
       body: JSON.stringify({ from: SENDERS[from], reply_to: SITE.email, ...message }),
     });
     if (!response.ok) {

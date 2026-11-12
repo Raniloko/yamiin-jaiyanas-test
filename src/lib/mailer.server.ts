@@ -10,12 +10,20 @@ import { SITE } from "@/lib/site-info";
 // eine eigene Seite betreiben, und Login-Links würden sonst dorthin zurückführen.
 const OWN_HOST = /^https:\/\/([a-z0-9-]+\.)*yamiin-jaiyanas\.de$|^https:\/\/[a-z0-9-]*a267365a-66f8-4a54-bc15-d63972c4c8de[a-z0-9-]*\.lovable\.app$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-/** Weitere eigene Adressen (z. B. nach einem Hosting-Wechsel) als kommagetrennte Liste in APP_ALLOWED_ORIGINS. */
-const extraOrigins = () =>
-  (process.env["APP_ALLOWED_ORIGINS"] ?? "")
+/**
+ * Weitere eigene Adressen: die Adressen DIESES Vercel-Projekts (Vercel setzt sie selbst, z. B. "projekt.vercel.app"
+ * und die Vorschau des Branches) und, als kommagetrennte Liste, APP_ALLOWED_ORIGINS.
+ */
+const extraOrigins = () => [
+  ...["VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_BRANCH_URL", "VERCEL_URL"].flatMap((key) => {
+    const host = process.env[key];
+    return host ? [`https://${host}`] : [];
+  }),
+  ...(process.env["APP_ALLOWED_ORIGINS"] ?? "")
     .split(",")
     .map((entry) => entry.trim().replace(/\/+$/, ""))
-    .filter(Boolean);
+    .filter(Boolean),
+];
 
 /** Basis für Links in Mails und für die Rückkehr von der Zahlung: die Seite, von der die Anfrage kam – nur eigene Adressen, sonst die Hauptadresse. */
 export function appOrigin(request: Request | undefined) {

@@ -6,6 +6,8 @@
 drop policy if exists "Anyone can read orders" on public.orders;
 drop policy if exists "Anyone can update an order status" on public.orders;
 drop policy if exists "Anyone can create an order" on public.orders;
+drop policy if exists "Admins read orders" on public.orders;
+drop policy if exists "Admins update orders" on public.orders;
 
 -- Neue Bestellungen: nie als bezahlt, immer mit Status "bestätigt", ohne Stripe-Session.
 create policy "Anyone can create an order" on public.orders
