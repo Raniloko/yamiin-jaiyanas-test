@@ -39,6 +39,11 @@ alter table public.orders add constraint orders_shape_check check (jsonb_typeof(
 create index if not exists orders_created_at_idx on public.orders (created_at);
 
 -- 2) Übrige Tabellen: nur die Rechte, die die Website wirklich braucht -----------------------------
+-- Der Server (Service-Rolle) braucht alle Tabellen – ausdrücklich vergeben, damit es nicht von den
+-- Voreinstellungen eines neuen Supabase-Projekts abhängt.
+grant all on public.orders, public.admin_emails, public.auth_mail_log, public.menu_events,
+  public.shop_status, public.menu_availability to service_role;
+
 -- Admin-Liste und Mail-Protokoll: ausschließlich Service-Rolle und die security-definer-Funktionen.
 revoke all on public.admin_emails from anon, authenticated;
 revoke all on public.auth_mail_log from anon, authenticated;

@@ -1,6 +1,9 @@
 -- Übersicht für das Dashboard: alle Admin-Freigaben und alle Login-Konten (ohne Passwörter/Tokens).
 -- Nur für Admins (is_admin()), sonst leer.
-create or replace function public.admin_accounts()
+-- 0006 ersetzt die Funktion durch eine Fassung mit mehr Spalten; drop statt "create or replace",
+-- damit die Dateien auch erneut in Reihenfolge laufen dürfen.
+drop function if exists public.admin_accounts();
+create function public.admin_accounts()
 returns table (email text, is_admin boolean, has_account boolean, confirmed boolean, last_sign_in_at timestamptz, created_at timestamptz)
 language sql
 stable

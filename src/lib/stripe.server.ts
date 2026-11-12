@@ -16,10 +16,28 @@ export function getConnectionApiKey(env: StripeEnv): string {
   return env === "sandbox" ? getEnv("STRIPE_SANDBOX_API_KEY") : getEnv("STRIPE_LIVE_API_KEY");
 }
 
-// Routes api.stripe.com requests through the connector gateway.
-// Only api.stripe.com is proxied (not files.stripe.com or connect.stripe.com).
+/** Echter Schlüssel aus einem eigenen Stripe-Konto (geheim `sk_…` oder eingeschränkt `rk_…`). */
+const isStripeSecretKey = (key: string) => /^(sk|rk)_(test|live)_/.test(key);
+
+// Zwei Wege zu Stripe:
+//  * Eigenes Hosting (Vercel): STRIPE_SANDBOX_API_KEY / STRIPE_LIVE_API_KEY enthalten echte Stripe-Schlüssel
+//    (sk_test_… bzw. sk_live_…) → direkt an api.stripe.com.
+//  * Lovable: dort sind es Verbindungsschlüssel des Lovable-Connectors → über das Connector-Gateway
+//    (nur api.stripe.com wird weitergeleitet, nicht files.stripe.com oder connect.stripe.com).
 export function createStripeClient(env: StripeEnv): Stripe {
   const connectionApiKey = getConnectionApiKey(env);
+
+  if (isStripeSecretKey(connectionApiKey)) {
+    // Ein Test-Schlüssel darf nie echte Zahlungen annehmen und umgekehrt.
+    if (connectionApiKey.includes(env === "live" ? "_test_" : "_live_")) {
+      throw new Error(`${env === "live" ? "STRIPE_LIVE_API_KEY" : "STRIPE_SANDBOX_API_KEY"} gehört zur falschen Stripe-Umgebung`);
+    }
+    return new Stripe(connectionApiKey, {
+      apiVersion: "2026-03-25.dahlia",
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+  }
+
   const lovableApiKey = getEnv("LOVABLE_API_KEY");
 
   return new Stripe(connectionApiKey, {

@@ -12,4 +12,7 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Hosting auf Vercel: Vercel setzt beim Build VERCEL=1, dann entsteht die Vercel-Ausgabe (.vercel/output).
+  // Innerhalb von Lovable legt die Lovable-Konfiguration ihr eigenes Ziel fest und ignoriert diese Angabe.
+  ...(process.env["VERCEL"] ? { nitro: { preset: "vercel" } } : {}),
 });
