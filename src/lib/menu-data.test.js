@@ -34,7 +34,7 @@ describe("Original-Speisekarte", () => {
     expect(wraps[0]?.price).toBe("8,90 €");
   });
   test("Baukasten enthält sechs Schritte mit den Original-Inklusivmengen", () => {
-    expect(bowlSteps.map(step => step.included)).toEqual([null, null, 3, 1, 1, 1]);
+    expect(bowlSteps.map(step => step.included)).toEqual([null, 1, 3, 1, 1, 1]);
     expect(bowlSteps.filter(step => step.seasonal).map(step => step.title)).toEqual(["Veggies", "Specials"]);
   });
 });
